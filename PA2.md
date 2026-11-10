@@ -24,7 +24,8 @@ Additional evidence:
 ## Release checks still required
 
 1. Merge the reviewed follow-up only after its five checks pass; keep PR #10 unmerged.
-2. Complete T12 separately: the model key and spending cap have not been set.
+2. T12 account setup now uses the user's chosen Free-tier-only policy: key created,
+   no billing configured. See [evidence and the distinction from a dollar cap](docs/pa2/t12-free-tier.md).
 3. Complete each developer's own environment/fresh-clone evidence (T04/T14);
    Hoang's macOS run does not establish a run on Hoa's machine.
 4. Create and push `pa2` for the final commit, wait for tag CI and insert its link above.

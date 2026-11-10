@@ -93,11 +93,20 @@ Gemini model. The model never decides a grade; a TA reviews every proposal.
 | --- | --- |
 | Provider | Google Gemini API |
 | Initial model | `gemini-3.6-flash` (set with `GEMINI_MODEL`); the model comparison on the dev set may change it, and this section must then be updated |
-| Key | `GEMINI_API_KEY`, held by one team member, stored only in the untracked `.env`, never committed. CI and unit tests use no key. |
-| Spending limit | **Proposed: USD 20 per month.** The key holder has not created the API key or set the project's spending cap (confirmed by Hoang on 2026-11-10). T12 is incomplete. |
+| Key | `leetkob-pa02`, created on 2026-11-10 in Google AI Studio project `LeeTKOB` (`gen-lang-client-0403299997`). The holder can copy it from AI Studio into their private `GEMINI_API_KEY`; its value was not copied into this repo, logs or chat. CI and unit tests use no key. |
+| Spending control | **Free tier only; billing is not configured**, as explicitly requested by Hoang. No paid plan, payment method or USD 20/month spending cap was enabled. Keep billing disabled; upgrading requires a new explicit decision. |
 | Per-lab call cap | Planned, not implemented: 800 model calls per lab (twice the expected 400); beyond it verdicts become `unsure` (FAQ-09) |
 
 ### Cost of one lab
+
+The selected operating mode is Free tier: supported free-tier calls within quota
+have no billed token cost. This does not guarantee that a full 400-call lab fits
+the free quotas or that every model is available in this tier. No real model call
+or quota-capacity test was made while provisioning the key. See the
+[masked account evidence](docs/pa2/t12-free-tier.md).
+
+The paid-pricing estimate below is retained for comparison only; it is not the
+active billing configuration or a spend cap that has been set.
 
 One model call per counted submission and constraint. Worst case from the brief: 80
 students and 5 constraints, so 400 calls.
@@ -111,7 +120,6 @@ Assumptions per call, not yet measured: 2,000 input tokens (statement, constrain
 | 1.50 / 7.50 (from 2027-01-01) | USD 5.70 | USD 11.40 |
 
 Prices are from the [Gemini API pricing page](https://ai.google.dev/gemini-api/docs/pricing),
-read on 2026-11-10; the page gives no update date, so re-check before relying on them. At
-the proposed limit of USD 20 per month, the post-2026 worst case allows about one lab per
-month with retries, or three without. Replace the token assumptions with measured values
-after the model trial.
+read on 2026-11-10; the page gives no update date, so re-check before relying on them.
+The earlier USD 20/month proposal was replaced by the user's Free-tier-only
+decision. Replace the token assumptions with measured values after the model trial.

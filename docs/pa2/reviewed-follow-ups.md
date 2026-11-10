@@ -1,5 +1,10 @@
 # Reviewed PA#02 follow-ups
 
+Update: T12 account provisioning was subsequently completed with a dedicated
+LeeTKOB key on the user's explicit Free-tier-only choice. Billing is not set up;
+no dollar cap was configured. See [current T12 evidence](t12-free-tier.md).
+The earlier pending-T12 statement below records the pre-provisioning review.
+
 Hoang confirmed on 2026-11-10 that the team's items had been reviewed and asked
 for the remaining corrections. This records that confirmation; it does not create
 GitHub Review events or imply that another person's local machine was exercised.
