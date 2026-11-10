@@ -1,0 +1,28 @@
+{
+  "started_at": "2026-11-09T22:39:08.096531+07:00",
+  "platform": "macOS arm64 (native; not WSL)",
+  "commit": "b76ccd5d4c863e7df41a27810d0a016b5dbad0a7",
+  "checks": [
+    {
+      "command": "make lint",
+      "exit_code": 0,
+      "seconds": 66.48
+    },
+    {
+      "command": "make format-check",
+      "exit_code": 0,
+      "seconds": 13.94
+    },
+    {
+      "command": "make typecheck",
+      "exit_code": 0,
+      "seconds": 63.36
+    },
+    {
+      "command": "make test",
+      "exit_code": 0,
+      "seconds": 71.61
+    }
+  ],
+  "finished_at": "2026-11-09T22:42:45.268022+07:00"
+}

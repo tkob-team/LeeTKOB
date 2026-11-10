@@ -1,0 +1,6 @@
+{
+  "make-lint.log": "ae2c006a08e8bca2d0ade228e3d2cdc57db8a7209af9f87731084085f00a4a08",
+  "make-format-check.log": "b8fecfa3b64b8a58619d970eadac16ede751c0ce92cc4209c5947faae3cfa0f4",
+  "make-typecheck.log": "cf744d2508a9f6bf4f6c4673aa2ae61df1f3d7b2702e55a9f93db1b8b52ae4c9",
+  "make-test.log": "108afa8a5406fd8b9eb7c2e516eba2cd59356466b23c08d2c298e5eaec84fe37"
+}

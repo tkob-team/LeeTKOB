@@ -14,7 +14,18 @@ Monorepo:
 
 On Windows, use WSL and run everything from inside the WSL shell.
 
-Copy `.env.example` to `.env` and fill in the values.
+Select JDK 25 before running checks (`java -version` must report 25). On macOS,
+select that installed JDK for the current shell; on Windows use the WSL toolchain.
+Run `uv --version` and `docker info` to confirm uv and the Docker daemon are available.
+
+The four checks need no real credentials or `.env`: Testcontainers supplies the
+database and tests use a fake JWT signing key. `uv run --locked` creates the checker
+environment from its lockfile. A first run needs network access for dependencies.
+
+For running the application, copy `.env.example` to an untracked `.env` and fill it
+privately. Spring Boot does not automatically load a shell `.env` file: export the
+listed variables into the application process using your own launcher or IDE.
+Never ask an agent to read that file. The model key is not needed for PA#02 tests.
 
 ## Checks
 
@@ -62,6 +73,16 @@ To check a command against the rules:
 codex execpolicy check --rules .codex/rules/default.rules -- git push --force origin x
 ```
 
+Run `python3 scripts/check-agent-permissions.py` for the reproducible command
+matrix. See [permission coverage](docs/pa2/agent-permissions.md) for what is
+runtime-enforced and what remains agent policy; prefix checks do not establish
+interactive enforcement or universal secret-file isolation.
+
+## PA#02 evidence
+
+See [PA2.md](PA2.md) for the evidence links and remaining release-tag step.
+The [PostgreSQL queue ADR](docs/decisions/0001-postgresql-judge-queue.md) records
+T27; workers and sandbox execution remain later tasks.
 
 ## Model and cost
 
@@ -73,7 +94,7 @@ Gemini model. The model never decides a grade; a TA reviews every proposal.
 | Provider | Google Gemini API |
 | Initial model | `gemini-3.6-flash` (set with `GEMINI_MODEL`); the model comparison on the dev set may change it, and this section must then be updated |
 | Key | `GEMINI_API_KEY`, held by one team member, stored only in the untracked `.env`, never committed. CI and unit tests use no key. |
-| Spending limit | USD 20 per month, set in the provider console by the key holder. **Proposed value: not yet confirmed as set.** |
+| Spending limit | **Proposed: USD 20 per month.** The key holder has not created the API key or set the project's spending cap (confirmed by Hoang on 2026-11-10). T12 is incomplete. |
 | Per-lab call cap | Planned, not implemented: 800 model calls per lab (twice the expected 400); beyond it verdicts become `unsure` (FAQ-09) |
 
 ### Cost of one lab

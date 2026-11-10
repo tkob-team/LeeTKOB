@@ -1,6 +1,6 @@
 # Contract: `POST /labs/{labId}/submissions`
 
-Status: draft 0.2.0 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
+Status: draft 1.0.0 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
 
 A student submits C++ source code to a lab of a class they belong to. Sending the same request again with the same `Idempotency-Key` never creates a second submission.
 
@@ -8,7 +8,7 @@ A student submits C++ source code to a lab of a class they belong to. Sending th
 
 | Caller | Result |
 | --- | --- |
-| No token, malformed token, bad signature, `alg` other than HS256, expired token, or missing `sub` / `role` claim | 401 `unauthenticated` |
+| No token, malformed token, bad signature, `alg` other than HS256, expired token, or missing `sub` / `role` / `exp` claim | 401 `unauthenticated` |
 | Valid token with role `ADMIN` or `TA` | 403 `forbidden-role` (only students submit) |
 | Valid `STUDENT` who is **not** a member of the lab's class | 404 `lab-not-found` (same answer as an unknown lab, so lab IDs cannot be probed) |
 | Valid `STUDENT` who is a member of the lab's class | Allowed (continue with the rules below) |
@@ -53,7 +53,7 @@ The first failing step decides the response:
 8. Lab is open for submissions: `now >= opens_at` (else 409 `lab-not-open`) and `now < due_at` (else 409 `lab-closed`).
 9. Create the submission (201).
 
-Time rules (FAQ-03): `now` is the server's clock when the request is received, in UTC, not the time grading finishes. A request received before `due_at` stays valid even if it waits in the grading queue. A submission at exactly `due_at` is late.
+Time rules (FAQ-03): `now` is captured in UTC at the first application request filter, before authentication, database access and body processing. This instant is kept for the whole request; processing latency cannot turn an on-time request into a late one or a request before opening into an accepted one. Deadline comparisons retain the full captured precision; only the stored/returned `submittedAt` is truncated to milliseconds. A request received before `due_at` stays valid even if it waits in the grading queue. A submission at exactly `due_at` is late.
 
 A student may submit as many times as they like before the deadline (FAQ-02). Each new `Idempotency-Key` creates a new submission. Which one counts for the grade is decided elsewhere and is not part of this contract.
 
@@ -134,7 +134,7 @@ Content-Type: application/problem+json
 
 ## 6. Data the contract assumes
 
-Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab` (class, `opens_at`, `due_at`) and `Submission` (lab, student, key, code hash, code, `submitted_at`). Only the fields above are part of the contract; column names are an implementation detail.
+Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab` (class, `opens_at`, `due_at`) and `Submission` (lab, student, key, code, `submitted_at`). Replay compares the stored code directly, byte-exact after JSON decoding; no code-hash column is required. Only the fields above are part of the contract; column names are an implementation detail.
 
 ## 7. Changing this contract
 
@@ -149,6 +149,7 @@ Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab`
 | --- | --- |
 | 0.1.0 | First draft. |
 | 0.2.0 | Non-breaking: added section 9 (scope, edge cases) after a blind read found unspecified behaviour. No existing rule changed. |
+| 1.0.0 | **Breaking:** require `exp` and reject expired JWTs without clock-skew grace. Reviewed follow-up authorized by the team through Hoang on 2026-11-10. Fix receipt-time handling and document full-precision deadline checks; align the data description with direct stored-code comparison. |
 
 ## 8. Contract tests this file requires
 
@@ -166,6 +167,9 @@ One test per row; names are suggestions.
 | Concurrent same key | `concurrentSameKeyCreatesOneSubmission` |
 | Retry after the deadline still replays | `replayAfterDeadlineStillReturnsOriginal` |
 | Deadline boundary | `submissionAtDueAtIsLate` |
+| Processing crosses deadline/opening after receipt | `receivedBeforeDeadlineIsAcceptedAfterProcessingCrossesDeadline`, `receivedBeforeOpeningStaysRejectedAfterProcessingCrossesOpening` |
+| Sub-millisecond deadline precision | `deadlineComparisonDoesNotTruncateReceiptToMilliseconds` |
+| Required expiry and no expiration grace | `tokenWithoutExpiryIsUnauthenticated`, `recentlyExpiredTokenIsUnauthenticated` |
 | Oversized code is not stored | `oversizedCodeCreatesNoSubmission` |
 
 ## 9. Scope and edge cases
@@ -184,6 +188,7 @@ Rules added after a blind read of version 0.1.0. They only fill gaps; no rule ab
 
 - `role` is case-sensitive and must be exactly `ADMIN`, `TA` or `STUDENT`; any other value is 401.
 - `sub` must be a UUID; otherwise 401. A `sub` with no matching user is 401.
+- `exp` is required. Expiry uses the server's authentication clock, with zero clock-skew grace; an expired token is 401 even if it expired only one second ago. If `nbf` is present, a token not yet valid is also 401. Clients must refresh before expiry. The lab receipt-time clock and authentication-time validation have separate purposes.
 
 ### Order of checks with replays
 

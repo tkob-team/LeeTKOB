@@ -31,6 +31,8 @@ make test
 - Add an entry to `AI-LOG.md` for AI-assisted work: tool, task, Kept, Changed, Rejected.
 - Repository documentation is in English.
 - Configuration comes from environment variables listed in `.env.example` (names only, no values).
+- Verify the exact `make` entry points in the documented shell before claiming success: manual Git Bash commands passed while the WSL make run failed on missing uv/JDK 17 ([T01 incident record, b76ccd5](https://github.com/tkob-team/LeeTKOB/blob/b76ccd5/AI-LOG.md)).
+- Pass permission-probe arguments as arrays, not an unquoted zsh string: word splitting produced incorrect results in T07 ([incident record, d4b4efd](https://github.com/tkob-team/LeeTKOB/blob/d4b4efde27f06ba091fdf43d3ccf4f3999532af5/AI-LOG.md#2026-11-10--t07-codex-permissions-and-trust-step-hoa)).
 
 ## Never
 
@@ -42,7 +44,9 @@ make test
 
 ## Permissions
 
-Three levels. `.claude/settings.json` enforces them for Claude Code. `.codex/config.toml` and `.codex/rules/default.rules` enforce them for Codex (allowed = `allow`, ask first = `prompt`, never = `forbidden`). Keep all three in sync when a level changes.
+Three policy levels apply to every agent. `.claude/settings.json` configures Claude Code's supported read/edit and shell permissions. Codex uses `.codex/config.toml` for workspace/network isolation and `.codex/rules/default.rules` for matching shell commands outside the sandbox (`allow`, `prompt`, `forbidden`). Project configuration must be trusted before it loads. Keep the policy and supported configuration in sync.
+
+Shell prefix rules are not a universal file-access firewall. In particular, the checked-in Codex configuration does not enforce per-file edit approval or prevent every tool/interpreter from reading a secret inside the workspace. Those restrictions below remain agent instructions; keep real credentials outside the agent's accessible environment when hard isolation is needed. Do not claim a permission is runtime-enforced based only on syntax or a prefix probe. See `docs/pa2/agent-permissions.md` for coverage and limits.
 
 **Allowed (no prompt)**
 - Read files in the repository.
@@ -55,7 +59,7 @@ Three levels. `.claude/settings.json` enforces them for Claude Code. `.codex/con
 - `git commit`, `git push`, creating or merging a pull request, Docker commands.
 - Any command that needs network access or writes outside the repository.
 
-**Never (blocked)**
+**Never (policy; matching shell commands are blocked)**
 - Read or edit `.env` or any file holding real secrets.
 - Force-push, push to `main`, delete branches or tags.
 - Edit eval data or labels; destructive commands such as `rm -rf`.

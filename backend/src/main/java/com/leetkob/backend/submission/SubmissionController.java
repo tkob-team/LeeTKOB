@@ -5,7 +5,6 @@ import com.leetkob.backend.problem.ProblemType;
 import com.leetkob.backend.problem.Problems;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -31,17 +30,12 @@ class SubmissionController {
   private final SubmissionRepository repository;
   private final SubmissionRequestParser parser;
   private final Problems problems;
-  private final Clock clock;
 
   SubmissionController(
-      SubmissionRepository repository,
-      SubmissionRequestParser parser,
-      Problems problems,
-      Clock clock) {
+      SubmissionRepository repository, SubmissionRequestParser parser, Problems problems) {
     this.repository = repository;
     this.parser = parser;
     this.problems = problems;
-    this.clock = clock;
   }
 
   @PostMapping("/labs/{labId}/submissions")
@@ -72,7 +66,7 @@ class SubmissionController {
       return replayOrReject(existing.get(), lab, code);
     }
     // Step 8
-    Instant now = clock.instant().truncatedTo(ChronoUnit.MILLIS);
+    Instant now = RequestReceivedAtFilter.receivedAt(request);
     if (now.isBefore(found.opensAt())) {
       throw new ApiException(ProblemType.LAB_NOT_OPEN, "The lab is not open for submissions yet.");
     }
@@ -81,7 +75,13 @@ class SubmissionController {
     }
     // Step 9
     var created =
-        new SubmissionRepository.Stored(UUID.randomUUID(), lab, studentId, code, sizeOf(code), now);
+        new SubmissionRepository.Stored(
+            UUID.randomUUID(),
+            lab,
+            studentId,
+            code,
+            sizeOf(code),
+            now.truncatedTo(ChronoUnit.MILLIS));
     if (repository.insertIfAbsent(created, key)) {
       return json(201, created, false);
     }

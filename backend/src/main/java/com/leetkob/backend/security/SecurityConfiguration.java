@@ -4,6 +4,7 @@ import com.leetkob.backend.problem.ApiException;
 import com.leetkob.backend.problem.ProblemType;
 import com.leetkob.backend.problem.Problems;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.crypto.spec.SecretKeySpec;
@@ -22,7 +23,7 @@ import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
@@ -67,8 +68,9 @@ class SecurityConfiguration {
                 new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"))
             .macAlgorithm(MacAlgorithm.HS256)
             .build();
-    decoder.setJwtValidator(
-        new DelegatingOAuth2TokenValidator<>(JwtValidators.createDefault(), claimsValidator()));
+    JwtTimestampValidator timestamps = new JwtTimestampValidator(Duration.ZERO);
+    timestamps.setAllowEmptyExpiryClaim(false);
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(timestamps, claimsValidator()));
     return decoder;
   }
 
