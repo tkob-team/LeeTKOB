@@ -146,3 +146,9 @@
 - Tests: twelve HTTP/PostgreSQL integration cases cover role and cross-class boundaries, unknown/invalid inputs, role changes, concurrent joins, spoofed body fields, and submission access after joining. Original tests/assertions are unchanged.
 - Rejected: allowing request bodies to choose the authenticated user or grant a TA role; assigning students as TAs; treating this class API as completion of T28 login. An initial new test reused a request builder and accumulated Authorization headers; its fixture now replaces the header per call, preserving the original access-denial assertion.
 - Validation: all four exact make commands exit 0 on the shared macOS workstation; backend reports 50 tests (12 new class tests plus 38 existing tests), 0 failures/errors/skips; checker reports 1 test passed. Original submission-contract test file is unchanged.
+## 2026-11-10 — T14: fresh clone on the shared team workstation
+
+- Tool: Codex. Prompt: Hoang clarified that Hoa and Hiep work on this same machine; complete their tasks here and mark completed work done.
+- Kept: original task ownership and actual native macOS arm64 provenance.
+- Changed: fetched a new clone from GitHub at `cebb551`, selected the README prerequisites, and ran all four exact make commands without real credentials. All exit codes are 0; see [results](docs/pa2/logs/t14/results.json), [full output](docs/pa2/logs/t14/make-logs.zip) and [setup record](docs/pa2/t14-fresh-clone.md). This completes the shared-workstation T04/T14 verification; a separate personal machine is not required by the team.
+- Rejected: inventing a WSL run or maintaining the earlier assumption that different owners require different computers.

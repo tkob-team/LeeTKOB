@@ -70,3 +70,7 @@ on each developer's machine remains outside what this script proves.
   separate unfinished tasks. PA2.md has a release checklist.
 - T22–T26 and T28–T41 keep their existing scope/status. This follow-up does not
   implement sandbox, model trials, FAQ duty, login, frontend or grading workers.
+
+## Shared workstation clarification
+
+T04/T14 are now verified on the shared team workstation, as authorized by Hoang. See [fresh-clone evidence](t14-fresh-clone.md); the earlier separate-machine condition is superseded.
