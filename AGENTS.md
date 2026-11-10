@@ -42,7 +42,7 @@ make test
 
 ## Permissions
 
-Three levels. `.claude/settings.json` enforces them for Claude Code. Codex permissions (`.codex/config.toml` and Rules) are not added yet and must mirror these three levels.
+Three levels. `.claude/settings.json` enforces them for Claude Code. `.codex/config.toml` and `.codex/rules/default.rules` enforce them for Codex (allowed = `allow`, ask first = `prompt`, never = `forbidden`). Keep all three in sync when a level changes.
 
 **Allowed (no prompt)**
 - Read files in the repository.
