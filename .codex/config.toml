@@ -1,5 +1,5 @@
-# Codex permissions for this repository. Mirrors the three levels in AGENTS.md:
-# allowed, ask first, never. Command-level rules live in .codex/rules/.
+# Codex workspace/network baseline. Command rules live in .codex/rules/.
+# AGENTS.md also contains file-access policy not enforced by these shell rules.
 # Codex only reads this file after you trust the project (see README).
 
 # Ask before running commands that need approval; do not auto-approve.

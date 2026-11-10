@@ -14,7 +14,18 @@ Monorepo:
 
 On Windows, use WSL and run everything from inside the WSL shell.
 
-Copy `.env.example` to `.env` and fill in the values.
+Select JDK 25 before running checks (`java -version` must report 25). On macOS,
+select that installed JDK for the current shell; on Windows use the WSL toolchain.
+Run `uv --version` and `docker info` to confirm uv and the Docker daemon are available.
+
+The four checks need no real credentials or `.env`: Testcontainers supplies the
+database and tests use a fake JWT signing key. `uv run --locked` creates the checker
+environment from its lockfile. A first run needs network access for dependencies.
+
+For running the application, copy `.env.example` to an untracked `.env` and fill it
+privately. Spring Boot does not automatically load a shell `.env` file: export the
+listed variables into the application process using your own launcher or IDE.
+Never ask an agent to read that file. The model key is not needed for PA#02 tests.
 
 ## Checks
 
@@ -62,6 +73,16 @@ To check a command against the rules:
 codex execpolicy check --rules .codex/rules/default.rules -- git push --force origin x
 ```
 
+Run `python3 scripts/check-agent-permissions.py` for the reproducible command
+matrix. See [permission coverage](docs/pa2/agent-permissions.md) for what is
+runtime-enforced and what remains agent policy; prefix checks do not establish
+interactive enforcement or universal secret-file isolation.
+
+## PA#02 evidence
+
+See [PA2.md](PA2.md) for the evidence links and remaining release-tag step.
+The [PostgreSQL queue ADR](docs/decisions/0001-postgresql-judge-queue.md) records
+T27; workers and sandbox execution remain later tasks.
 
 ## Model and cost
 
@@ -72,11 +93,20 @@ Gemini model. The model never decides a grade; a TA reviews every proposal.
 | --- | --- |
 | Provider | Google Gemini API |
 | Initial model | `gemini-3.6-flash` (set with `GEMINI_MODEL`); the model comparison on the dev set may change it, and this section must then be updated |
-| Key | `GEMINI_API_KEY`, held by one team member, stored only in the untracked `.env`, never committed. CI and unit tests use no key. |
-| Spending limit | USD 20 per month, set in the provider console by the key holder. **Proposed value: not yet confirmed as set.** |
+| Key | `leetkob-pa02`, created on 2026-11-10 in Google AI Studio project `LeeTKOB` (`gen-lang-client-0403299997`). The holder can copy it from AI Studio into their private `GEMINI_API_KEY`; its value was not copied into this repo, logs or chat. CI and unit tests use no key. |
+| Spending control | **Free tier only; billing is not configured**, as explicitly requested by Hoang. No paid plan, payment method or USD 20/month spending cap was enabled. Keep billing disabled; upgrading requires a new explicit decision. |
 | Per-lab call cap | Planned, not implemented: 800 model calls per lab (twice the expected 400); beyond it verdicts become `unsure` (FAQ-09) |
 
 ### Cost of one lab
+
+The selected operating mode is Free tier: supported free-tier calls within quota
+have no billed token cost. This does not guarantee that a full 400-call lab fits
+the free quotas or that every model is available in this tier. No real model call
+or quota-capacity test was made while provisioning the key. See the
+[masked account evidence](docs/pa2/t12-free-tier.md).
+
+The paid-pricing estimate below is retained for comparison only; it is not the
+active billing configuration or a spend cap that has been set.
 
 One model call per counted submission and constraint. Worst case from the brief: 80
 students and 5 constraints, so 400 calls.
@@ -90,7 +120,6 @@ Assumptions per call, not yet measured: 2,000 input tokens (statement, constrain
 | 1.50 / 7.50 (from 2027-01-01) | USD 5.70 | USD 11.40 |
 
 Prices are from the [Gemini API pricing page](https://ai.google.dev/gemini-api/docs/pricing),
-read on 2026-11-10; the page gives no update date, so re-check before relying on them. At
-the proposed limit of USD 20 per month, the post-2026 worst case allows about one lab per
-month with retries, or three without. Replace the token assumptions with measured values
-after the model trial.
+read on 2026-11-10; the page gives no update date, so re-check before relying on them.
+The earlier USD 20/month proposal was replaced by the user's Free-tier-only
+decision. Replace the token assumptions with measured values after the model trial.

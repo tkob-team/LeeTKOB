@@ -12,6 +12,11 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Clock;
@@ -37,10 +42,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -67,10 +75,16 @@ class SubmissionContractTest {
   static class TestClock extends Clock {
     private final AtomicReference<Instant> now = new AtomicReference<>(NOW);
     private final AtomicBoolean failing = new AtomicBoolean();
+    private final AtomicReference<Instant> nextProcessingTime = new AtomicReference<>();
 
     void set(Instant instant) {
       now.set(instant);
       failing.set(false);
+      nextProcessingTime.set(null);
+    }
+
+    void advanceAfterReceiptTo(Instant instant) {
+      nextProcessingTime.set(instant);
     }
 
     void fail() {
@@ -102,6 +116,23 @@ class SubmissionContractTest {
     @Primary
     TestClock testClock() {
       return new TestClock();
+    }
+
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+    OncePerRequestFilter processingDelay(TestClock clock) {
+      return new OncePerRequestFilter() {
+        @Override
+        protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+          Instant processingTime = clock.nextProcessingTime.getAndSet(null);
+          if (processingTime != null) {
+            clock.set(processingTime);
+          }
+          chain.doFilter(request, response);
+        }
+      };
     }
   }
 
@@ -264,6 +295,54 @@ class SubmissionContractTest {
   }
 
   // ---- request rules ---------------------------------------------------------------------
+
+  @Test
+  void tokenWithoutExpiryIsUnauthenticated() throws Exception {
+    SignedJWT jwt =
+        new SignedJWT(
+            new JWSHeader(JWSAlgorithm.HS256),
+            new JWTClaimsSet.Builder()
+                .subject(studentId.toString())
+                .claim("role", "STUDENT")
+                .build());
+    jwt.sign(new MACSigner(SECRET.getBytes(StandardCharsets.UTF_8)));
+    problem(submit(labId, jwt.serialize(), KEY, CODE), 401, "unauthenticated");
+    assertThat(rows()).isZero();
+  }
+
+  @Test
+  void recentlyExpiredTokenIsUnauthenticated() throws Exception {
+    String jwt =
+        token(studentId, "STUDENT", Instant.now().minusSeconds(1), SECRET, JWSAlgorithm.HS256);
+    problem(submit(labId, jwt, KEY, CODE), 401, "unauthenticated");
+    assertThat(rows()).isZero();
+  }
+
+  @Test
+  void receivedBeforeDeadlineIsAcceptedAfterProcessingCrossesDeadline() throws Exception {
+    clock.set(NOW.plusSeconds(3599).plusNanos(999_999_999));
+    clock.advanceAfterReceiptTo(NOW.plus(Duration.ofHours(2)));
+    submit(labId, token(studentId, "STUDENT"), KEY, CODE)
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.submittedAt").value("2026-11-10T03:59:59.999Z"));
+    assertThat(rows()).isEqualTo(1);
+  }
+
+  @Test
+  void receivedBeforeOpeningStaysRejectedAfterProcessingCrossesOpening() throws Exception {
+    UUID futureLab = lab(classId, NOW.plusSeconds(1), NOW.plus(Duration.ofHours(1)));
+    clock.advanceAfterReceiptTo(NOW.plusSeconds(2));
+    problem(submit(futureLab, token(studentId, "STUDENT"), KEY, CODE), 409, "lab-not-open");
+    assertThat(rows()).isZero();
+  }
+
+  @Test
+  void deadlineComparisonDoesNotTruncateReceiptToMilliseconds() throws Exception {
+    UUID preciseLab = lab(classId, NOW.minusSeconds(1), NOW.plusNanos(500_000));
+    clock.set(NOW.plusNanos(750_000));
+    problem(submit(preciseLab, token(studentId, "STUDENT"), KEY, CODE), 409, "lab-closed");
+    assertThat(rows()).isZero();
+  }
 
   @Test
   void unsupportedMediaTypeIsRejected() throws Exception {

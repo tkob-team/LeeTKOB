@@ -15,6 +15,7 @@ prefix_rule(pattern = ["git", "diff"], decision = "allow", justification = "Read
 prefix_rule(pattern = ["git", "log"], decision = "allow", justification = "Read-only git", match = [["git", "log"]])
 
 # ---- Ask first ----
+prefix_rule(pattern = ["git", ["-C", "-c", "--git-dir", "--work-tree", "--no-pager", "--bare"]], decision = "prompt", justification = "Git global-option forms need approval", match = [["git", "-C", ".", "push", "origin", "main"]])
 prefix_rule(pattern = ["git", "commit"], decision = "prompt", justification = "Commits need approval", match = [["git", "commit", "-m", "x"]])
 prefix_rule(pattern = ["git", "push"], decision = "prompt", justification = "Pushing needs approval", match = [["git", "push", "origin", "feature"]])
 prefix_rule(pattern = ["gh", "pr"], decision = "prompt", justification = "Creating or merging a PR needs approval", match = [["gh", "pr", "create"]])
@@ -25,6 +26,10 @@ prefix_rule(pattern = ["uv", "add"], decision = "prompt", justification = "Depen
 prefix_rule(pattern = ["uv", "remove"], decision = "prompt", justification = "Dependency change needs approval", match = [["uv", "remove", "pkg"]])
 
 # ---- Never ----
+prefix_rule(pattern = ["git", "push", ["--force-with-lease", "--force-if-includes", "--delete", "-d", "--all", "--mirror"]], decision = "forbidden", justification = "No force, deletion, all-branch or mirror pushes", match = [["git", "push", "--force-with-lease", "origin", "feature"]])
+prefix_rule(pattern = ["git", "push", "origin", ["--force", "-f", "--force-with-lease", "--force-if-includes", "--delete", "-d", "--all", "--mirror", "HEAD:main", "HEAD:refs/heads/main", "refs/heads/main", ":main"]], decision = "forbidden", justification = "No destructive pushes or main refspecs after origin", match = [["git", "push", "origin", "--force", "feature"], ["git", "push", "origin", "HEAD:main"]])
+prefix_rule(pattern = ["git", "branch", ["-d", "--delete"]], decision = "forbidden", justification = "Never delete branches", match = [["git", "branch", "-d", "feature"]])
+prefix_rule(pattern = ["git", "tag", "--delete"], decision = "forbidden", justification = "Never delete tags", match = [["git", "tag", "--delete", "example"]])
 prefix_rule(pattern = ["git", "push", "--force"], decision = "forbidden", justification = "Never force-push", match = [["git", "push", "--force", "origin", "x"]])
 prefix_rule(pattern = ["git", "push", "-f"], decision = "forbidden", justification = "Never force-push", match = [["git", "push", "-f", "origin", "x"]])
 prefix_rule(pattern = ["git", "push", "origin", "main"], decision = "forbidden", justification = "Never push to main; use a PR", match = [["git", "push", "origin", "main"]])
@@ -36,3 +41,7 @@ prefix_rule(pattern = ["cat", ".env"], decision = "forbidden", justification = "
 prefix_rule(pattern = ["less", ".env"], decision = "forbidden", justification = "Never read real secrets", match = [["less", ".env"]])
 prefix_rule(pattern = ["head", ".env"], decision = "forbidden", justification = "Never read real secrets", match = [["head", ".env"]])
 prefix_rule(pattern = ["tail", ".env"], decision = "forbidden", justification = "Never read real secrets", match = [["tail", ".env"]])
+
+# These are prefix checks, not a full Git parser or a file-access firewall.
+# Listed global-option forms prompt; other arrangements may not match a rule.
+# Per-file edits and reads through other tools remain AGENTS.md policy.
