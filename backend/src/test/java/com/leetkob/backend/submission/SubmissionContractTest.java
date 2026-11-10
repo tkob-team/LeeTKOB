@@ -313,12 +313,7 @@ class SubmissionContractTest {
   @Test
   void recentlyExpiredTokenIsUnauthenticated() throws Exception {
     String jwt =
-        token(
-            studentId,
-            "STUDENT",
-            Instant.now().minusSeconds(1),
-            SECRET,
-            JWSAlgorithm.HS256);
+        token(studentId, "STUDENT", Instant.now().minusSeconds(1), SECRET, JWSAlgorithm.HS256);
     problem(submit(labId, jwt, KEY, CODE), 401, "unauthenticated");
     assertThat(rows()).isZero();
   }
