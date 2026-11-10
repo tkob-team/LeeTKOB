@@ -43,7 +43,12 @@ reproducible verification of the committed source.
 The first remote test commit also needed a formatting correction. Commit
 `4ddd760` contains the formatted regression tests before the implementation fix;
 [run 42809598818](https://github.com/tkob-team/LeeTKOB/actions/runs/42809598818)
-is the behavioral red baseline. Final CI evidence is linked from PR #13.
+is the behavioral red baseline: 37 contract tests, 5 assertion failures and 0
+errors; the other four required jobs passed and the PR was blocked. Implementation
+commit [8db9096](https://github.com/tkob-team/LeeTKOB/commit/8db9096) then passed
+[all five jobs](https://github.com/tkob-team/LeeTKOB/actions/runs/42810474162),
+including 37 contract tests and the context-load test. The test file is unchanged
+between `4ddd760` and `8db9096`. Final PR-head CI remains visible on PR #13.
 
 Run `python3 scripts/check-agent-permissions.py` to repeat the 19 command-decision
 checks without executing the supplied commands. Interactive agent enforcement

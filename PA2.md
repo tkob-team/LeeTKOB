@@ -7,8 +7,8 @@ Team: `23120255-23120262-23120264`. Review completion was confirmed by Hoang on
 | --- | --- |
 | Public repository | [tkob-team/LeeTKOB](https://github.com/tkob-team/LeeTKOB) |
 | Main branch protection | [Target and empty bypass list](docs/pa2/branch-protection.png), [five required checks](docs/pa2/branch-protection-2-required-checks.png), [ruleset record](docs/pa2/branch-protection.md) |
-| Red PR blocked from merging | [T11 PR #8](https://github.com/tkob-team/LeeTKOB/pull/8), [original red run](https://github.com/tkob-team/LeeTKOB/actions/runs/42767919398). Its failures were missing-table setup errors; the reviewed follow-up [PR #13](https://github.com/tkob-team/LeeTKOB/pull/13) adds behavioral regression evidence |
-| Green implementation commit/run | [T11 implementation 8338877](https://github.com/tkob-team/LeeTKOB/commit/8338877), [green run](https://github.com/tkob-team/LeeTKOB/actions/runs/42768403506). The final reviewed follow-up must also pass CI before release |
+| Red PR blocked from merging | [Follow-up PR #13](https://github.com/tkob-team/LeeTKOB/pull/13), [red run 42809598818](https://github.com/tkob-team/LeeTKOB/actions/runs/42809598818), test-only baseline `4ddd760`: 5 assertion failures, 0 setup errors; four other checks passed |
+| Green implementation commit/run | [Implementation fix 8db9096](https://github.com/tkob-team/LeeTKOB/commit/8db9096), [5/5 green run 42810474162](https://github.com/tkob-team/LeeTKOB/actions/runs/42810474162). The regression-test file is unchanged between the red and green commits |
 | Run for the pushed pa2 tag | **Pending T20.** No tag run exists yet; replace this cell with the actual run after the final source is tagged |
 | Code-only deliberate contract break | [T13 PR #10 — DO NOT MERGE](https://github.com/tkob-team/LeeTKOB/pull/10), [red run](https://github.com/tkob-team/LeeTKOB/actions/runs/42779970787), [disabled merge screenshot](docs/pa2/t13-blocked.png) |
 
@@ -19,6 +19,7 @@ Additional evidence:
 - [Permission coverage and reproducible command matrix](docs/pa2/agent-permissions.md).
 - [Contract](docs/contract/post-labs-submissions.md), [contract tests](backend/src/test/java/com/leetkob/backend/submission/SubmissionContractTest.java), [AI-LOG](AI-LOG.md).
 - [PostgreSQL queue decision, T27](docs/decisions/0001-postgresql-judge-queue.md).
+- Original T11: [PR #8](https://github.com/tkob-team/LeeTKOB/pull/8), [setup-error red run](https://github.com/tkob-team/LeeTKOB/actions/runs/42767919398), [green implementation run](https://github.com/tkob-team/LeeTKOB/actions/runs/42768403506).
 
 ## Release checks still required
 

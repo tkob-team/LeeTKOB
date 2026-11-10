@@ -1,6 +1,7 @@
 # AI-LOG
 
 ## 2026-11-04 — Scaffold repo: Spring Boot backend, Python checker, make checks (A)
+- Attribution: the tracker Overview sheet maps A to Hiep; the original author label is retained.
 - Tool: Claude Code (Claude Opus 5.5)
 - Asked for: scaffold backend/ and checker/ with one make target each for lint, format-check, typecheck, test; no business code.
 - Kept: project layout, Makefile run_both (runs both halves, fails if either fails), Checkstyle violationSeverity=warning, Spotless forced to LF.
