@@ -138,6 +138,14 @@
 - Validation: observed the new project/key and Free tier in the live UI, then the project-specific no-billing message. Screenshots contain only the masked key label. This proves account provisioning, not model-call validity or the capacity of a free quota for a full lab.
 - Evidence: [T12 account record](docs/pa2/t12-free-tier.md), [masked key list](docs/pa2/t12-free-tier-api-key.png), [no billing](docs/pa2/t12-free-tier-no-billing.png). T12 is complete under the user-selected Free-tier-only policy; this documentation supplement awaits the existing PR #13 merge.
 
+## 2026-11-10 — T29: class management and class-scoped permissions
+
+- Tool: Codex. Prompt: complete T14/T15/T16/T29 on the shared team workstation, regardless of which developer owns the task.
+- Kept: the existing HS256 verifier, submission contract/tests and PostgreSQL schema history. All access uses the signed subject; account/password login remains T28.
+- Changed: added a versioned class API contract, additive migration V2, persisted global roles, administrator creation/TA assignment, secure student invitations, scoped class lists/details/staff rosters and duplicate-safe memberships. Unsupported-method responses now advertise the actual mapped methods while retaining Allow: POST on submissions.
+- Tests: twelve HTTP/PostgreSQL integration cases cover role and cross-class boundaries, unknown/invalid inputs, role changes, concurrent joins, spoofed body fields, and submission access after joining. Original tests/assertions are unchanged.
+- Rejected: allowing request bodies to choose the authenticated user or grant a TA role; assigning students as TAs; treating this class API as completion of T28 login. An initial new test reused a request builder and accumulated Authorization headers; its fixture now replaces the header per call, preserving the original access-denial assertion.
+- Validation: all four exact make commands exit 0 on the shared macOS workstation; backend reports 50 tests (12 new class tests plus 38 existing tests), 0 failures/errors/skips; checker reports 1 test passed. Original submission-contract test file is unchanged.
 ## 2026-11-10 — T14: fresh clone on the shared team workstation
 
 - Tool: Codex. Prompt: Hoang clarified that Hoa and Hiep work on this same machine; complete their tasks here and mark completed work done.

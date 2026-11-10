@@ -32,11 +32,12 @@ class ProblemAdvice {
       HttpRequestMethodNotSupportedException exception, HttpServletRequest request) {
     ResponseEntity<byte[]> response =
         problems.response(
-            new ApiException(ProblemType.METHOD_NOT_ALLOWED, "This path only accepts POST."),
+            new ApiException(
+                ProblemType.METHOD_NOT_ALLOWED, "This HTTP method is not supported on this path."),
             request.getRequestURI());
     return ResponseEntity.status(response.getStatusCode())
         .headers(response.getHeaders())
-        .header(HttpHeaders.ALLOW, "POST")
+        .header(HttpHeaders.ALLOW, String.join(", ", exception.getSupportedMethods()))
         .body(response.getBody());
   }
 

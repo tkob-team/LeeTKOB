@@ -123,3 +123,11 @@ Prices are from the [Gemini API pricing page](https://ai.google.dev/gemini-api/d
 read on 2026-11-10; the page gives no update date, so re-check before relying on them.
 The earlier USD 20/month proposal was replaced by the user's Free-tier-only
 decision. Replace the token assumptions with measured values after the model trial.
+
+## Class management (T29)
+
+Administrators can create classes and assign existing TA accounts; students join
+with an invitation code. Class lists, details and rosters enforce class membership.
+See the [class API contract](docs/contract/classes.md) for endpoints and role rules.
+Account/password login and production JWT issuance remain T28; this feature uses
+the existing JWT verifier and persisted account roles.
