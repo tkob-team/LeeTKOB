@@ -26,8 +26,7 @@ Additional evidence:
 1. Merge the reviewed follow-up only after its five checks pass; keep PR #10 unmerged.
 2. T12 account setup now uses the user's chosen Free-tier-only policy: key created,
    no billing configured. See [evidence and the distinction from a dollar cap](docs/pa2/t12-free-tier.md).
-3. Complete each developer's own environment/fresh-clone evidence (T04/T14);
-   Hoang's macOS run does not establish a run on Hoa's machine.
+3. T04/T14 shared-workstation verification is complete: [fresh-clone evidence](docs/pa2/t14-fresh-clone.md). Hoang confirmed all three developers use this machine.
 4. Create and push `pa2` for the final commit, wait for tag CI and insert its link above.
 5. Include `.git`, this file, `AI-LOG.md` and `SELF_ASSESSMENT_REPORT.md` at the
    archive root. Keep self-assessment out of the public repository. Name the archive

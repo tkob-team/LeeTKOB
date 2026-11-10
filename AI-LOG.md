@@ -137,3 +137,10 @@
 - Rejected: treating an unconfigured USD 20 cap as real; describing Free tier as a configured dollar cap; copying an unrelated project's existing key. An initial browser action was blocked pending confirmation; creation proceeded only after Hoang explicitly confirmed.
 - Validation: observed the new project/key and Free tier in the live UI, then the project-specific no-billing message. Screenshots contain only the masked key label. This proves account provisioning, not model-call validity or the capacity of a free quota for a full lab.
 - Evidence: [T12 account record](docs/pa2/t12-free-tier.md), [masked key list](docs/pa2/t12-free-tier-api-key.png), [no billing](docs/pa2/t12-free-tier-no-billing.png). T12 is complete under the user-selected Free-tier-only policy; this documentation supplement awaits the existing PR #13 merge.
+
+## 2026-11-10 — T14: fresh clone on the shared team workstation
+
+- Tool: Codex. Prompt: Hoang clarified that Hoa and Hiep work on this same machine; complete their tasks here and mark completed work done.
+- Kept: original task ownership and actual native macOS arm64 provenance.
+- Changed: fetched a new clone from GitHub at `cebb551`, selected the README prerequisites, and ran all four exact make commands without real credentials. All exit codes are 0; see [results](docs/pa2/logs/t14/results.json), [full output](docs/pa2/logs/t14/make-logs.zip) and [setup record](docs/pa2/t14-fresh-clone.md). This completes the shared-workstation T04/T14 verification; a separate personal machine is not required by the team.
+- Rejected: inventing a WSL run or maintaining the earlier assumption that different owners require different computers.
