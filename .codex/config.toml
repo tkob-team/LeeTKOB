@@ -1,0 +1,13 @@
+# Codex permissions for this repository. Mirrors the three levels in AGENTS.md:
+# allowed, ask first, never. Command-level rules live in .codex/rules/.
+# Codex only reads this file after you trust the project (see README).
+
+# Ask before running commands that need approval; do not auto-approve.
+approval_policy = "on-request"
+
+# Write inside the workspace only; everything else is read-only.
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+# No network from the sandbox: a network request is an "ask first" action.
+network_access = false

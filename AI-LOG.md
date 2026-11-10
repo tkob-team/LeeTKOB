@@ -25,3 +25,32 @@
 - Changed: pinned external actions to verified commit SHAs; pinned uv and Gitleaks versions. The secrets job fetches full history, verifies the Gitleaks release checksum, and scans all refs with redacted output.
 - Rejected: did not add LLM evaluation as a required PA#02 check, consistent with the team's recorded milestone decision. Did not change application code, tests, or the Makefile.
 - Validation: local checks passed during T05 on the unchanged application source. actionlint 1.7.12 passed; Gitleaks 8.30.1 found no secrets in the full Git history or working directory. Both validation binaries were verified against their release checksums. GitHub Actions run evidence will be recorded after execution; this entry does not claim a passing remote run yet.
+
+## 2026-11-10 — T03: main branch ruleset (Hoang)
+- Tool: Claude Code (Claude Sonnet 5.5), run in Hoang's session.
+- Prompts: "start T03: set up the main ruleset"; "I have opened chrome extension, please complete T03"; "yes" to opening the evidence PR, with the reviewer's confirmation relayed by Hoang; "merge #2 and #3 please".
+- Changed: created ruleset `main-protection` (ID 26913957) through the GitHub API at 10:22:50 on 2026-11-10 (UTC+07:00): target `main`, pull request required, five required checks (`lint`, `format-check`, `typecheck`, `test`, `secrets`) from GitHub Actions, empty bypass list. Added `docs/pa2/` with two screenshots and a note (PR #2, merged as 8c7d0b7).
+- Kept: required approvals set to 0 so a solo PR is not blocked; the check names were read from the real runs on `main`, not guessed.
+- Rejected: a single-image screenshot, because the browser window was too small to show target, bypass and checks together, so two images were taken. Did not add force-push or deletion rules, which the task does not require.
+- Validation: GitHub reports both rules applying to `main`; PR #2 had 5/5 green checks before merge. The blocked-merge proof is still missing and will come from the T13 pull request.
+
+## 2026-11-10 — T08: pull request template (Hoang)
+- Tool: Claude Code (Claude Sonnet 5.5), run in Hoang's session.
+- Prompts: "please update status T03 and continue with T08"; "merge #2 and #3 please".
+- Changed: added `.github/pull_request_template.md` with three questions: does the PR change a contract (and which document and tests), are tests updated with the code change (with a "not needed" option), is the AI-LOG updated. PR #3, merged as 95704b1.
+- Rejected: my first PR description said a reviewer had been requested, but no request had been made; I corrected the description before merge. A rule forcing test changes on every PR was not added.
+- Validation: 5/5 checks green before merge. The template has not yet been seen on a newly opened PR.
+
+## 2026-11-10 — T06: AGENTS.md, CLAUDE.md, Claude Code permissions (Hoa)
+- Tool: Claude Code (Claude Sonnet 5.5), run in Hoang's session at Hoang's request; the task owner in the tracker is Hoa. No independent review is recorded.
+- Prompts: "please perform task T06" (the user said not to wait for another person's review); "merge".
+- Changed: added `AGENTS.md` (Stack, Commands, Conventions, Never, Permissions with allowed / ask first / never), a one-line `CLAUDE.md` importing it, and `.claude/settings.json` with allow / ask / deny rules. PR #4, merged as 20bc266.
+- Rejected: did not add rules lines traced to real incidents (a separate task) or Codex configuration (T07). The deny patterns for eval data and labels (`**/dataset/**`, `**/eval-data/**`, `**/labels/**`) are placeholders because those folders do not exist yet.
+- Validation: settings JSON parses; 5/5 checks green before merge. Claude Code's enforcement of the settings was not tested interactively.
+
+## 2026-11-10 — T07: Codex permissions and trust step (Hoa)
+- Tool: Claude Code (Claude Sonnet 5.5), run in Hoang's session at Hoang's request; the task owner in the tracker is Hoa. No independent review is recorded.
+- Prompts: "continue with task T07. please additional my prompts into AI-LOG with name mapping task author".
+- Changed: added `.codex/config.toml` (`approval_policy = "on-request"`, `sandbox_mode = "workspace-write"`, no sandbox network) and `.codex/rules/default.rules` mapping the three levels (allow / prompt / forbidden). README now has a section telling every developer to trust the project in Codex. `AGENTS.md` now says Codex permissions exist. Added the AI-LOG entries above for T03, T06, T07, T08.
+- Rejected: my first check loop reported wrong results because zsh does not split an unquoted variable into words; I re-ran it with explicit splitting before trusting any result.
+- Validation: `codex execpolicy check` on 19 commands: `make` targets and read-only git returned allow; commit, push, `gh pr`, Docker, `uv add` returned prompt; force-push, push to `main`, branch/tag deletion, `rm -rf`, `cat .env` and `tail .env` returned forbidden; `ls` matched no rule. Limitation: rules only cover shell commands, so reading `.env` through other tools is not blocked, and Codex ignores this configuration until the project is trusted.

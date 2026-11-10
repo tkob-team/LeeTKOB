@@ -43,3 +43,22 @@ redacted, and a detected secret fails the job. No model API key is needed for CI
 These five check names are intended for the `main` protection ruleset (T03).
 Adding this workflow alone does not configure branch protection. LLM evaluation
 is not a required check for PA#02.
+
+## AI agent permissions
+
+Agent rules are in `AGENTS.md`. Claude Code reads `.claude/settings.json`; Codex
+reads `.codex/config.toml` and `.codex/rules/`.
+
+Codex only loads the project-level `.codex/` files after you trust the project.
+Every developer must do this once on their own machine: open the repository in
+Codex and choose to trust the project when prompted (or mark it as `trusted`
+under `[projects."<path to this repository>"]` in `~/.codex/config.toml`).
+Without it, Codex ignores the permissions in this repository and falls back to
+your personal defaults.
+
+To check a command against the rules:
+
+```sh
+codex execpolicy check --rules .codex/rules/default.rules -- git push --force origin x
+```
+

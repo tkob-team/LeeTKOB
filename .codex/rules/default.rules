@@ -1,0 +1,38 @@
+# Command rules matching the three permission levels in AGENTS.md.
+#   allow     -> Allowed (no prompt)
+#   prompt    -> Ask first
+#   forbidden -> Never
+# Check a command with:
+#   codex execpolicy check --rules .codex/rules/default.rules <command...>
+
+# ---- Allowed ----
+prefix_rule(pattern = ["make", "lint"], decision = "allow", justification = "Quality gate", match = [["make", "lint"]])
+prefix_rule(pattern = ["make", "format-check"], decision = "allow", justification = "Quality gate", match = [["make", "format-check"]])
+prefix_rule(pattern = ["make", "typecheck"], decision = "allow", justification = "Quality gate", match = [["make", "typecheck"]])
+prefix_rule(pattern = ["make", "test"], decision = "allow", justification = "Quality gate", match = [["make", "test"]])
+prefix_rule(pattern = ["git", "status"], decision = "allow", justification = "Read-only git", match = [["git", "status"]])
+prefix_rule(pattern = ["git", "diff"], decision = "allow", justification = "Read-only git", match = [["git", "diff"]])
+prefix_rule(pattern = ["git", "log"], decision = "allow", justification = "Read-only git", match = [["git", "log"]])
+
+# ---- Ask first ----
+prefix_rule(pattern = ["git", "commit"], decision = "prompt", justification = "Commits need approval", match = [["git", "commit", "-m", "x"]])
+prefix_rule(pattern = ["git", "push"], decision = "prompt", justification = "Pushing needs approval", match = [["git", "push", "origin", "feature"]])
+prefix_rule(pattern = ["gh", "pr"], decision = "prompt", justification = "Creating or merging a PR needs approval", match = [["gh", "pr", "create"]])
+prefix_rule(pattern = ["docker"], decision = "prompt", justification = "Docker commands need approval", match = [["docker", "ps"]])
+prefix_rule(pattern = ["curl"], decision = "prompt", justification = "Network access needs approval", match = [["curl", "https://example.com"]])
+prefix_rule(pattern = ["wget"], decision = "prompt", justification = "Network access needs approval", match = [["wget", "https://example.com"]])
+prefix_rule(pattern = ["uv", "add"], decision = "prompt", justification = "Dependency change needs approval", match = [["uv", "add", "pkg"]])
+prefix_rule(pattern = ["uv", "remove"], decision = "prompt", justification = "Dependency change needs approval", match = [["uv", "remove", "pkg"]])
+
+# ---- Never ----
+prefix_rule(pattern = ["git", "push", "--force"], decision = "forbidden", justification = "Never force-push", match = [["git", "push", "--force", "origin", "x"]])
+prefix_rule(pattern = ["git", "push", "-f"], decision = "forbidden", justification = "Never force-push", match = [["git", "push", "-f", "origin", "x"]])
+prefix_rule(pattern = ["git", "push", "origin", "main"], decision = "forbidden", justification = "Never push to main; use a PR", match = [["git", "push", "origin", "main"]])
+prefix_rule(pattern = ["git", "push", "origin", "--delete"], decision = "forbidden", justification = "Never delete remote branches or tags", match = [["git", "push", "origin", "--delete", "x"]])
+prefix_rule(pattern = ["git", "branch", "-D"], decision = "forbidden", justification = "Never force-delete branches", match = [["git", "branch", "-D", "x"]])
+prefix_rule(pattern = ["git", "tag", "-d"], decision = "forbidden", justification = "Never delete tags", match = [["git", "tag", "-d", "x"]])
+prefix_rule(pattern = ["rm", "-rf"], decision = "forbidden", justification = "Destructive command", match = [["rm", "-rf", "x"]])
+prefix_rule(pattern = ["cat", ".env"], decision = "forbidden", justification = "Never read real secrets", match = [["cat", ".env"]])
+prefix_rule(pattern = ["less", ".env"], decision = "forbidden", justification = "Never read real secrets", match = [["less", ".env"]])
+prefix_rule(pattern = ["head", ".env"], decision = "forbidden", justification = "Never read real secrets", match = [["head", ".env"]])
+prefix_rule(pattern = ["tail", ".env"], decision = "forbidden", justification = "Never read real secrets", match = [["tail", ".env"]])
