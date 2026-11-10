@@ -62,3 +62,35 @@ To check a command against the rules:
 codex execpolicy check --rules .codex/rules/default.rules -- git push --force origin x
 ```
 
+
+## Model and cost
+
+The checker reviews accepted submissions against a lab's constraints with a Google
+Gemini model. The model never decides a grade; a TA reviews every proposal.
+
+| Item | Value |
+| --- | --- |
+| Provider | Google Gemini API |
+| Initial model | `gemini-3.6-flash` (set with `GEMINI_MODEL`); the model comparison on the dev set may change it, and this section must then be updated |
+| Key | `GEMINI_API_KEY`, held by one team member, stored only in the untracked `.env`, never committed. CI and unit tests use no key. |
+| Spending limit | USD 20 per month, set in the provider console by the key holder. **Proposed value: not yet confirmed as set.** |
+| Per-lab call cap | Planned, not implemented: 800 model calls per lab (twice the expected 400); beyond it verdicts become `unsure` (FAQ-09) |
+
+### Cost of one lab
+
+One model call per counted submission and constraint. Worst case from the brief: 80
+students and 5 constraints, so 400 calls.
+
+Assumptions per call, not yet measured: 2,000 input tokens (statement, constraint, code) and
+1,500 output tokens (JSON verdict plus thinking tokens, which are billed as output).
+
+| Prices (USD per 1M tokens, input / output) | One pass | With 2x retries and re-reviews |
+| --- | --- | --- |
+| 0.75 / 3.75 (until 2026-12-31) | USD 2.85 | USD 5.70 |
+| 1.50 / 7.50 (from 2027-01-01) | USD 5.70 | USD 11.40 |
+
+Prices are from the [Gemini API pricing page](https://ai.google.dev/gemini-api/docs/pricing),
+read on 2026-11-10; the page gives no update date, so re-check before relying on them. At
+the proposed limit of USD 20 per month, the post-2026 worst case allows about one lab per
+month with retries, or three without. Replace the token assumptions with measured values
+after the model trial.
