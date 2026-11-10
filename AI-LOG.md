@@ -144,3 +144,10 @@
 - Kept: original task ownership and actual native macOS arm64 provenance.
 - Changed: fetched a new clone from GitHub at `cebb551`, selected the README prerequisites, and ran all four exact make commands without real credentials. All exit codes are 0; see [results](docs/pa2/logs/t14/results.json), [full output](docs/pa2/logs/t14/make-logs.zip) and [setup record](docs/pa2/t14-fresh-clone.md). This completes the shared-workstation T04/T14 verification; a separate personal machine is not required by the team.
 - Rejected: inventing a WSL run or maintaining the earlier assumption that different owners require different computers.
+
+## 2026-11-10 — T16/T20: record verified PA02 tag evidence
+
+- Tool: Codex and GitHub CLI. Hoang explicitly authorized merging PR #13 and creating/pushing tag `pa2`.
+- Kept: five required checks, branch protection, the deliberately broken PR #10 unmerged, and immutable tag provenance.
+- Changed: merged PR #13 at `236fa35` after all five PR checks passed, verified main CI 42819474226, then created/pushed annotated tag `pa2` at that commit. Added actual tag-run link 42819680913 to complete the six-link PA2 evidence index.
+- Rejected: guessing a run URL, moving/replacing the tag to disguise a later documentation update, or treating this as archive submission. This index update follows the tagged source and says so explicitly.
