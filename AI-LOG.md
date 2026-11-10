@@ -64,3 +64,11 @@
 - Rejected: answering 403 for a student outside the class (it would reveal that the lab exists); a `Location` header (no read endpoint exists yet); an "in progress" error for concurrent requests (the unique constraint makes one request win and the other replay).
 - Rejected: the first draft's example `Idempotency-Key` was a realistic UUID, which Gitleaks flagged as a generic API key and failed the `secrets` check on the PR. Fixed by using a placeholder in the example, not by allowlisting; the flagged commit was replaced by force-pushing the feature branch only, with the user's approval.
 - Validation: documentation only; no code or tests were changed, so no check output is claimed beyond CI. The contract tests listed in section 8 are not written yet (T11).
+
+## 2026-11-10 — T10: blind read of the contract (Hoa)
+- Tool: Claude Code (Claude Sonnet 5.5), run in Hoang's session at Hoang's request; the task owner in the tracker is Hoa. The reader was a separate AI subagent (Claude, `sonnet`), not a person. No independent review is recorded.
+- Prompts: "merge and continue with T10"; the answer "Fresh subagent" to the question of who should do the blind read.
+- Changed: the subagent received only the text of `docs/contract/post-labs-submissions.md` 0.1.0 (no repository, no tools, no chat) and wrote the first request, a retry and seven failing requests, then listed 22 places where it had to guess. Added section 9 and version 0.2.0 to the contract to cover them. Its report is kept outside the repository with the other task evidence.
+- Kept: the 0.1.0 rules are unchanged; version 0.2.0 only fills gaps (non-breaking).
+- Rejected: reading the contract myself, because I wrote it in the same session and could not be blind. Did not address gaps 19 (retention of stored code) and 20 (duplicate JSON keys, nesting depth); changing the order of checks to answer gap 5 was also rejected as a breaking change.
+- Validation: all seven failing requests the reader wrote matched the contract's intended status and `type`. New rules (body cap, 405, case sensitivity, waiting on concurrent keys) are drafting decisions the contract owner has not confirmed. Gitleaks found no secrets in the working tree. No code or tests changed.

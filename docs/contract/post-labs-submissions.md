@@ -1,6 +1,6 @@
 # Contract: `POST /labs/{labId}/submissions`
 
-Status: draft 0.1.0 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
+Status: draft 0.2.0 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
 
 A student submits C++ source code to a lab of a class they belong to. Sending the same request again with the same `Idempotency-Key` never creates a second submission.
 
@@ -148,6 +148,7 @@ Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab`
 | Version | Change |
 | --- | --- |
 | 0.1.0 | First draft. |
+| 0.2.0 | Non-breaking: added section 9 (scope, edge cases) after a blind read found unspecified behaviour. No existing rule changed. |
 
 ## 8. Contract tests this file requires
 
@@ -166,3 +167,46 @@ One test per row; names are suggestions.
 | Retry after the deadline still replays | `replayAfterDeadlineStillReturnsOriginal` |
 | Deadline boundary | `submissionAtDueAtIsLate` |
 | Oversized code is not stored | `oversizedCodeCreatesNoSubmission` |
+
+## 9. Scope and edge cases
+
+Rules added after a blind read of version 0.1.0. They only fill gaps; no rule above changes.
+
+### Outside this contract
+
+- Base URL, port and scheme: set per environment, not defined here.
+- How tokens are issued: no login endpoint exists in PA#02. Tests and clients create their own HS256 tokens with the secret configured for the environment.
+- Seed data (classes, labs, students, `opens_at`, `due_at`): created by each test. A lab always has `opens_at < due_at`.
+- Grading, verdicts, and how long `queued` lasts: later features. There is no read endpoint for a submission in PA#02.
+- Rate limiting: none in PA#02.
+
+### Authentication details
+
+- `role` is case-sensitive and must be exactly `ADMIN`, `TA` or `STUDENT`; any other value is 401.
+- `sub` must be a UUID; otherwise 401. A `sub` with no matching user is 401.
+
+### Order of checks with replays
+
+- Steps 1 to 6 always run first, also on a retry. A retry whose body is invalid or too large gets its 400 or 413, not a 422.
+- Membership is checked on every request. If a student has left the class, a retry gets 404, not a replay.
+- Step 8 (open/closed) is skipped only for a replay (same student, key, `labId` and `code`). A new key on a closed lab is 409.
+- A reused key with a different `code` on a closed lab is 422, because step 7 comes first.
+
+### Body and headers
+
+- The size limit applies to the UTF-8 bytes of the decoded `code` string (an escape such as `\u00e9` counts as 2 bytes). A request body over 262,144 bytes is also 413 `code-too-large`, before JSON parsing.
+- Invalid JSON, an empty body, a top-level array, `code: null` or a non-string `code`: 400 `invalid-request`. Invalid JSON is decided before size.
+- Invalid UTF-8 in the body: 400 `invalid-request`.
+- `code` is stored exactly as sent: no trimming, newline conversion or normalization. "Blank" means every character is Unicode White_Space (including non-breaking space and U+3000).
+- `Content-Type: application/json` with `charset=utf-8` is accepted; any other charset is 415.
+- `Idempotency-Key` is case-sensitive: `ABC...` and `abc...` are different keys. Surrounding whitespace or a duplicated header is 400 `invalid-request`.
+- Other HTTP methods on this path: 405 with a problem body `urn:leetkob:problem:method-not-allowed` and an `Allow: POST` header.
+- `errors[].field` is `code`, `labId`, `Idempotency-Key` or `body` (for the whole body).
+- `instance` is the request path as received, without the query string. `labId` in the response is lower-case; an upper-case UUID in the path is accepted and normalized.
+- `Idempotency-Replayed` is present only on the 200 replay, with value `true`.
+
+### Concurrency and retries
+
+- Two requests with the same key at the same time: the second waits for the first to finish, then gets the 200 replay. It never gets a 500 for the constraint violation.
+- After a 5xx or a timeout, retrying with the same key is always safe: either the original request was stored (200 replay) or it was not (evaluated again).
+- A new submission does not remove older ones; which one counts is decided outside this contract.
