@@ -1,6 +1,16 @@
 # Contract: `POST /labs/{labId}/submissions`
 
-Status: 1.0.2 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
+Status: 1.0.3 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
+
+Mapping to IA#3 CONTRACT.md sections:
+
+| IA#3 section | Sections here |
+| --- | --- |
+| Conventions | 1, 2 |
+| Errors | 4 (Errors) |
+| Resources | 4, 6 |
+| Endpoints | 2, 3, 4, 5 |
+| Versions | 7 |
 
 A student submits C++ source code to a lab of a class they belong to. Sending the same request again with the same `Idempotency-Key` never creates a second submission.
 
@@ -87,26 +97,41 @@ The response never includes the source code, test data, or verdicts.
 
 ### 200 OK (replay of an earlier request)
 
-Same body as the original 201, byte for byte in content, plus the header `Idempotency-Replayed: true`. See section 5.
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+Idempotency-Replayed: true
+
+{
+  "id": "0b7e5a52-2a45-4c53-8d49-4b8a3a5cfb10",
+  "labId": "8f2d1c34-5e6a-4f7b-9c10-1a2b3c4d5e6f",
+  "studentId": "c1d2e3f4-0a1b-4c2d-8e3f-9a0b1c2d3e4f",
+  "status": "queued",
+  "submittedAt": "2026-11-10T03:15:42.120Z",
+  "sizeBytes": 51
+}
+```
+
+The body has the same six fields and values as the original 201; only the status code and the `Idempotency-Replayed` header differ. See section 5.
 
 ### Errors (RFC 9457)
 
 Every error is `application/problem+json` with `type`, `title`, `status`, `detail` and `instance` (the request path). Validation errors add `errors`, a list of `{ "field": "...", "detail": "..." }`. `detail` is for humans and may change; clients must branch on `type`. 401 also sends `WWW-Authenticate: Bearer`.
 
-| `type` | Status | When |
-| --- | --- | --- |
-| `urn:leetkob:problem:idempotency-key-required` | 400 | `Idempotency-Key` header missing. |
-| `urn:leetkob:problem:invalid-request` | 400 | Bad `labId`, bad `Idempotency-Key` format, invalid JSON, missing or blank `code`, wrong type, unknown field. |
-| `urn:leetkob:problem:unauthenticated` | 401 | Section 1, first row. |
-| `urn:leetkob:problem:forbidden-role` | 403 | Token role is `ADMIN` or `TA`. |
-| `urn:leetkob:problem:lab-not-found` | 404 | Unknown lab, or a lab in a class the student is not in. |
-| `urn:leetkob:problem:method-not-allowed` | 405 | Other HTTP methods on this path (also sends `Allow: POST`). |
-| `urn:leetkob:problem:lab-not-open` | 409 | `now < opens_at`. |
-| `urn:leetkob:problem:lab-closed` | 409 | `now >= due_at`. |
-| `urn:leetkob:problem:code-too-large` | 413 | `code` is over 65,536 bytes. |
-| `urn:leetkob:problem:unsupported-media-type` | 415 | `Content-Type` is not `application/json`. |
-| `urn:leetkob:problem:idempotency-key-reused` | 422 | Same key already used by this student with a different `labId` or different `code`. |
-| `urn:leetkob:problem:internal-error` | 500 | Unexpected failure. No stack trace, SQL or class names in the response. |
+| `type` | Status | Title | When |
+| --- | --- | --- | --- |
+| `urn:leetkob:problem:idempotency-key-required` | 400 | Idempotency-Key header is required | `Idempotency-Key` header missing. |
+| `urn:leetkob:problem:invalid-request` | 400 | Invalid request | Bad `labId`, bad `Idempotency-Key` format, invalid JSON, missing or blank `code`, wrong type, unknown field. |
+| `urn:leetkob:problem:unauthenticated` | 401 | Authentication is required | Section 1, first row. |
+| `urn:leetkob:problem:forbidden-role` | 403 | Role is not allowed to submit | Token role is `ADMIN` or `TA`. |
+| `urn:leetkob:problem:lab-not-found` | 404 | Lab not found | Unknown lab, or a lab in a class the student is not in. |
+| `urn:leetkob:problem:method-not-allowed` | 405 | Method not allowed | Other HTTP methods on this path (also sends `Allow: POST`). |
+| `urn:leetkob:problem:lab-not-open` | 409 | Lab is not open yet | `now < opens_at`. |
+| `urn:leetkob:problem:lab-closed` | 409 | Lab is closed | `now >= due_at`. |
+| `urn:leetkob:problem:code-too-large` | 413 | Code is too large | `code` is over 65,536 bytes. |
+| `urn:leetkob:problem:unsupported-media-type` | 415 | Unsupported media type | `Content-Type` is not `application/json`. |
+| `urn:leetkob:problem:idempotency-key-reused` | 422 | Idempotency-Key was used for another request | Same key already used by this student with a different `labId` or different `code`. |
+| `urn:leetkob:problem:internal-error` | 500 | Internal error | Unexpected failure. No stack trace, SQL or class names in the response. |
 
 Example:
 
@@ -137,6 +162,8 @@ Content-Type: application/problem+json
 
 Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab` (class, `opens_at`, `due_at`) and `Submission` (lab, student, key, code, `submitted_at`). Replay compares the stored code directly, byte-exact after JSON decoding; no code-hash column is required. Only the fields above are part of the contract; column names are an implementation detail.
 
+`sizeBytes` is the UTF-8 byte length of `code`, computed when the submission is created and stored with it; a replay returns the stored value. `status` is not stored in PA#02: this endpoint always returns `queued`, and a stored status arrives with the grading features.
+
 ## 7. Changing this contract
 
 - Any change to behaviour covered here must change this file and its contract tests in the same pull request. The PR template asks about this.
@@ -153,6 +180,7 @@ Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab`
 | 1.0.0 | **Breaking:** require `exp` and reject expired JWTs without clock-skew grace. Reviewed follow-up authorized by the team through Hoang on 2026-11-10. Fix receipt-time handling and document full-precision deadline checks; align the data description with direct stored-code comparison. |
 | 1.0.1 | Patch: listed method-not-allowed in the section 4 table (already in section 9 and tested by methodNotAllowedReturnsProblemBody). No behaviour change. |
 | 1.0.2 | Patch: status is no longer draft. No behaviour change. |
+| 1.0.3 | Patch: full 200 replay example, Title column, IA#3 section mapping, data origin of status and sizeBytes. No behaviour change. |
 
 ## 8. Contract tests this file requires
 
