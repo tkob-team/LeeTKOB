@@ -176,4 +176,4 @@
 - Kept: the three permission tier lists in AGENTS.md word for word; the rest of the README model table; all contract rules; all code and tests.
 - Changed: AGENTS.md permission explanation is two lines pointing to `docs/pa2/agent-permissions.md`; README spending control says hard cap USD 0 because the key's project has no billing account; contract status 1.0.2 with a changelog row; added `docs/pa2/logs/t14-wsl/` (results.json, combined make log) and a WSL section in `docs/pa2/t14-fresh-clone.md`. Fresh clone at `0c7266d`: all four make commands exited 0.
 - Rejected: reporting the first fresh-clone attempt as a repository failure; it failed only because the script ran without a login shell, so uv was not on `PATH`. Deleting the clone folders with `rm -rf` was blocked by the agent permission policy and left to a person.
-- By hand: <to fill>
+- By hand: Started Docker Desktop; deleted the two fresh-clone folders by hand after the agent’s rm -rf was blocked by the Never tier; read results.json and the make log (BUILD SUCCESS, 50 tests, 0 failures).
