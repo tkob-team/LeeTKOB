@@ -1,6 +1,6 @@
 # Contract: `POST /labs/{labId}/submissions`
 
-Status: draft 1.0.0 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
+Status: draft 1.0.1 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
 
 A student submits C++ source code to a lab of a class they belong to. Sending the same request again with the same `Idempotency-Key` never creates a second submission.
 
@@ -100,6 +100,7 @@ Every error is `application/problem+json` with `type`, `title`, `status`, `detai
 | `urn:leetkob:problem:unauthenticated` | 401 | Section 1, first row. |
 | `urn:leetkob:problem:forbidden-role` | 403 | Token role is `ADMIN` or `TA`. |
 | `urn:leetkob:problem:lab-not-found` | 404 | Unknown lab, or a lab in a class the student is not in. |
+| `urn:leetkob:problem:method-not-allowed` | 405 | Other HTTP methods on this path (also sends `Allow: POST`). |
 | `urn:leetkob:problem:lab-not-open` | 409 | `now < opens_at`. |
 | `urn:leetkob:problem:lab-closed` | 409 | `now >= due_at`. |
 | `urn:leetkob:problem:code-too-large` | 413 | `code` is over 65,536 bytes. |
@@ -150,6 +151,7 @@ Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab`
 | 0.1.0 | First draft. |
 | 0.2.0 | Non-breaking: added section 9 (scope, edge cases) after a blind read found unspecified behaviour. No existing rule changed. |
 | 1.0.0 | **Breaking:** require `exp` and reject expired JWTs without clock-skew grace. Reviewed follow-up authorized by the team through Hoang on 2026-11-10. Fix receipt-time handling and document full-precision deadline checks; align the data description with direct stored-code comparison. |
+| 1.0.1 | Patch: listed method-not-allowed in the section 4 table (already in section 9 and tested by methodNotAllowedReturnsProblemBody). No behaviour change. |
 
 ## 8. Contract tests this file requires
 
