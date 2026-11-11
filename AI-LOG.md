@@ -185,4 +185,4 @@
 - Kept: every existing rule, heading and section number; the 201 example values (reused in the 200 example); all code and tests.
 - Changed: added the 200 example (status line, `Content-Type`, `Idempotency-Replayed: true`, six fields); added titles for the 12 types in the table, checked by script against `ProblemType.java`; added the IA#3 mapping table under the status line; documented in section 6 that `sizeBytes` is computed from `code` at creation and stored, and that `status` is not stored in PA#02 (always `queued`); changelog row 1.0.3.
 - Rejected: the requested wording "status is stored on the submission", because the schema (`V1__submissions.sql`) has no status column and the controller always returns `queued`; writing it would make the contract claim behaviour the code does not have. Adding the two class API types (`class-not-found`, `class-access-denied`) to this endpoint's table, since this endpoint never returns them.
-- By hand: <to fill>
+- By hand: Ran a rubric self-review and spotted that the 200 replay only said ‘same body as the original 201’ (the IA#1 lesson); reviewed the PR #18 diff; started Docker and re-ran make test (exit 0).
