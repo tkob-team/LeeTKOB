@@ -94,7 +94,7 @@ Gemini model. The model never decides a grade; a TA reviews every proposal.
 | Provider | Google Gemini API |
 | Initial model | `gemini-3.6-flash` (set with `GEMINI_MODEL`); the model comparison on the dev set may change it, and this section must then be updated |
 | Key | `leetkob-pa02`, created on 2026-11-10 in Google AI Studio project `LeeTKOB` (`gen-lang-client-0403299997`). The holder can copy it from AI Studio into their private `GEMINI_API_KEY`; its value was not copied into this repo, logs or chat. CI and unit tests use no key. |
-| Spending control | **Free tier only; billing is not configured**, as explicitly requested by Hoang. No paid plan, payment method or USD 20/month spending cap was enabled. Keep billing disabled; upgrading requires a new explicit decision. |
+| Spending control | **Hard cap of USD 0:** the key's Google project has no billing account, so it cannot be charged. Free tier only, as explicitly requested by Hoang; no paid plan, payment method or USD 20/month spending cap was enabled. Enabling billing needs a new team decision. |
 | Per-lab call cap | Planned, not implemented: 800 model calls per lab (twice the expected 400); beyond it verdicts become `unsure` (FAQ-09) |
 
 ### Cost of one lab

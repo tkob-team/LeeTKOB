@@ -44,9 +44,8 @@ make test
 
 ## Permissions
 
-Three policy levels apply to every agent. `.claude/settings.json` configures Claude Code's supported read/edit and shell permissions. Codex uses `.codex/config.toml` for workspace/network isolation and `.codex/rules/default.rules` for matching shell commands outside the sandbox (`allow`, `prompt`, `forbidden`). Project configuration must be trusted before it loads. Keep the policy and supported configuration in sync.
-
-Shell prefix rules are not a universal file-access firewall. In particular, the checked-in Codex configuration does not enforce per-file edit approval or prevent every tool/interpreter from reading a secret inside the workspace. Those restrictions below remain agent instructions; keep real credentials outside the agent's accessible environment when hard isolation is needed. Do not claim a permission is runtime-enforced based only on syntax or a prefix probe. See `docs/pa2/agent-permissions.md` for coverage and limits.
+Three policy levels apply to every agent; keep them in sync with `.claude/settings.json` and `.codex/`.
+What is runtime-enforced and what remains an instruction: see `docs/pa2/agent-permissions.md`.
 
 **Allowed (no prompt)**
 - Read files in the repository.

@@ -168,3 +168,12 @@
 - Changed: PA2.md tag row now links the tag's CI run list instead of one run id and commit; the release section is three lines; contract bumped to 1.0.1 with one new table row and a changelog row. The T12 and T14 evidence links that lived only in the removed release section moved to "Additional evidence" so no link was lost. The pa2 tag will move from 236fa35 to the merge commit of PR #16: PA2.md at 236fa35 still said 'Pending T20', so the tagged commit lacked the tag CI link the rubric requires. This is a disclosed move, not a hidden one; the earlier T16/T20 entry rejected moving the tag before this gap was found.
 - Rejected: changing any behaviour, test or contract rule; keeping "pending"/"overlay" wording that no longer matches how the tag and zip are produced.
 - By hand: Checked out tag pa2 and found PA2.md still said "Pending T20"; reviewed the PR #16 diff line by line; started Docker and re-ran make test (exit 0).
+
+## 2026-11-11 — PA2 polish and fresh clone on WSL (Hiep)
+
+- Tool: Claude Code (Claude Opus 5.5).
+- Asked for: shorten the AGENTS.md permission notes to a pointer, state the USD 0 hard cap in README, drop "draft" from the contract status (1.0.2), and run a fresh-clone check on WSL with logs. No code or test changes.
+- Kept: the three permission tier lists in AGENTS.md word for word; the rest of the README model table; all contract rules; all code and tests.
+- Changed: AGENTS.md permission explanation is two lines pointing to `docs/pa2/agent-permissions.md`; README spending control says hard cap USD 0 because the key's project has no billing account; contract status 1.0.2 with a changelog row; added `docs/pa2/logs/t14-wsl/` (results.json, combined make log) and a WSL section in `docs/pa2/t14-fresh-clone.md`. Fresh clone at `0c7266d`: all four make commands exited 0.
+- Rejected: reporting the first fresh-clone attempt as a repository failure; it failed only because the script ran without a login shell, so uv was not on `PATH`. Deleting the clone folders with `rm -rf` was blocked by the agent permission policy and left to a person.
+- By hand: Started Docker Desktop; deleted the two fresh-clone folders by hand after the agent’s rm -rf was blocked by the Never tier; read results.json and the make log (BUILD SUCCESS, 50 tests, 0 failures).

@@ -1,6 +1,6 @@
 # Contract: `POST /labs/{labId}/submissions`
 
-Status: draft 1.0.1 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
+Status: 1.0.2 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
 
 A student submits C++ source code to a lab of a class they belong to. Sending the same request again with the same `Idempotency-Key` never creates a second submission.
 
@@ -152,6 +152,7 @@ Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab`
 | 0.2.0 | Non-breaking: added section 9 (scope, edge cases) after a blind read found unspecified behaviour. No existing rule changed. |
 | 1.0.0 | **Breaking:** require `exp` and reject expired JWTs without clock-skew grace. Reviewed follow-up authorized by the team through Hoang on 2026-11-10. Fix receipt-time handling and document full-precision deadline checks; align the data description with direct stored-code comparison. |
 | 1.0.1 | Patch: listed method-not-allowed in the section 4 table (already in section 9 and tested by methodNotAllowedReturnsProblemBody). No behaviour change. |
+| 1.0.2 | Patch: status is no longer draft. No behaviour change. |
 
 ## 8. Contract tests this file requires
 
