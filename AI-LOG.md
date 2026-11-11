@@ -177,3 +177,12 @@
 - Changed: AGENTS.md permission explanation is two lines pointing to `docs/pa2/agent-permissions.md`; README spending control says hard cap USD 0 because the key's project has no billing account; contract status 1.0.2 with a changelog row; added `docs/pa2/logs/t14-wsl/` (results.json, combined make log) and a WSL section in `docs/pa2/t14-fresh-clone.md`. Fresh clone at `0c7266d`: all four make commands exited 0.
 - Rejected: reporting the first fresh-clone attempt as a repository failure; it failed only because the script ran without a login shell, so uv was not on `PATH`. Deleting the clone folders with `rm -rf` was blocked by the agent permission policy and left to a person.
 - By hand: Started Docker Desktop; deleted the two fresh-clone folders by hand after the agent’s rm -rf was blocked by the Never tier; read results.json and the make log (BUILD SUCCESS, 50 tests, 0 failures).
+
+## 2026-11-11 — contract 1.0.3 after rubric self-review (Hiep)
+
+- Tool: Claude Code (Claude Opus 5.5).
+- Asked for: a full 200 replay example, a Title column in the section 4 error table copied from `ProblemType.java`, a mapping to the IA#3 CONTRACT.md sections, and the data origin of `status` and `sizeBytes` in section 6. Contract 1.0.3; no code or test changes.
+- Kept: every existing rule, heading and section number; the 201 example values (reused in the 200 example); all code and tests.
+- Changed: added the 200 example (status line, `Content-Type`, `Idempotency-Replayed: true`, six fields); added titles for the 12 types in the table, checked by script against `ProblemType.java`; added the IA#3 mapping table under the status line; documented in section 6 that `sizeBytes` is computed from `code` at creation and stored, and that `status` is not stored in PA#02 (always `queued`); changelog row 1.0.3.
+- Rejected: the requested wording "status is stored on the submission", because the schema (`V1__submissions.sql`) has no status column and the controller always returns `queued`; writing it would make the contract claim behaviour the code does not have. Adding the two class API types (`class-not-found`, `class-access-denied`) to this endpoint's table, since this endpoint never returns them.
+- By hand: <to fill>
