@@ -1,0 +1,11 @@
+f6acb8f Merge pull request #11 from tkob-team/docs/t13-ai-log
+0ef7aa2 Merge pull request #9 from tkob-team/docs/t12-model-and-cost
+a59576f Merge pull request #8 from tkob-team/feat/t11-submissions-endpoint
+1599645 Merge pull request #7 from tkob-team/docs/t10-contract-edge-cases
+4d71390 Merge pull request #6 from tkob-team/docs/t09-contract
+1b88bc6 Merge pull request #5 from tkob-team/docs/t07-codex-permissions
+20bc266 Merge pull request #4 from tkob-team/docs/t06-agents-permissions
+95704b1 Merge pull request #3 from tkob-team/docs/t08-pr-template
+8c7d0b7 Merge pull request #2 from tkob-team/docs/t03-branch-protection
+2a8728b Merge pull request #1 from tkob-team/ci/t02-quality-gates
+b76ccd5 chore: scaffold backend (Spring Boot, Java 25) and checker (Python) with make checks

@@ -1,0 +1,23 @@
+>> backend: sh ./mvnw -B -ntp checkstyle:check
+[INFO] Scanning for projects...
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] Loaded 64 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] 
+[INFO] ------------------------< com.leetkob:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- checkstyle:3.6.0:check (default-cli) @ backend ---
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to jvnet-nexus-releases (https://maven.java.net/content/repositories/releases/): (certificate_expired) PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed
+[INFO] Starting audit...
+Audit done.
+[INFO] You have 0 Checkstyle violations.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.422 s
+[INFO] Finished at: 2026-11-10T18:41:34+07:00
+[INFO] ------------------------------------------------------------------------
+>> checker: uv run --locked ruff check --no-fix .
+All checks passed!

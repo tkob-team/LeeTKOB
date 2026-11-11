@@ -80,7 +80,7 @@ interactive enforcement or universal secret-file isolation.
 
 ## PA#02 evidence
 
-See [PA2.md](PA2.md) for the evidence links and remaining release-tag step.
+See [PA2.md](PA2.md) for the six required evidence links and [the PA02 evidence directory](docs/pa2/README.md) for task records and raw logs. Archive/submission remains a separate step.
 The [PostgreSQL queue ADR](docs/decisions/0001-postgresql-judge-queue.md) records
 T27; workers and sandbox execution remain later tasks.
 

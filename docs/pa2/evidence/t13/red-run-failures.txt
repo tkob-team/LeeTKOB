@@ -1,0 +1,5 @@
+2026-11-10T08:06:21.1605164Z [ERROR] Tests run: 32, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 12.93 s <<< FAILURE! -- in com.leetkob.backend.submission.SubmissionContractTest
+2026-11-10T08:06:22.9469811Z [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.822 s -- in com.leetkob.backend.BackendApplicationTests
+2026-11-10T08:06:23.5433835Z [ERROR]   SubmissionContractTest.otherClassStudentGetsLabNotFound:196->problem:568 Response status expected:<404> but was:<200>
+2026-11-10T08:06:23.5434646Z [ERROR]   SubmissionContractTest.removedMemberReplayGetsNotFound:221->problem:568 Response status expected:<404> but was:<200>
+2026-11-10T08:06:23.5435666Z [ERROR] Tests run: 33, Failures: 2, Errors: 0, Skipped: 0

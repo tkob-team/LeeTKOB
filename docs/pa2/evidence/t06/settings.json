@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make lint)",
+      "Bash(make format-check)",
+      "Bash(make typecheck)",
+      "Bash(make test)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ],
+    "ask": [
+      "Edit(backend/pom.xml)",
+      "Edit(checker/pyproject.toml)",
+      "Edit(checker/uv.lock)",
+      "Edit(Makefile)",
+      "Edit(.github/**)",
+      "Edit(backend/src/main/resources/db/**)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(gh pr *)",
+      "Bash(docker *)",
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*.local)",
+      "Edit(./.env)",
+      "Edit(**/dataset/**)",
+      "Edit(**/eval-data/**)",
+      "Edit(**/labels/**)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push origin main*)",
+      "Bash(git push origin :*)",
+      "Bash(git push origin --delete*)",
+      "Bash(git branch -D*)",
+      "Bash(git tag -d*)",
+      "Bash(rm -rf*)"
+    ]
+  }
+}

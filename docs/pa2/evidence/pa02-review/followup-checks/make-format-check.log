@@ -1,0 +1,19 @@
+>> backend: sh ./mvnw -B -ntp spotless:check
+[INFO] Scanning for projects...
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] ------------------------< com.leetkob:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- spotless:3.11.0:check (default-cli) @ backend ---
+[INFO] Spotless.Java is keeping 14 files clean - 0 needs changes to be clean, 0 were already clean, 14 were skipped because caching determined they were already clean
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.448 s
+[INFO] Finished at: 2026-11-10T18:41:35+07:00
+[INFO] ------------------------------------------------------------------------
+>> checker: uv run --locked ruff format --check .
+2 files already formatted

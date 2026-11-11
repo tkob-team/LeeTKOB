@@ -1,0 +1,29 @@
+{
+  "started_at": "2026-11-10T18:41:29.744109+07:00",
+  "platform": "macOS arm64 native (not another team member's machine)",
+  "base_commit": "e8cebb91189923d701537e597b89002f5f7e8841",
+  "tracked_diff_sha256": "1a1f514bf846726e6eeb8c1d726f58d9b54742107970f0d868d93c6abb53ff00",
+  "checks": [
+    {
+      "command": "make lint",
+      "exit_code": 0,
+      "seconds": 4.39
+    },
+    {
+      "command": "make format-check",
+      "exit_code": 0,
+      "seconds": 1.09
+    },
+    {
+      "command": "make typecheck",
+      "exit_code": 0,
+      "seconds": 5.62
+    },
+    {
+      "command": "make test",
+      "exit_code": 0,
+      "seconds": 12.75
+    }
+  ],
+  "finished_at": "2026-11-10T18:41:53.646845+07:00"
+}

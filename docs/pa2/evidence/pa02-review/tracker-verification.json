@@ -1,0 +1,17 @@
+{
+  "sheets": [
+    "Tổng quan",
+    "Lộ trình",
+    "Việc",
+    "Tính năng",
+    "Nộp PA",
+    "Quyết định"
+  ],
+  "changed_cells": 126,
+  "authorized_value_cells_only": true,
+  "formula_semantics_and_other_values_preserved": true,
+  "formula_compatibility_prefixes": [
+    "Tổng quan!B9"
+  ],
+  "validation_merge_conditional_format_hyperlink_counts_preserved": true
+}

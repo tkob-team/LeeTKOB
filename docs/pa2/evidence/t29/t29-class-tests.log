@@ -1,0 +1,346 @@
+[INFO] Scanning for projects...
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] ------------------------< com.leetkob:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository maven-central (prefixes-maven-central.txt)
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to flyway-community-db-support (https://maven.pkg.github.com/flyway/flyway-community-db-support): HTTP Status: 401
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to MavenFeed (https://red-gate.pkgs.visualstudio.com/MavenFeed/_packaging/MavenFeed/maven/v1/): HTTP Status: 401
+[INFO] 
+[INFO] --- spotless:3.11.0:apply (default-cli) @ backend ---
+[INFO] Index file does not exist. Fallback to an empty index
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.diffplug.spotless.java.ModuleHelper (file:/Users/nphoang/.m2/repository/com/diffplug/spotless/spotless-lib/4.11.0/spotless-lib-4.11.0.jar)
+WARNING: Please consider reporting this to the maintainers of class com.diffplug.spotless.java.ModuleHelper
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[INFO] clean file: /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/test/java/com/leetkob/backend/classroom/ClassroomContractTest.java
+[INFO] clean file: /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/main/java/com/leetkob/backend/classroom/ClassroomService.java
+[INFO] clean file: /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/main/java/com/leetkob/backend/classroom/ClassroomController.java
+[INFO] Spotless.Java is keeping 17 files clean - 3 were changed to be clean, 14 were already clean, 0 were skipped because caching determined they were already clean
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ backend ---
+[INFO] Loaded 64 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 13 source files with javac [debug parameters release 25] to target/classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ backend ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug parameters release 25] to target/test-classes
+[INFO] /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/test/java/com/leetkob/backend/classroom/ClassroomContractTest.java: /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/test/java/com/leetkob/backend/classroom/ClassroomContractTest.java uses or overrides a deprecated API.
+[INFO] /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/test/java/com/leetkob/backend/classroom/ClassroomContractTest.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.leetkob.backend.classroom.ClassroomContractTest
+19:48:55.555 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.leetkob.backend.classroom.ClassroomContractTest]: ClassroomContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+19:48:55.617 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.classroom.ClassroomContractTest
+19:48:55.645 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.leetkob.backend.classroom.ClassroomContractTest]: ClassroomContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+19:48:55.648 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.classroom.ClassroomContractTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.2)
+
+2026-11-10T19:48:55.766+07:00  INFO 94018 --- [backend] [           main] c.l.b.classroom.ClassroomContractTest    : Starting ClassroomContractTest using Java 25.0.5.0.3 with PID 94018 (started by nphoang in /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend)
+2026-11-10T19:48:55.767+07:00  INFO 94018 --- [backend] [           main] c.l.b.classroom.ClassroomContractTest    : No active profile set, falling back to 1 default profile: "default"
+2026-11-10T19:48:56.019+07:00  INFO 94018 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-10T19:48:56.027+07:00  INFO 94018 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 5 ms. Found 0 JPA repository interfaces.
+2026-11-10T19:48:56.196+07:00  INFO 94018 --- [backend] [           main] org.testcontainers.images.PullPolicy     : Image pull policy will be performed by: DefaultPullPolicy()
+2026-11-10T19:48:56.196+07:00  INFO 94018 --- [backend] [           main] o.t.utility.ImageNameSubstitutor         : Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+2026-11-10T19:48:56.205+07:00  INFO 94018 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Testcontainers version: 2.0.5
+2026-11-10T19:48:56.296+07:00  INFO 94018 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+2026-11-10T19:48:56.581+07:00  INFO 94018 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+2026-11-10T19:48:56.581+07:00  INFO 94018 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Docker host IP address is localhost
+2026-11-10T19:48:56.597+07:00  INFO 94018 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Connected to docker: 
+  Server Version: 29.9.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 5922 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/nphoang/Library/Containers/com.docker.docker/Data/docker-cli.sock
+2026-11-10T19:48:56.669+07:00  INFO 94018 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Creating container for image: testcontainers/ryuk:0.14.0
+2026-11-10T19:48:56.749+07:00  INFO 94018 --- [backend] [           main] o.t.utility.RegistryAuthLocator          : Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+2026-11-10T19:48:56.815+07:00  INFO 94018 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 is starting: 3a3513b450c2a521cd156c8976d1583355cfc1dba1f428859577c1823bbb581b
+2026-11-10T19:48:57.042+07:00  INFO 94018 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 started in PT0.373284S
+2026-11-10T19:48:57.046+07:00  INFO 94018 --- [backend] [           main] o.t.utility.RyukResourceReaper           : Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+2026-11-10T19:48:57.047+07:00  INFO 94018 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Checking the system...
+2026-11-10T19:48:57.047+07:00  INFO 94018 --- [backend] [           main] org.testcontainers.DockerClientFactory   : ✔︎ Docker server version should be at least 1.6.0
+2026-11-10T19:48:57.047+07:00  INFO 94018 --- [backend] [           main] tc.postgres:17-alpine                    : Creating container for image: postgres:17-alpine
+2026-11-10T19:48:57.072+07:00  INFO 94018 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine is starting: 88fbe0e5c8a6bb3a3e2d78f09bcfd5c296adbaf7f9045fd7c5d285577c62b44c
+2026-11-10T19:48:57.925+07:00  INFO 94018 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine started in PT0.878359S
+2026-11-10T19:48:57.927+07:00  INFO 94018 --- [backend] [           main] tc.postgres:17-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:53482/test?loggerLevel=OFF)
+2026-11-10T19:48:58.136+07:00  INFO 94018 --- [backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:53482/test?loggerLevel=OFF (PostgreSQL 17.11)
+2026-11-10T19:48:58.164+07:00  INFO 94018 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-10T19:48:58.165+07:00  INFO 94018 --- [backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 2 migrations (execution time 00:00.007s)
+2026-11-10T19:48:58.173+07:00  INFO 94018 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-10T19:48:58.202+07:00  INFO 94018 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-10T19:48:58.206+07:00  INFO 94018 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - submissions"
+2026-11-10T19:48:58.227+07:00  INFO 94018 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - class management"
+2026-11-10T19:48:58.236+07:00  INFO 94018 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 2 migrations to schema "public", now at version v2 (execution time 00:00.019s)
+2026-11-10T19:48:58.269+07:00  INFO 94018 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-10T19:48:58.280+07:00  INFO 94018 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@20f99c18
+2026-11-10T19:48:58.280+07:00  INFO 94018 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-10T19:48:58.294+07:00  INFO 94018 --- [backend] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-10T19:48:58.337+07:00  INFO 94018 --- [backend] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.13.Final
+2026-11-10T19:48:58.484+07:00  INFO 94018 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-10T19:48:58.525+07:00  INFO 94018 --- [backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:53482/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-10T19:48:58.664+07:00  INFO 94018 --- [backend] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-10T19:48:58.666+07:00  INFO 94018 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-10T19:48:58.908+07:00  INFO 94018 --- [backend] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-10T19:48:58.909+07:00  INFO 94018 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-10T19:48:58.910+07:00  INFO 94018 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-11-10T19:48:58.946+07:00  INFO 94018 --- [backend] [           main] c.l.b.classroom.ClassroomContractTest    : Started ClassroomContractTest in 3.274 seconds (process running for 3.721)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/nphoang/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.15/byte-buddy-agent-1.18.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /classes
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Authorization:"Bearer [REDACTED_TEST_JWT]", Content-Length:"16"]
+             Body = {"name":"Class"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.classroom.ClassroomController
+           Method = com.leetkob.backend.classroom.ClassroomController#create(Jwt, CreateRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 201
+    Error message = null
+          Headers = [Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"9623fce0-ce06-45fb-aa64-5dd69ec7d831","name":"Class","inviteCode":"akpUDmI0eJ9mgWZothy6OefFBbmvHsYg"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/b4361a0e-a20c-44ae-8c1f-ee3c17d912bf/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Idempotency-Key:"class-join-test-key", Authorization:"Bearer [REDACTED_TEST_JWT]", Content-Length:"24"]
+             Body = {"code":"int main() {}"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = com.leetkob.backend.problem.ApiException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 404
+    Error message = null
+          Headers = [Content-Type:"application/problem+json", Content-Length:"175", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/problem+json
+             Body = {"type":"urn:leetkob:problem:lab-not-found","title":"Lab not found","status":404,"detail":"Lab not found.","instance":"/labs/b4361a0e-a20c-44ae-8c1f-ee3c17d912bf/submissions"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /classes/join
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Authorization:"Bearer [REDACTED_TEST_JWT]", Content-Length:"49"]
+             Body = {"inviteCode":"akpUDmI0eJ9mgWZothy6OefFBbmvHsYg"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.classroom.ClassroomController
+           Method = com.leetkob.backend.classroom.ClassroomController#join(Jwt, JoinRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"9623fce0-ce06-45fb-aa64-5dd69ec7d831","name":"Class","inviteCode":null}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/b4361a0e-a20c-44ae-8c1f-ee3c17d912bf/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Idempotency-Key:"class-join-test-key", Authorization:"Bearer [REDACTED_TEST_JWT]", "Bearer [REDACTED_TEST_JWT]", Content-Length:"24"]
+             Body = {"code":"int main() {}"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 201
+    Error message = null
+          Headers = [Content-Type:"application/json", Content-Length:"217", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"8e88ad6f-d653-40d8-9cc2-ba38894b810d","labId":"b4361a0e-a20c-44ae-8c1f-ee3c17d912bf","studentId":"a1f75808-05a9-4756-be62-ac43f82e4e63","status":"queued","submittedAt":"2026-11-10T12:48:59.518Z","sizeBytes":13}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/b4361a0e-a20c-44ae-8c1f-ee3c17d912bf/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Idempotency-Key:"class-join-test-key", Authorization:"Bearer [REDACTED_TEST_JWT]", "Bearer [REDACTED_TEST_JWT]", "Bearer [REDACTED_TEST_JWT]", Content-Length:"24"]
+             Body = {"code":"int main() {}"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Content-Type:"application/json", Idempotency-Replayed:"true", Content-Length:"217", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"8e88ad6f-d653-40d8-9cc2-ba38894b810d","labId":"b4361a0e-a20c-44ae-8c1f-ee3c17d912bf","studentId":"a1f75808-05a9-4756-be62-ac43f82e4e63","status":"queued","submittedAt":"2026-11-10T12:48:59.518Z","sizeBytes":13}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+[ERROR] Tests run: 11, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 4.062 s <<< FAILURE! -- in com.leetkob.backend.classroom.ClassroomContractTest
+[ERROR] com.leetkob.backend.classroom.ClassroomContractTest.joinedStudentCanSubmitOnlyToJoinedClass -- Time elapsed: 0.018 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<404> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.leetkob.backend.classroom.ClassroomContractTest.joinedStudentCanSubmitOnlyToJoinedClass(ClassroomContractTest.java:254)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   ClassroomContractTest.joinedStudentCanSubmitOnlyToJoinedClass:254 Status expected:<404> but was:<200>
+[INFO] 
+[ERROR] Tests run: 11, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[ERROR] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  38.478 s
+[INFO] Finished at: 2026-11-10T19:48:59+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project backend: There are test failures.
+[ERROR] 
+[ERROR] See /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

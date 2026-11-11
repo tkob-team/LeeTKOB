@@ -1,0 +1,2 @@
+gemini-3.6-flash until 2026-12-31: 400 calls, one pass $2.85, with 2x retries/re-reviews $5.70
+gemini-3.6-flash from 2027-01-01: 400 calls, one pass $5.70, with 2x retries/re-reviews $11.40

@@ -1,0 +1,13 @@
+added	backend/src/main/java/com/leetkob/backend/ClockConfiguration.java
+added	backend/src/main/java/com/leetkob/backend/problem/ApiException.java
+added	backend/src/main/java/com/leetkob/backend/problem/ProblemAdvice.java
+added	backend/src/main/java/com/leetkob/backend/problem/ProblemType.java
+added	backend/src/main/java/com/leetkob/backend/problem/Problems.java
+added	backend/src/main/java/com/leetkob/backend/security/SecurityConfiguration.java
+added	backend/src/main/java/com/leetkob/backend/submission/SubmissionController.java
+added	backend/src/main/java/com/leetkob/backend/submission/SubmissionRepository.java
+added	backend/src/main/java/com/leetkob/backend/submission/SubmissionRequestParser.java
+modified	backend/src/main/resources/application.properties
+added	backend/src/main/resources/db/migration/V1__submissions.sql
+modified	backend/src/test/java/com/leetkob/backend/TestcontainersConfiguration.java
+added	backend/src/test/java/com/leetkob/backend/submission/SubmissionContractTest.java

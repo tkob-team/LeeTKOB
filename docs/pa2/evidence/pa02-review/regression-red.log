@@ -1,0 +1,370 @@
+[INFO] Scanning for projects...
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] ------------------------< com.leetkob:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository maven-central (prefixes-maven-central.txt)
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to flyway-community-db-support (https://maven.pkg.github.com/flyway/flyway-community-db-support): HTTP Status: 401
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to MavenFeed (https://red-gate.pkgs.visualstudio.com/MavenFeed/_packaging/MavenFeed/maven/v1/): HTTP Status: 401
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ backend ---
+[INFO] Loaded 64 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 10 source files with javac [debug parameters release 25] to target/classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ backend ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 25] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.leetkob.backend.submission.SubmissionContractTest
+18:31:25.335 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.submission.SubmissionContractTest
+18:31:25.365 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.submission.SubmissionContractTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.2)
+
+2026-11-10T18:31:25.542+07:00  INFO 78778 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : Starting SubmissionContractTest using Java 25.0.5.0.3 with PID 78778 (started by nphoang in /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend)
+2026-11-10T18:31:25.543+07:00  INFO 78778 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : No active profile set, falling back to 1 default profile: "default"
+2026-11-10T18:31:25.809+07:00  INFO 78778 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-10T18:31:25.819+07:00  INFO 78778 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 5 ms. Found 0 JPA repository interfaces.
+2026-11-10T18:31:25.978+07:00  INFO 78778 --- [backend] [           main] org.testcontainers.images.PullPolicy     : Image pull policy will be performed by: DefaultPullPolicy()
+2026-11-10T18:31:25.979+07:00  INFO 78778 --- [backend] [           main] o.t.utility.ImageNameSubstitutor         : Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+2026-11-10T18:31:25.987+07:00  INFO 78778 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Testcontainers version: 2.0.5
+2026-11-10T18:31:26.083+07:00  INFO 78778 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+2026-11-10T18:31:28.314+07:00  INFO 78778 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+2026-11-10T18:31:28.315+07:00  INFO 78778 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Docker host IP address is localhost
+2026-11-10T18:31:28.328+07:00  INFO 78778 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Connected to docker: 
+  Server Version: 29.9.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 5922 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/nphoang/Library/Containers/com.docker.docker/Data/docker-cli.sock
+2026-11-10T18:31:28.393+07:00  INFO 78778 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Creating container for image: testcontainers/ryuk:0.14.0
+2026-11-10T18:31:28.519+07:00  INFO 78778 --- [backend] [           main] o.t.utility.RegistryAuthLocator          : Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+2026-11-10T18:31:28.579+07:00  INFO 78778 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 is starting: dabe0254448fd34d23265402dc3581336cc914c80af37f7ea48376c60ca8dbb6
+2026-11-10T18:31:28.755+07:00  INFO 78778 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 started in PT0.361718S
+2026-11-10T18:31:28.759+07:00  INFO 78778 --- [backend] [           main] o.t.utility.RyukResourceReaper           : Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+2026-11-10T18:31:28.759+07:00  INFO 78778 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Checking the system...
+2026-11-10T18:31:28.759+07:00  INFO 78778 --- [backend] [           main] org.testcontainers.DockerClientFactory   : ✔︎ Docker server version should be at least 1.6.0
+2026-11-10T18:31:28.760+07:00  INFO 78778 --- [backend] [           main] tc.postgres:17-alpine                    : Creating container for image: postgres:17-alpine
+2026-11-10T18:31:28.785+07:00  INFO 78778 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine is starting: e7a778a24bafd6500a3a81319b4e45d4821cfc6f106748e298cddf3cfd6cf149
+2026-11-10T18:31:29.627+07:00  INFO 78778 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine started in PT0.86703S
+2026-11-10T18:31:29.628+07:00  INFO 78778 --- [backend] [           main] tc.postgres:17-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:60601/test?loggerLevel=OFF)
+2026-11-10T18:31:29.893+07:00  INFO 78778 --- [backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:60601/test?loggerLevel=OFF (PostgreSQL 17.11)
+2026-11-10T18:31:29.923+07:00  INFO 78778 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-10T18:31:29.925+07:00  INFO 78778 --- [backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.007s)
+2026-11-10T18:31:29.934+07:00  INFO 78778 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-10T18:31:29.964+07:00  INFO 78778 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-10T18:31:29.969+07:00  INFO 78778 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - submissions"
+2026-11-10T18:31:29.992+07:00  INFO 78778 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.016s)
+2026-11-10T18:31:30.028+07:00  INFO 78778 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-10T18:31:30.040+07:00  INFO 78778 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1860b107
+2026-11-10T18:31:30.041+07:00  INFO 78778 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-10T18:31:30.055+07:00  INFO 78778 --- [backend] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-10T18:31:30.080+07:00  INFO 78778 --- [backend] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.13.Final
+2026-11-10T18:31:30.232+07:00  INFO 78778 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-10T18:31:30.269+07:00  INFO 78778 --- [backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:60601/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-10T18:31:30.420+07:00  INFO 78778 --- [backend] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-10T18:31:30.423+07:00  INFO 78778 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-10T18:31:30.690+07:00  INFO 78778 --- [backend] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-10T18:31:30.690+07:00  INFO 78778 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-10T18:31:30.691+07:00  INFO 78778 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-11-10T18:31:30.733+07:00  INFO 78778 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : Started SubmissionContractTest in 5.287 seconds (process running for 6.066)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/nphoang/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.15/byte-buddy-agent-1.18.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/e6ee3724-bc66-4fc7-b3bc-81e587fadee9/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Authorization:"Bearer [REDACTED_TEST_JWT]", Idempotency-Key:"key-aaaaaaaaaaaaaaaa-0001", Content-Length:"64"]
+             Body = {"code":"#include <iostream>\nint main() { std::cout << 1; }\n"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = com.leetkob.backend.problem.ApiException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 409
+    Error message = null
+          Headers = [Content-Type:"application/problem+json", Content-Length:"195", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/problem+json
+             Body = {"type":"urn:leetkob:problem:lab-closed","title":"Lab is closed","status":409,"detail":"The deadline for this lab has passed.","instance":"/labs/e6ee3724-bc66-4fc7-b3bc-81e587fadee9/submissions"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/01c3bc7a-6d72-4049-b711-dd0d8ad1e074/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Authorization:"Bearer [REDACTED_TEST_JWT]", Idempotency-Key:"key-aaaaaaaaaaaaaaaa-0001", Content-Length:"64"]
+             Body = {"code":"#include <iostream>\nint main() { std::cout << 1; }\n"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 201
+    Error message = null
+          Headers = [Content-Type:"application/json", Content-Length:"217", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"e4c28944-7f87-4bd1-b51b-0058d2968699","labId":"01c3bc7a-6d72-4049-b711-dd0d8ad1e074","studentId":"032fd890-0511-4380-af07-7f0548e31852","status":"queued","submittedAt":"2026-11-10T03:00:02.000Z","sizeBytes":51}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/87adbe47-5919-4da3-8053-77087be9a2f0/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Authorization:"Bearer [REDACTED_TEST_JWT]", Idempotency-Key:"key-aaaaaaaaaaaaaaaa-0001", Content-Length:"64"]
+             Body = {"code":"#include <iostream>\nint main() { std::cout << 1; }\n"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 201
+    Error message = null
+          Headers = [Content-Type:"application/json", Content-Length:"217", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"a1b270e1-d86e-4744-968b-6f1d99cda422","labId":"87adbe47-5919-4da3-8053-77087be9a2f0","studentId":"083ef4a4-23fc-4999-ae89-da055c195944","status":"queued","submittedAt":"2026-11-10T03:00:00.000Z","sizeBytes":51}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/c7689935-7152-4183-a50e-e89345d1606a/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Authorization:"Bearer [REDACTED_TEST_JWT]", Idempotency-Key:"key-aaaaaaaaaaaaaaaa-0001", Content-Length:"64"]
+             Body = {"code":"#include <iostream>\nint main() { std::cout << 1; }\n"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 201
+    Error message = null
+          Headers = [Content-Type:"application/json", Content-Length:"217", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"96bcce38-fcaf-4fc4-8b10-88c201c51f48","labId":"c7689935-7152-4183-a50e-e89345d1606a","studentId":"2c3a1def-2174-45b8-a475-adaafcece642","status":"queued","submittedAt":"2026-11-10T03:00:00.000Z","sizeBytes":51}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /labs/dd76e0a1-8b18-4c32-861c-156682305ac9/submissions
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Authorization:"Bearer [REDACTED_TEST_JWT]", Idempotency-Key:"key-aaaaaaaaaaaaaaaa-0001", Content-Length:"64"]
+             Body = {"code":"#include <iostream>\nint main() { std::cout << 1; }\n"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.leetkob.backend.submission.SubmissionController
+           Method = com.leetkob.backend.submission.SubmissionController#submit(String, HttpServletRequest, Jwt)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 201
+    Error message = null
+          Headers = [Content-Type:"application/json", Content-Length:"217", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"id":"8e1d9231-1588-461c-8f5e-d9ebc232290b","labId":"dd76e0a1-8b18-4c32-861c-156682305ac9","studentId":"8776f2bc-f42b-435a-bdd2-8e707c39227e","status":"queued","submittedAt":"2026-11-10T03:00:00.000Z","sizeBytes":51}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 5.961 s <<< FAILURE! -- in com.leetkob.backend.submission.SubmissionContractTest
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.receivedBeforeDeadlineIsAcceptedAfterProcessingCrossesDeadline -- Time elapsed: 0.340 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<201> but was:<409>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.leetkob.backend.submission.SubmissionContractTest.receivedBeforeDeadlineIsAcceptedAfterProcessingCrossesDeadline(SubmissionContractTest.java:331)
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.receivedBeforeOpeningStaysRejectedAfterProcessingCrossesOpening -- Time elapsed: 0.018 s <<< FAILURE!
+java.lang.AssertionError: Response status expected:<409> but was:<201>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$is$1(StatusResultMatchers.java:65)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.leetkob.backend.submission.SubmissionContractTest.problem(SubmissionContractTest.java:652)
+	at com.leetkob.backend.submission.SubmissionContractTest.receivedBeforeOpeningStaysRejectedAfterProcessingCrossesOpening(SubmissionContractTest.java:340)
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.tokenWithoutExpiryIsUnauthenticated -- Time elapsed: 0.014 s <<< FAILURE!
+java.lang.AssertionError: Response status expected:<401> but was:<201>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$is$1(StatusResultMatchers.java:65)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.leetkob.backend.submission.SubmissionContractTest.problem(SubmissionContractTest.java:652)
+	at com.leetkob.backend.submission.SubmissionContractTest.tokenWithoutExpiryIsUnauthenticated(SubmissionContractTest.java:309)
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.recentlyExpiredTokenIsUnauthenticated -- Time elapsed: 0.013 s <<< FAILURE!
+java.lang.AssertionError: Response status expected:<401> but was:<201>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$is$1(StatusResultMatchers.java:65)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.leetkob.backend.submission.SubmissionContractTest.problem(SubmissionContractTest.java:652)
+	at com.leetkob.backend.submission.SubmissionContractTest.recentlyExpiredTokenIsUnauthenticated(SubmissionContractTest.java:322)
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.deadlineComparisonDoesNotTruncateReceiptToMilliseconds -- Time elapsed: 0.011 s <<< FAILURE!
+java.lang.AssertionError: Response status expected:<409> but was:<201>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$is$1(StatusResultMatchers.java:65)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.leetkob.backend.submission.SubmissionContractTest.problem(SubmissionContractTest.java:652)
+	at com.leetkob.backend.submission.SubmissionContractTest.deadlineComparisonDoesNotTruncateReceiptToMilliseconds(SubmissionContractTest.java:348)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SubmissionContractTest.deadlineComparisonDoesNotTruncateReceiptToMilliseconds:348->problem:652 Response status expected:<409> but was:<201>
+[ERROR]   SubmissionContractTest.receivedBeforeDeadlineIsAcceptedAfterProcessingCrossesDeadline:331 Status expected:<201> but was:<409>
+[ERROR]   SubmissionContractTest.receivedBeforeOpeningStaysRejectedAfterProcessingCrossesOpening:340->problem:652 Response status expected:<409> but was:<201>
+[ERROR]   SubmissionContractTest.recentlyExpiredTokenIsUnauthenticated:322->problem:652 Response status expected:<401> but was:<201>
+[ERROR]   SubmissionContractTest.tokenWithoutExpiryIsUnauthenticated:309->problem:652 Response status expected:<401> but was:<201>
+[INFO] 
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[ERROR] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  39.721 s
+[INFO] Finished at: 2026-11-10T18:31:31+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project backend: There are test failures.
+[ERROR] 
+[ERROR] See /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

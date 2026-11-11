@@ -1,0 +1,22 @@
+[INFO] Scanning for projects...
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] ------------------------< com.leetkob:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- spotless:3.11.0:apply (default-cli) @ backend ---
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.diffplug.spotless.java.ModuleHelper (file:/Users/nphoang/.m2/repository/com/diffplug/spotless/spotless-lib/4.11.0/spotless-lib-4.11.0.jar)
+WARNING: Please consider reporting this to the maintainers of class com.diffplug.spotless.java.ModuleHelper
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[INFO] clean file: /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/test/java/com/leetkob/backend/classroom/ClassroomContractTest.java
+[INFO] clean file: /Users/nphoang/Developer/hcmus/advanced-web/Project/outputs/t29/worktree/backend/src/main/java/com/leetkob/backend/problem/ProblemAdvice.java
+[INFO] Spotless.Java is keeping 17 files clean - 2 were changed to be clean, 0 were already clean, 15 were skipped because caching determined they were already clean
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.632 s
+[INFO] Finished at: 2026-11-10T19:51:18+07:00
+[INFO] ------------------------------------------------------------------------

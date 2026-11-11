@@ -1,0 +1,344 @@
+[INFO] Scanning for projects...
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] ------------------------< com.leetkob:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository maven-central (prefixes-maven-central.txt)
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to flyway-community-db-support (https://maven.pkg.github.com/flyway/flyway-community-db-support): HTTP Status: 401
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to MavenFeed (https://red-gate.pkgs.visualstudio.com/MavenFeed/_packaging/MavenFeed/maven/v1/): HTTP Status: 401
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ backend ---
+[INFO] Loaded 64 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.leetkob.backend.BackendApplicationTests
+13:23:17.644 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.leetkob.backend.BackendApplicationTests]: BackendApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+13:23:17.690 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.BackendApplicationTests
+13:23:17.730 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.leetkob.backend.BackendApplicationTests]: BackendApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+13:23:17.732 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.BackendApplicationTests
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.2)
+
+2026-11-10T13:23:17.851+07:00  INFO 48672 --- [backend] [           main] c.l.backend.BackendApplicationTests      : Starting BackendApplicationTests using Java 26.0.2 with PID 48672 (started by nphoang in /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend)
+2026-11-10T13:23:17.851+07:00  INFO 48672 --- [backend] [           main] c.l.backend.BackendApplicationTests      : No active profile set, falling back to 1 default profile: "default"
+2026-11-10T13:23:18.120+07:00  INFO 48672 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-10T13:23:18.128+07:00  INFO 48672 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 4 ms. Found 0 JPA repository interfaces.
+2026-11-10T13:23:18.271+07:00  INFO 48672 --- [backend] [           main] org.testcontainers.images.PullPolicy     : Image pull policy will be performed by: DefaultPullPolicy()
+2026-11-10T13:23:18.272+07:00  INFO 48672 --- [backend] [           main] o.t.utility.ImageNameSubstitutor         : Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+2026-11-10T13:23:18.279+07:00  INFO 48672 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Testcontainers version: 2.0.5
+2026-11-10T13:23:18.382+07:00  INFO 48672 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+2026-11-10T13:23:18.577+07:00  INFO 48672 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+2026-11-10T13:23:18.577+07:00  INFO 48672 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Docker host IP address is localhost
+2026-11-10T13:23:18.588+07:00  INFO 48672 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Connected to docker: 
+  Server Version: 29.9.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 5922 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/nphoang/Library/Containers/com.docker.docker/Data/docker-cli.sock
+2026-11-10T13:23:18.652+07:00  INFO 48672 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Creating container for image: testcontainers/ryuk:0.14.0
+2026-11-10T13:23:18.736+07:00  INFO 48672 --- [backend] [           main] o.t.utility.RegistryAuthLocator          : Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+2026-11-10T13:23:18.799+07:00  INFO 48672 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 is starting: 0f589cbd0add7481072175da4a17c680827353902e53d18e798d0aa6412927a1
+2026-11-10T13:23:18.987+07:00  INFO 48672 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 started in PT0.334821S
+2026-11-10T13:23:18.990+07:00  INFO 48672 --- [backend] [           main] o.t.utility.RyukResourceReaper           : Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+2026-11-10T13:23:18.990+07:00  INFO 48672 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Checking the system...
+2026-11-10T13:23:18.990+07:00  INFO 48672 --- [backend] [           main] org.testcontainers.DockerClientFactory   : ✔︎ Docker server version should be at least 1.6.0
+2026-11-10T13:23:18.990+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Creating container for image: postgres:17-alpine
+2026-11-10T13:23:19.015+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine is starting: 0c73301729a9f7d718e07938befd298a06ab436d2cc25326e92b83a2d7f9a128
+2026-11-10T13:23:19.748+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine started in PT0.757835S
+2026-11-10T13:23:19.749+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:61050/test?loggerLevel=OFF)
+2026-11-10T13:23:20.030+07:00  INFO 48672 --- [backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:61050/test?loggerLevel=OFF (PostgreSQL 17.11)
+2026-11-10T13:23:20.061+07:00  INFO 48672 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-10T13:23:20.063+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.009s)
+2026-11-10T13:23:20.076+07:00  INFO 48672 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-10T13:23:20.108+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-10T13:23:20.112+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - submissions"
+2026-11-10T13:23:20.147+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.019s)
+2026-11-10T13:23:20.177+07:00  INFO 48672 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-10T13:23:20.188+07:00  INFO 48672 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4e614370
+2026-11-10T13:23:20.189+07:00  INFO 48672 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-10T13:23:20.202+07:00  INFO 48672 --- [backend] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-10T13:23:20.229+07:00  INFO 48672 --- [backend] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.13.Final
+2026-11-10T13:23:20.381+07:00  INFO 48672 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-10T13:23:20.421+07:00  INFO 48672 --- [backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:61050/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-10T13:23:20.602+07:00  INFO 48672 --- [backend] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-10T13:23:20.605+07:00  INFO 48672 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-10T13:23:20.942+07:00  INFO 48672 --- [backend] [           main] c.l.backend.BackendApplicationTests      : Started BackendApplicationTests in 3.183 seconds (process running for 3.659)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/nphoang/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.15/byte-buddy-agent-1.18.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.631 s -- in com.leetkob.backend.BackendApplicationTests
+[INFO] Running com.leetkob.backend.submission.SubmissionContractTest
+2026-11-10T13:23:21.219+07:00  INFO 48672 --- [backend] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.submission.SubmissionContractTest
+2026-11-10T13:23:21.221+07:00  INFO 48672 --- [backend] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.submission.SubmissionContractTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.2)
+
+2026-11-10T13:23:21.233+07:00  INFO 48672 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : Starting SubmissionContractTest using Java 26.0.2 with PID 48672 (started by nphoang in /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend)
+2026-11-10T13:23:21.234+07:00  INFO 48672 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : No active profile set, falling back to 1 default profile: "default"
+2026-11-10T13:23:21.299+07:00  INFO 48672 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-10T13:23:21.301+07:00  INFO 48672 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 1 ms. Found 0 JPA repository interfaces.
+2026-11-10T13:23:21.328+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Creating container for image: postgres:17-alpine
+2026-11-10T13:23:21.389+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine is starting: e54af2e7963a5204794909fced1ca9a063055b53dc3f3820230d86e92e267383
+2026-11-10T13:23:22.126+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine started in PT0.798205S
+2026-11-10T13:23:22.127+07:00  INFO 48672 --- [backend] [           main] tc.postgres:17-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:61069/test?loggerLevel=OFF)
+2026-11-10T13:23:22.205+07:00  INFO 48672 --- [backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:61069/test?loggerLevel=OFF (PostgreSQL 17.11)
+2026-11-10T13:23:22.213+07:00  INFO 48672 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-10T13:23:22.213+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.001s)
+2026-11-10T13:23:22.218+07:00  INFO 48672 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-10T13:23:22.229+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-10T13:23:22.231+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - submissions"
+2026-11-10T13:23:22.241+07:00  INFO 48672 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.007s)
+2026-11-10T13:23:22.247+07:00  INFO 48672 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2026-11-10T13:23:22.252+07:00  INFO 48672 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@3ab26cad
+2026-11-10T13:23:22.252+07:00  INFO 48672 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2026-11-10T13:23:22.253+07:00  INFO 48672 --- [backend] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-10T13:23:22.260+07:00  INFO 48672 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-10T13:23:22.265+07:00  INFO 48672 --- [backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:61069/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-10T13:23:22.274+07:00  INFO 48672 --- [backend] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-10T13:23:22.274+07:00  INFO 48672 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-10T13:23:22.330+07:00  INFO 48672 --- [backend] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-10T13:23:22.330+07:00  INFO 48672 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-10T13:23:22.331+07:00  INFO 48672 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-11-10T13:23:22.349+07:00  INFO 48672 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : Started SubmissionContractTest in 1.124 seconds (process running for 5.066)
+2026-11-10T13:23:22.779+07:00 ERROR 48672 --- [backend] [           main] c.leetkob.backend.problem.ProblemAdvice  : Unexpected failure on /labs/d554df34-9453-49fc-a0ea-0545b97ffe5c/submissions
+
+java.lang.IllegalStateException: clock failure injected by test
+	at com.leetkob.backend.submission.SubmissionContractTest$TestClock.instant(SubmissionContractTest.java:93) ~[test-classes/:na]
+	at com.leetkob.backend.submission.SubmissionController.submit(SubmissionController.java:75) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649) ~[tomcat-embed-core-11.0.27.jar:6.1]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874) ~[spring-webmvc-7.0.10.jar:7.0.10]
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72) ~[spring-test-7.0.10.jar:7.0.10]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710) ~[tomcat-embed-core-11.0.27.jar:6.1]
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:160) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$2(FilterChainProxy.java:235) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:378) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:101) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.doFilterInternal(BearerTokenAuthenticationFilter.java:209) ~[spring-security-oauth2-resource-server-7.1.2.jar:7.1.2]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.oauth2.server.resource.web.OAuth2ProtectedResourceMetadataFilter.doFilterInternal(OAuth2ProtectedResourceMetadataFilter.java:98) ~[spring-security-oauth2-resource-server-7.1.2.jar:7.1.2]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:91) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:76) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:387) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195) ~[spring-security-web-7.1.2.jar:7.1.2]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317) ~[spring-security-config-7.1.2.jar:7.1.2]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.10.jar:7.0.10]
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127) ~[spring-test-7.0.10.jar:7.0.10]
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:199) ~[spring-test-7.0.10.jar:7.0.10]
+	at com.leetkob.backend.submission.SubmissionContractTest.rawSubmit(SubmissionContractTest.java:599) ~[test-classes/:na]
+	at com.leetkob.backend.submission.SubmissionContractTest.submit(SubmissionContractTest.java:579) ~[test-classes/:na]
+	at com.leetkob.backend.submission.SubmissionContractTest.submit(SubmissionContractTest.java:575) ~[test-classes/:na]
+	at com.leetkob.backend.submission.SubmissionContractTest.unexpectedFailureIsInternalErrorWithoutDetails(SubmissionContractTest.java:544) ~[test-classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701) ~[junit-platform-commons-6.0.3.jar:6.0.3]
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502) ~[junit-platform-commons-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70) ~[junit-jupiter-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1612) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1612) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58) ~[junit-platform-engine-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125) ~[surefire-api-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68) ~[surefire-junit-platform-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54) ~[surefire-junit-platform-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203) ~[surefire-junit-platform-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168) ~[surefire-junit-platform-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136) ~[surefire-junit-platform-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) ~[surefire-booter-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) ~[surefire-booter-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) ~[surefire-booter-3.5.6.jar:3.5.6]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) ~[surefire-booter-3.5.6.jar:3.5.6]
+
+[INFO] Tests run: 32, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.639 s -- in com.leetkob.backend.submission.SubmissionContractTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 33, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  8.256 s
+[INFO] Finished at: 2026-11-10T13:23:23+07:00
+[INFO] ------------------------------------------------------------------------

@@ -1,0 +1,24 @@
+# codex execpolicy check on main @ 1b88bc6, 2026-11-10 12:14:42 +0700, codex codex-cli 0.167.0
+make test                      allow
+make lint                      allow
+make format-check              allow
+make typecheck                 allow
+git status                     allow
+git diff                       allow
+git log                        allow
+git commit -m x                prompt
+git push origin feature        prompt
+gh pr create                   prompt
+docker ps                      prompt
+curl https://example.com       prompt
+uv add pkg                     prompt
+git push --force origin x      forbidden
+git push -f origin x           forbidden
+git push origin main           forbidden
+git push origin --delete x     forbidden
+git branch -D x                forbidden
+git tag -d x                   forbidden
+rm -rf x                       forbidden
+cat .env                       forbidden
+tail .env                      forbidden
+ls                             (no rule matched)

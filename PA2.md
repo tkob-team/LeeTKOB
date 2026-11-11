@@ -12,6 +12,8 @@ Team: `23120255-23120262-23120264`. Review completion was confirmed by Hoang on
 | Run for the pushed pa2 tag | [pa2 tag CI run 42819680913](https://github.com/tkob-team/LeeTKOB/actions/runs/42819680913), [tagged source 236fa35](https://github.com/tkob-team/LeeTKOB/tree/pa2) |
 | Code-only deliberate contract break | [T13 PR #10 — DO NOT MERGE](https://github.com/tkob-team/LeeTKOB/pull/10), [red run](https://github.com/tkob-team/LeeTKOB/actions/runs/42779970787), [disabled merge screenshot](docs/pa2/t13-blocked.png) |
 
+See the [organized evidence directory](docs/pa2/README.md) for task records, review history and raw logs.
+
 Additional evidence:
 
 - [PR template automatically populated in the new-PR form](docs/pa2/pr-template-autofill.png).

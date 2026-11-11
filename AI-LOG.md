@@ -16,7 +16,7 @@
 - Changed: installed uv with Homebrew, started Docker Desktop, selected the existing JDK 25 for the check process instead of the default JDK 26. uv created the checker virtual environment from the committed lockfile. No application code, tests, build configuration, or lockfiles were changed.
 - Rejected: no AI-generated application code changes were proposed or applied for this environment task.
 - Validation: on source commit b76ccd5d4c863e7df41a27810d0a016b5dbad0a7, `make lint`, `make format-check`, `make typecheck`, and `make test` each exited 0. Backend tests used PostgreSQL 17 Alpine through Testcontainers; checker pytest passed.
-- Evidence: local sibling directory `../outputs/t05/` contains `environment.log`, `results.json`, and `make-{lint,format-check,typecheck,test}.log`. These local logs have not been published as PR/CI evidence.
+- Evidence: local sibling directory `docs/pa2/evidence/t05/` contains `environment.log`, `results.json`, and `make-{lint,format-check,typecheck,test}.log`. These local logs have not been published as PR/CI evidence.
 - Reproduction: keep Docker Desktop running, set `JAVA_HOME` to the installed JDK 25 and prepend its `bin` directory to PATH, then run the four commands from the repository root.
 
 ## 2026-11-10 — T02: five CI quality checks (Hoang)
@@ -80,7 +80,7 @@
 - Changed: red commit `ec8ad3c` adds 32 contract tests (`SubmissionContractTest`, real HTTP layer and PostgreSQL through Testcontainers, a movable test clock) and a fake JWT key in `TestcontainersConfiguration`. Green commit `8338877` adds the Flyway migration (`users`, `classes`, `class_members`, `labs`, `submissions` with a unique `(student_id, idempotency_key)`), HS256 Bearer authentication, RFC 9457 responses, and the endpoint. No test file changed between the two commits.
 - Decisions made while implementing: a `users` table exists so a token whose `sub` has no user is 401; the endpoint reads the raw body instead of using `consumes`, so a TA with a wrong content type still gets 403 (role before content type); the idempotent insert uses `ON CONFLICT DO NOTHING`, so a concurrent request waits and then replays; `Clock` is a bean so tests can move time.
 - Rejected: letting Spring's `consumes` and `@RequestBody` handle media type and JSON (they would answer in a different order and format than the contract); allowlisting anything in Gitleaks (the fake test key passes without it); trusting the first green result without a mutation check.
-- Validation: the red CI run (`test` job only, 32 errors: relation "submissions" does not exist) and the green CI run (33 tests, 5/5 checks) are linked in `outputs/t11/`. Locally all four `make` targets exit 0. Mutation check: breaking the deadline comparison and the role check made 5 tests fail. Not covered: the `internal-error` path is exercised only by a clock failure injected by the test; duplicate JSON keys and nesting depth (contract gap 20) are untested.
+- Validation: the red CI run (`test` job only, 32 errors: relation "submissions" does not exist) and the green CI run (33 tests, 5/5 checks) are linked in `docs/pa2/evidence/t11/`. Locally all four `make` targets exit 0. Mutation check: breaking the deadline comparison and the role check made 5 tests fail. Not covered: the `internal-error` path is exercised only by a clock failure injected by the test; duplicate JSON keys and nesting depth (contract gap 20) are untested.
 
 ## 2026-11-10 — T12: model and cost section in the README (Hiep)
 - Tool: Claude Code (Claude Sonnet 5.5), run in Hoang's session at Hoang's request; the task owner in the tracker is Hiep. No independent review is recorded.
@@ -101,7 +101,7 @@
 ## 2026-11-10 — T19: summary of my PA#02 work (Hoang)
 - Tools: Codex for T05 and T02 (see their entries above); Claude Code (Claude Sonnet 5.5) for T03, T08 and T13, and for the other PA#02 tasks listed below that I ran in my own session for their owners. The model made the changes; I gave the prompts, approved each outward step (merges, one force-push of a feature branch, the pull requests) and relayed the team's confirmations.
 - My tasks and the evidence (all merged unless stated):
-  - T05 environment and four `make` checks: all four exited 0 on commit b76ccd5 (macOS arm64, not WSL); logs in my local `outputs/t05/`.
+  - T05 environment and four `make` checks: all four exited 0 on commit b76ccd5 (macOS arm64, not WSL); logs in my local `docs/pa2/evidence/t05/`.
   - T02 CI with five jobs: PR #1, merge commit 2a8728b, CI 5/5 green before and after the merge.
   - T03 `main-protection` ruleset: enabled 2026-11-10 10:22:50 (UTC+07:00), two screenshots in `docs/pa2/` through PR #2 (8c7d0b7), the reviewer's confirmation relayed by me.
   - T08 pull request template: PR #3 (95704b1), merged before its reviewer had looked at it.
@@ -118,7 +118,7 @@
   - T12: creating the API key or setting the spending limit myself, and stating the limit as already set.
   - Chrome automation was not available in two sessions, so no browser action was taken for the API key; the T03 screenshots were taken earlier with it.
 - Not done or not verified: T13 is waiting for Hiep to check the evidence; the T12 spending limit (USD 20 per month) is a proposal that the key owner has not confirmed as set, and no key exists in this repository; the pull request template has not been seen on a PR opened in the web interface (mine were opened with `gh`, which bypasses it); Claude Code and Codex permission files were checked by syntax and `codex execpolicy`, not in an interactive session.
-- Validation: CI on `main` was green after each merge (latest run 42782617480 on f6acb8f). Gitleaks reports no secrets in the history. The evidence index for the submission is in `outputs/` next to this repository (one folder per task).
+- Validation: CI on `main` was green after each merge (latest run 42782617480 on f6acb8f). Gitleaks reports no secrets in the history. The evidence originally lived in the sibling `outputs/` directory; its retained files are now indexed in [docs/pa2](docs/pa2/README.md).
 
 ## 2026-11-10 — Reviewed follow-ups across the team (Hoang; owners retained)
 - Tool: Codex. Asked to review all T01–T41, then complete supplements for the tasks already worked on. Hoang stated that the items had been reviewed and requested the corrections; this is a reported team review, not a claim that GitHub Review events exist.
@@ -159,3 +159,11 @@
 - Kept: five required checks, branch protection, the deliberately broken PR #10 unmerged, and immutable tag provenance.
 - Changed: merged PR #13 at `236fa35` after all five PR checks passed, verified main CI 42819474226, then created/pushed annotated tag `pa2` at that commit. Added actual tag-run link 42819680913 to complete the six-link PA2 evidence index.
 - Rejected: guessing a run URL, moving/replacing the tag to disguise a later documentation update, or treating this as archive submission. This index update follows the tagged source and says so explicitly.
+
+## 2026-11-11 — Organize local PA02 evidence for review
+
+- Tool: Codex. Prompt: move outputs into the repository under docs/pa2, clean up the layout, and wait for the user before committing or pushing.
+- Kept: log outcomes and content, historical snapshots, existing public evidence URLs/filenames where required, and immutable pa2 tag provenance. Three historical failure logs have generated test JWTs redacted in the publication copies; original bytes remain in local cache and both hashes are recorded.
+- Changed: consolidated retained outputs under docs/pa2/evidence with task indexes and an audited location map; reused identical existing images and archived logs. Kept downloaded binaries, clone/worktree build environments, generated previews and authoring scripts in local cache outside the repository. Moved the existing T29 worktree using git worktree move, preserving its metadata.
+- Rejected: publishing nested repositories/build caches, copying duplicate screenshots/logs, changing raw failure evidence into successful output, or committing/pushing before the user's final review.
+- Validation: relocation checksums, relative document links, whitespace checks and a fresh redacted secret scan are checked locally. This entry makes no new CI claim.

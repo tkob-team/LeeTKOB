@@ -1,0 +1,1019 @@
+[INFO] Scanning for projects...
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] ------------------------< com.leetkob:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Loaded 24432 auto-discovered prefixes for remote repository maven-central (prefixes-maven-central.txt)
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to flyway-community-db-support (https://maven.pkg.github.com/flyway/flyway-community-db-support): HTTP Status: 401
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to MavenFeed (https://red-gate.pkgs.visualstudio.com/MavenFeed/_packaging/MavenFeed/maven/v1/): HTTP Status: 401
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ backend ---
+[INFO] Loaded 64 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.leetkob.backend.BackendApplicationTests
+13:20:44.043 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.leetkob.backend.BackendApplicationTests]: BackendApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+13:20:44.092 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.BackendApplicationTests
+13:20:44.128 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.leetkob.backend.BackendApplicationTests]: BackendApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+13:20:44.130 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.BackendApplicationTests
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.2)
+
+2026-11-10T13:20:44.248+07:00  INFO 47467 --- [backend] [           main] c.l.backend.BackendApplicationTests      : Starting BackendApplicationTests using Java 26.0.2 with PID 47467 (started by nphoang in /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend)
+2026-11-10T13:20:44.249+07:00  INFO 47467 --- [backend] [           main] c.l.backend.BackendApplicationTests      : No active profile set, falling back to 1 default profile: "default"
+2026-11-10T13:20:44.493+07:00  INFO 47467 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-10T13:20:44.500+07:00  INFO 47467 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 4 ms. Found 0 JPA repository interfaces.
+2026-11-10T13:20:44.632+07:00  INFO 47467 --- [backend] [           main] org.testcontainers.images.PullPolicy     : Image pull policy will be performed by: DefaultPullPolicy()
+2026-11-10T13:20:44.633+07:00  INFO 47467 --- [backend] [           main] o.t.utility.ImageNameSubstitutor         : Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+2026-11-10T13:20:44.640+07:00  INFO 47467 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Testcontainers version: 2.0.5
+2026-11-10T13:20:44.737+07:00  INFO 47467 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+2026-11-10T13:20:46.542+07:00  INFO 47467 --- [backend] [           main] o.t.d.DockerClientProviderStrategy       : Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+2026-11-10T13:20:46.543+07:00  INFO 47467 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Docker host IP address is localhost
+2026-11-10T13:20:46.553+07:00  INFO 47467 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Connected to docker: 
+  Server Version: 29.9.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 5922 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/nphoang/Library/Containers/com.docker.docker/Data/docker-cli.sock
+2026-11-10T13:20:46.606+07:00  INFO 47467 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Creating container for image: testcontainers/ryuk:0.14.0
+2026-11-10T13:20:46.689+07:00  INFO 47467 --- [backend] [           main] o.t.utility.RegistryAuthLocator          : Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+2026-11-10T13:20:46.733+07:00  INFO 47467 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 is starting: 1be58ee076a676d31b6a56c2014e3578d8469ec2ab7de956b132582b246afbe2
+2026-11-10T13:20:46.920+07:00  INFO 47467 --- [backend] [           main] tc.testcontainers/ryuk:0.14.0            : Container testcontainers/ryuk:0.14.0 started in PT0.313951S
+2026-11-10T13:20:46.924+07:00  INFO 47467 --- [backend] [           main] o.t.utility.RyukResourceReaper           : Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+2026-11-10T13:20:46.924+07:00  INFO 47467 --- [backend] [           main] org.testcontainers.DockerClientFactory   : Checking the system...
+2026-11-10T13:20:46.924+07:00  INFO 47467 --- [backend] [           main] org.testcontainers.DockerClientFactory   : ✔︎ Docker server version should be at least 1.6.0
+2026-11-10T13:20:46.925+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Creating container for image: postgres:17-alpine
+2026-11-10T13:20:46.958+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine is starting: 28c79e49eb47a6008c3d8eec9e91fa5a6dcf3558fad6c7519ce608b95b752084
+2026-11-10T13:20:47.798+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine started in PT0.873204S
+2026-11-10T13:20:47.799+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:60761/test?loggerLevel=OFF)
+2026-11-10T13:20:48.031+07:00  INFO 47467 --- [backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:60761/test?loggerLevel=OFF (PostgreSQL 17.11)
+2026-11-10T13:20:48.053+07:00  INFO 47467 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-10T13:20:48.054+07:00  INFO 47467 --- [backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 0 migrations (execution time 00:00.005s)
+2026-11-10T13:20:48.054+07:00  WARN 47467 --- [backend] [           main] o.f.core.internal.command.DbValidate     : No migrations found. Are your locations set up correctly?
+2026-11-10T13:20:48.063+07:00  INFO 47467 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-10T13:20:48.096+07:00  INFO 47467 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-10T13:20:48.098+07:00  INFO 47467 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-11-10T13:20:48.130+07:00  INFO 47467 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-10T13:20:48.140+07:00  INFO 47467 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4037cdb0
+2026-11-10T13:20:48.141+07:00  INFO 47467 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-10T13:20:48.154+07:00  INFO 47467 --- [backend] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-10T13:20:48.181+07:00  INFO 47467 --- [backend] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.13.Final
+2026-11-10T13:20:48.352+07:00  INFO 47467 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-10T13:20:48.399+07:00  INFO 47467 --- [backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:60761/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-10T13:20:48.552+07:00  INFO 47467 --- [backend] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-10T13:20:48.555+07:00  INFO 47467 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-10T13:20:48.585+07:00  WARN 47467 --- [backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-10T13:20:48.793+07:00  INFO 47467 --- [backend] [           main] c.l.backend.BackendApplicationTests      : Started BackendApplicationTests in 4.636 seconds (process running for 5.112)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/nphoang/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.15/byte-buddy-agent-1.18.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.182 s -- in com.leetkob.backend.BackendApplicationTests
+[INFO] Running com.leetkob.backend.submission.SubmissionContractTest
+2026-11-10T13:20:49.153+07:00  INFO 47467 --- [backend] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.submission.SubmissionContractTest
+2026-11-10T13:20:49.158+07:00  INFO 47467 --- [backend] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.leetkob.backend.BackendApplication for test class com.leetkob.backend.submission.SubmissionContractTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.2)
+
+2026-11-10T13:20:49.176+07:00  INFO 47467 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : Starting SubmissionContractTest using Java 26.0.2 with PID 47467 (started by nphoang in /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend)
+2026-11-10T13:20:49.177+07:00  INFO 47467 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : No active profile set, falling back to 1 default profile: "default"
+2026-11-10T13:20:49.268+07:00  INFO 47467 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-10T13:20:49.272+07:00  INFO 47467 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 1 ms. Found 0 JPA repository interfaces.
+2026-11-10T13:20:49.300+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Creating container for image: postgres:17-alpine
+2026-11-10T13:20:49.355+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine is starting: eee32c5ed77bf094eaf3f2bf6c00c7a42e2dd57def647273b567c0e0c8558d35
+2026-11-10T13:20:50.123+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Container postgres:17-alpine started in PT0.822303S
+2026-11-10T13:20:50.123+07:00  INFO 47467 --- [backend] [           main] tc.postgres:17-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:60777/test?loggerLevel=OFF)
+2026-11-10T13:20:50.196+07:00  INFO 47467 --- [backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:60777/test?loggerLevel=OFF (PostgreSQL 17.11)
+2026-11-10T13:20:50.205+07:00  INFO 47467 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-10T13:20:50.206+07:00  INFO 47467 --- [backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 0 migrations (execution time 00:00.001s)
+2026-11-10T13:20:50.206+07:00  WARN 47467 --- [backend] [           main] o.f.core.internal.command.DbValidate     : No migrations found. Are your locations set up correctly?
+2026-11-10T13:20:50.210+07:00  INFO 47467 --- [backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-10T13:20:50.221+07:00  INFO 47467 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-10T13:20:50.222+07:00  INFO 47467 --- [backend] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-11-10T13:20:50.228+07:00  INFO 47467 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2026-11-10T13:20:50.233+07:00  INFO 47467 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@602854ed
+2026-11-10T13:20:50.233+07:00  INFO 47467 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2026-11-10T13:20:50.234+07:00  INFO 47467 --- [backend] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-10T13:20:50.241+07:00  INFO 47467 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-10T13:20:50.246+07:00  INFO 47467 --- [backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:60777/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-10T13:20:50.255+07:00  INFO 47467 --- [backend] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-10T13:20:50.255+07:00  INFO 47467 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-10T13:20:50.263+07:00  WARN 47467 --- [backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-10T13:20:50.302+07:00  INFO 47467 --- [backend] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-10T13:20:50.302+07:00  INFO 47467 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-10T13:20:50.303+07:00  INFO 47467 --- [backend] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-11-10T13:20:50.323+07:00  INFO 47467 --- [backend] [           main] c.l.b.submission.SubmissionContractTest  : Started SubmissionContractTest in 1.159 seconds (process running for 6.642)
+[ERROR] Tests run: 32, Failures: 0, Errors: 32, Skipped: 0, Time elapsed: 1.256 s <<< FAILURE! -- in com.leetkob.backend.submission.SubmissionContractTest
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.removedMemberReplayGetsNotFound -- Time elapsed: 0.010 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.errorInstanceIsPathWithoutQuery -- Time elapsed: 0.003 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.studentOfClassCreatesSubmission -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.problemResponsesUseProblemJson -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.studentIdIsTokenSubject -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.sameKeySameBodyReplaysWithoutNewRow -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.invalidRequestReportsFieldNames -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.replayAfterDeadlineStillReturnsOriginal -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.codeKeepsExactBytes -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.upperCaseLabIdIsAcceptedAndNormalized -- Time elapsed: 0.004 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.invalidLabIdIsInvalidRequest -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.oversizedCodeCreatesNoSubmission -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.idempotencyKeyIsRequired -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.nonMemberWithoutKeyGetsKeyError -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.taAndAdminAreForbidden -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.retryWithInvalidBodyGetsItsOwnError -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.otherClassStudentGetsLabNotFound -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.roleIsCheckedBeforeContentType -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.labNotOpenIsConflict -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.newKeyCreatesNewSubmission -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.submissionAtDueAtIsLate -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.concurrentSameKeyCreatesOneSubmission -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.invalidBodiesAreInvalidRequest -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.otherStudentsSameKeyIsIndependent -- Time elapsed: 0.003 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.codeTooLargeIsRejectedAndNotStored -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.unsupportedMediaTypeIsRejected -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.unexpectedFailureIsInternalErrorWithoutDetails -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.sameKeyDifferentBodyIsRejected -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.malformedIdempotencyKeyIsInvalidRequest -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.methodNotAllowedReturnsProblemBody -- Time elapsed: 0.002 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.reusedKeyWithDifferentCodeOnClosedLabIsReused -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[ERROR] com.leetkob.backend.submission.SubmissionContractTest.unauthenticatedRequestsAreRejected -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:134)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:987)
+	at org.springframework.jdbc.core.simple.DefaultJdbcClient$DefaultStatementSpec.update(DefaultJdbcClient.java:282)
+	at com.leetkob.backend.submission.SubmissionContractTest.seed(SubmissionContractTest.java:122)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "submissions" does not exist
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 4 more
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[ERROR]   SubmissionContractTest.seed:122 » BadSqlGrammar PreparedStatementCallback; bad SQL grammar [truncate submissions, labs, class_members, classes, users cascade]
+[INFO] 
+[ERROR] Tests run: 33, Failures: 0, Errors: 32, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[ERROR] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  10.217 s
+[INFO] Finished at: 2026-11-10T13:20:50+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project backend: 
+[ERROR] 
+[ERROR] See /Users/nphoang/Developer/hcmus/advanced-web/Project/leetkob/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

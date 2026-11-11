@@ -1,0 +1,77 @@
+{
+  "T04": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/docs/pa2/t14-fresh-clone.md",
+    "Máy dùng chung cả nhóm theo xác nhận Hoàng; macOS/JDK25/uv/Docker, 4 make đạt; PR13 đã merge."
+  ],
+  "T05": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/docs/pa2/logs/t05/results.json",
+    "4 make đạt; log gốc đã công khai qua PR13 đã merge."
+  ],
+  "T06": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/pull/13",
+    "PR4 và bổ sung PR13 đã merge; phạm vi thực thi quyền được ghi rõ."
+  ],
+  "T07": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/pull/13",
+    "PR5 và bổ sung PR13 đã merge; 19 probe an toàn đạt."
+  ],
+  "T08": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/docs/pa2/pr-template-autofill.png",
+    "Đã review; xác minh UI tự điền 3 câu hỏi; ảnh đã trên main."
+  ],
+  "T09": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/docs/contract/post-labs-submissions.md",
+    "Contract 1.0.0 JWT/receipt đã merge qua PR13."
+  ],
+  "T11": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/pull/13",
+    "PR8 và PR13 đã merge; 37 contract tests đạt, CI đỏ rồi xanh đúng assertions."
+  ],
+  "T12": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/docs/pa2/t12-free-tier.md",
+    "LeeTKOB / leetkob-pa02; Free tier, không billing/cap USD20. Tài liệu đã trên main."
+  ],
+  "T14": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/docs/pa2/t14-fresh-clone.md",
+    "Fresh clone GitHub cebb551 trên máy dùng chung; đủ 4 make exit 0 và AI-LOG; PR13 đã merge."
+  ],
+  "T15": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/pull/13",
+    "Đủ 2 rules từ sự cố thật b76ccd5/d4b4efd; PR13 đã merge, CI 5/5."
+  ],
+  "T16": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/PA2.md",
+    "Đủ 6 link và ảnh branch-protection; PR15 đã merge; CI tag pa2 42819680913 xanh."
+  ],
+  "T19": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/AI-LOG.md",
+    "Entry và follow-up đã trên main qua PR13; review đã xác nhận."
+  ],
+  "T20": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/actions/runs/42819680913",
+    "Tag pa2 tại 236fa35 đã push; repo public; CI tag 5/5. Tài liệu sau tag ghi rõ nguồn."
+  ],
+  "T27": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/blob/main/docs/decisions/0001-postgresql-judge-queue.md",
+    "ADR PostgreSQL SKIP LOCKED/JudgeQueue đã merge PR13; worker là T31."
+  ],
+  "T29": [
+    "Xong",
+    "https://github.com/tkob-team/LeeTKOB/pull/14",
+    "API tạo lớp/gán TA/vào lớp mã mời/quyền theo lớp đã merge; 12 test mới, backend 50 test và checker 1 test đạt; main CI 5/5. Login riêng T28."
+  ]
+}
