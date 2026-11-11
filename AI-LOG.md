@@ -130,7 +130,7 @@
 - Validation: five added tests first failed locally with 5 assertion failures and 0 setup errors; the fixed suite passed all 37 contract tests. Exact `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0 on macOS/JDK 25. All 19 executable-rule decisions matched their expected levels; no command being checked was executed.
 - Evidence: [PR #13](https://github.com/tkob-team/LeeTKOB/pull/13), [formatted test baseline 4ddd760](https://github.com/tkob-team/LeeTKOB/commit/4ddd760), [red CI baseline](https://github.com/tkob-team/LeeTKOB/actions/runs/42809598818), [follow-up record](docs/pa2/reviewed-follow-ups.md), [T05 logs](docs/pa2/logs/t05/results.json), [T13 blocked screenshot](docs/pa2/t13-blocked.png), [template screenshot](docs/pa2/pr-template-autofill.png), [green main before this follow-up](https://github.com/tkob-team/LeeTKOB/actions/runs/42782617480). Final PR CI must pass before merge; no release tag or submission is claimed.
 
-## 2026-11-10 — T12: provision Gemini key, user-selected Free tier
+## 2026-11-10 — T12: provision Gemini key, user-selected Free tier (Hiệp)
 - Tool: Codex with Chrome UI automation. Task owner remains Hiep; account setup was performed in Hoang's signed-in Google AI Studio at his explicit request and action-time confirmation: create it and keep Free tier.
 - Changed: created project LeeTKOB (`gen-lang-client-0403299997`) and key display name `leetkob-pa02`. Verified the key list says Free tier and the project's Spend page says no billing is configured. Updated README, PA2 evidence and task tracking to replace the earlier USD 20/month proposal with the user's Free-tier-only choice.
 - Kept: no paid billing account, payment method or dollar spending cap was added; other projects were untouched. The key value was not revealed in chat/logs, committed, copied to `.env`, or used for a real API call. The key holder can retrieve it in AI Studio.
@@ -138,7 +138,7 @@
 - Validation: observed the new project/key and Free tier in the live UI, then the project-specific no-billing message. Screenshots contain only the masked key label. This proves account provisioning, not model-call validity or the capacity of a free quota for a full lab.
 - Evidence: [T12 account record](docs/pa2/t12-free-tier.md), [masked key list](docs/pa2/t12-free-tier-api-key.png), [no billing](docs/pa2/t12-free-tier-no-billing.png). T12 is complete under the user-selected Free-tier-only policy; this documentation supplement awaits the existing PR #13 merge.
 
-## 2026-11-10 — T29: class management and class-scoped permissions
+## 2026-11-10 — T29: class management and class-scoped permissions (Hoàng)
 
 - Tool: Codex. Prompt: complete T14/T15/T16/T29 on the shared team workstation, regardless of which developer owns the task.
 - Kept: the existing HS256 verifier, submission contract/tests and PostgreSQL schema history. All access uses the signed subject; account/password login remains T28.
@@ -146,16 +146,25 @@
 - Tests: twelve HTTP/PostgreSQL integration cases cover role and cross-class boundaries, unknown/invalid inputs, role changes, concurrent joins, spoofed body fields, and submission access after joining. Original tests/assertions are unchanged.
 - Rejected: allowing request bodies to choose the authenticated user or grant a TA role; assigning students as TAs; treating this class API as completion of T28 login. An initial new test reused a request builder and accumulated Authorization headers; its fixture now replaces the header per call, preserving the original access-denial assertion.
 - Validation: all four exact make commands exit 0 on the shared macOS workstation; backend reports 50 tests (12 new class tests plus 38 existing tests), 0 failures/errors/skips; checker reports 1 test passed. Original submission-contract test file is unchanged.
-## 2026-11-10 — T14: fresh clone on the shared team workstation
+## 2026-11-10 — T14: fresh clone on the shared team workstation (Hoà)
 
 - Tool: Codex. Prompt: Hoang clarified that Hoa and Hiep work on this same machine; complete their tasks here and mark completed work done.
 - Kept: original task ownership and actual native macOS arm64 provenance.
 - Changed: fetched a new clone from GitHub at `cebb551`, selected the README prerequisites, and ran all four exact make commands without real credentials. All exit codes are 0; see [results](docs/pa2/logs/t14/results.json), [full output](docs/pa2/logs/t14/make-logs.zip) and [setup record](docs/pa2/t14-fresh-clone.md). This completes the shared-workstation T04/T14 verification; a separate personal machine is not required by the team.
 - Rejected: inventing a WSL run or maintaining the earlier assumption that different owners require different computers.
 
-## 2026-11-10 — T16/T20: record verified PA02 tag evidence
+## 2026-11-10 — T16/T20: record verified PA02 tag evidence (Hiệp)
 
 - Tool: Codex and GitHub CLI. Hoang explicitly authorized merging PR #13 and creating/pushing tag `pa2`.
 - Kept: five required checks, branch protection, the deliberately broken PR #10 unmerged, and immutable tag provenance.
 - Changed: merged PR #13 at `236fa35` after all five PR checks passed, verified main CI 42819474226, then created/pushed annotated tag `pa2` at that commit. Added actual tag-run link 42819680913 to complete the six-link PA2 evidence index.
 - Rejected: guessing a run URL, moving/replacing the tag to disguise a later documentation update, or treating this as archive submission. This index update follows the tagged source and says so explicitly.
+
+## 2026-11-11 — PA2.md tag link and contract 1.0.1 (A)
+
+- Tool: Claude Code (Claude Opus 5.5).
+- Asked for: point the PA2.md tag row at the CI runs for tag `pa2`, shorten the release section, list `method-not-allowed` in the contract's section 4 error table (patch 1.0.1), and add owners to four AI-LOG headings. Docs only.
+- Kept: every other evidence link in PA2.md, all code and tests, all other AI-LOG text.
+- Changed: PA2.md tag row now links the tag's CI run list instead of one run id and commit; the release section is three lines; contract bumped to 1.0.1 with one new table row and a changelog row. The T12 and T14 evidence links that lived only in the removed release section moved to "Additional evidence" so no link was lost.
+- Rejected: changing any behaviour, test or contract rule; keeping "pending"/"overlay" wording that no longer matches how the tag and zip are produced.
+- By hand: <to fill>
