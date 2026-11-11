@@ -1,0 +1,13 @@
+{
+  "started_at": "2026-11-11T11:27:59+00:00",
+  "finished_at": "2026-11-11T11:29:58+00:00",
+  "platform": "WSL on Windows 11",
+  "os": "Ubuntu 24.04.4 LTS 6.6.87.2-microsoft-standard-WSL2",
+  "java_version": "openjdk version \"25.0.4.1\" 2026-08-18",
+  "uv_version": "uv 0.13.7 (x86_64-unknown-linux-gnu)",
+  "docker_available": "yes",
+  "repository": "https://github.com/tkob-team/LeeTKOB.git",
+  "base_commit": "0c7266d86a1e94b33cfa042f9ed3fb9f898ce3dd",
+  "tracked_changes_after_checks": 0,
+  "checks": [{"command": "make lint", "exit_code": 0, "seconds": 26},{"command": "make format-check", "exit_code": 0, "seconds": 3},{"command": "make typecheck", "exit_code": 0, "seconds": 14},{"command": "make test", "exit_code": 0, "seconds": 71}]
+}
