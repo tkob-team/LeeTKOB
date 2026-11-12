@@ -6,12 +6,13 @@ Rules for AI coding agents (Claude Code, Codex) working in this repository. This
 
 - `backend/`: Java 25, Spring Boot 4.1 (modular monolith), Maven wrapper, PostgreSQL with Flyway migrations, JWT resource server (HS256). Tests use Testcontainers (Docker required).
 - `checker/`: Python 3.12 only, managed with uv. Source in `src/checker/`, tests in `tests/`.
+- `frontend/`: React, Vite, TypeScript on Node.js 22 (`frontend/.nvmrc`); install once with `cd frontend && npm ci`.
 - Database: PostgreSQL only. No RAG, vector database, or model training.
 - Run everything from a shell with JDK 25 selected (on Windows, inside WSL).
 
 ## Commands
 
-Run from the repository root. Each command runs backend and checker and never modifies files.
+Run from the repository root. Each command runs backend, checker and frontend and never modifies files.
 
 ```sh
 make lint
@@ -30,6 +31,7 @@ make test
 - Behaviour covered by `docs/contract/` must change together with the contract document and its tests.
 - Add an entry to `AI-LOG.md` for AI-assisted work: tool, task, Kept, Changed, Rejected.
 - Repository documentation is in English.
+- UI follows docs/design-system/; feature code lives in frontend/src/features/<flow>/ and never hard-codes colours, sizes or radii.
 - Configuration comes from environment variables listed in `.env.example` (names only, no values).
 - Verify the exact `make` entry points in the documented shell before claiming success: manual Git Bash commands passed while the WSL make run failed on missing uv/JDK 17 ([T01 incident record, b76ccd5](https://github.com/tkob-team/LeeTKOB/blob/b76ccd5/AI-LOG.md)).
 - Pass permission-probe arguments as arrays, not an unquoted zsh string: word splitting produced incorrect results in T07 ([incident record, d4b4efd](https://github.com/tkob-team/LeeTKOB/blob/d4b4efde27f06ba091fdf43d3ccf4f3999532af5/AI-LOG.md#2026-11-10--t07-codex-permissions-and-trust-step-hoa)).

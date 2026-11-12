@@ -1,0 +1,114 @@
+/*
+ * Classes the previews in docs/design-system/components/ use inline or in a page <style>,
+ * kept here so ui.css stays a verbatim copy of components/bundle.css.
+ */
+
+/* Button: reason text beside a disabled button (Button/preview.html). */
+.lk-btn-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.lk-btn-reason {
+  font-family: var(--font-sans);
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  color: var(--ink-muted);
+}
+
+/* ReviewQueueTable: selectable rows. */
+.lk-table tbody tr[tabindex] {
+  cursor: pointer;
+}
+.lk-table tbody tr[tabindex]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.lk-table tbody tr[aria-selected='true'] {
+  background: var(--surface-sunken);
+}
+
+/* Cover (Cover/preview.html). Sizes are the preview's own. */
+.lk-cover {
+  position: relative;
+  height: 288px;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+.lk-cover__art {
+  position: absolute;
+  top: 0;
+  left: 480px;
+  width: 480px;
+  height: 288px;
+  overflow: hidden;
+}
+.lk-cover__art svg {
+  display: block;
+  width: 480px;
+  height: 288px;
+}
+.lk-cover__brand {
+  fill: var(--brand);
+}
+.lk-cover__deep {
+  fill: var(--ink);
+}
+.lk-cover__ev {
+  fill: var(--evidence);
+}
+.lk-cover__pass {
+  fill: var(--pass);
+}
+.lk-cover__viol {
+  fill: var(--violation);
+}
+.lk-cover__line {
+  fill: var(--surface);
+}
+.lk-cover__words {
+  position: absolute;
+  left: var(--space-6);
+  bottom: var(--space-6);
+  max-width: 440px;
+}
+.lk-cover__name {
+  margin: 0;
+  font-size: 104px;
+  line-height: 0.92;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.lk-cover__tag {
+  margin: var(--space-2) 0 0 var(--space-1);
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  color: var(--ink-muted);
+}
+
+@media (max-width: 760px) {
+  .lk-cover {
+    height: auto;
+    padding: var(--space-6) var(--space-4);
+  }
+  .lk-cover__art {
+    display: none;
+  }
+  .lk-cover__words {
+    position: static;
+  }
+  .lk-cover__name {
+    font-size: var(--display-font-size);
+    line-height: var(--display-line-height);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-btn {
+    transition: none;
+  }
+}
