@@ -1,0 +1,18 @@
+<!-- @dsCard group="Evidence" height=232 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>EvidenceBlock</title></head>
+<body style="margin:0;background:var(--surface)">
+<div class="lk-stack">
+<div class="lk-evidence" role="region" aria-label="Submission sort-merge/s05, evidence lines 8 and 12">
+<div class="lk-line"><span class="lk-ln">7</span><span>void mergeSort(vector&lt;int&gt;&amp; a, int lo, int hi) {</span></div>
+<div class="lk-line lk-line--hit"><span class="lk-ln">8</span><span>    if (hi - lo &lt; 32) { stable_sort(a.begin() + lo, a.begin() + hi); return; }</span></div>
+<div class="lk-line"><span class="lk-ln">9</span><span>    int mid = (lo + hi) / 2;</span></div>
+<div class="lk-line"><span class="lk-ln">10</span><span>    mergeSort(a, lo, mid);</span></div>
+<div class="lk-line"><span class="lk-ln">11</span><span>    mergeSort(a, mid, hi);</span></div>
+<div class="lk-line lk-line--hit"><span class="lk-ln">12</span><span>    inplace_merge(a.begin() + lo, a.begin() + mid, a.begin() + hi);</span></div>
+<div class="lk-line"><span class="lk-ln">13</span><span>}</span></div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LeeTKOB</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--surface); color:var(--ink); font-family:var(--font-sans); overflow:hidden; }
+  .cover { position:relative; height:288px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:288px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:288px; }
+  .brand { fill:var(--brand); }
+  .deep { fill:var(--ink); }
+  .ev { fill:var(--evidence); }
+  .pass { fill:var(--pass); }
+  .viol { fill:var(--violation); }
+  .line { fill:var(--surface); }
+  .blk { rx:var(--radius-md); }
+  .bar { rx:var(--radius-sm); }
+  .words { position:absolute; left:var(--space-6); bottom:var(--space-6); max-width:440px; }
+  .name { margin:0; font-size:104px; line-height:.92; font-weight:600; letter-spacing:-.02em; color:var(--ink); }
+  .tag { margin:var(--space-2) 0 0 4px; font-size:14px; line-height:20px; color:var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      brand slab 128x256 bled off the top · ink code panel 224x208 bleeding off the right edge · evidence 96x64 · pass 48x24 and violation 24x24 as the only signal hues — about a third of 960x288
+  arrangement one tall brand slab, the ink panel as the anchor, small verdict chips between them, bottoms on one line space-6 above the edge
+  pattern     code lines, from "evidence lines highlighted with evidence": ten 6px bars at a space-4 pitch on the ink panel, one bar in evidence colour
+  scales      gutters space-4; bar pitch space-4; corners radius-md, bars radius-sm (half of 6px)
+-->
+<rect class="brand blk" x="16" y="-16" width="128" height="256" rx="6"/>
+<rect class="pass bar" x="160" y="32" width="48" height="24" rx="3"/>
+<rect class="viol bar" x="216" y="32" width="24" height="24" rx="3"/>
+<rect class="ev blk" x="160" y="176" width="96" height="64" rx="6"/>
+<rect class="deep blk" x="272" y="32" width="224" height="208" rx="6"/>
+<rect class="line bar" x="296" y="56" width="120" height="6" rx="3"/>
+<rect class="line bar" x="312" y="72" width="96" height="6" rx="3"/>
+<rect class="line bar" x="312" y="88" width="144" height="6" rx="3"/>
+<rect class="ev bar" x="312" y="104" width="160" height="6" rx="3"/>
+<rect class="line bar" x="312" y="120" width="72" height="6" rx="3"/>
+<rect class="line bar" x="328" y="136" width="112" height="6" rx="3"/>
+<rect class="line bar" x="328" y="152" width="88" height="6" rx="3"/>
+<rect class="line bar" x="312" y="168" width="128" height="6" rx="3"/>
+<rect class="line bar" x="312" y="184" width="64" height="6" rx="3"/>
+<rect class="line bar" x="296" y="200" width="40" height="6" rx="3"/>
+</svg>
+</div>
+<div class="words">
+<p class="name">LeeTKOB</p>
+<p class="tag">Evidence before marks.</p>
+</div>
+</div>
+</body>
+</html>

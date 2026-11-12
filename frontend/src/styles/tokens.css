@@ -1,0 +1,73 @@
+/* Generated from docs/design-system/tokens.json by `npm run tokens`. Do not edit. */
+:root {
+  color-scheme: light dark;
+  --surface: #F6F7F8;
+  --surface-raised: #FFFFFF;
+  --surface-sunken: #EBEEF1;
+  --border: #C9D0D6;
+  --ink: #15191C;
+  --ink-muted: #56606A;
+  --brand: #0B5D6B;
+  --on-brand: #FFFFFF;
+  --focus: #0B5D6B;
+  --pass: #1F5FA8;
+  --pass-soft: #E3EEFA;
+  --violation: #B4400D;
+  --violation-soft: #FBE9DF;
+  --unsure: #7A5B00;
+  --unsure-soft: #FBF1D3;
+  --evidence: #FFE58F;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  --display-font-size: 32px;
+  --display-line-height: 40px;
+  --display-font-weight: 600;
+  --title-font-size: 22px;
+  --title-line-height: 30px;
+  --title-font-weight: 600;
+  --section-font-size: 17px;
+  --section-line-height: 24px;
+  --section-font-weight: 600;
+  --body-font-size: 15px;
+  --body-line-height: 22px;
+  --body-font-weight: 400;
+  --small-font-size: 13px;
+  --small-line-height: 18px;
+  --small-font-weight: 400;
+  --label-font-size: 12px;
+  --label-line-height: 16px;
+  --label-font-weight: 600;
+  --code-font-size: 13px;
+  --code-line-height: 20px;
+  --code-font-weight: 400;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #111416;
+    --surface-raised: #1A1F22;
+    --surface-sunken: #0B0E10;
+    --border: #2F373D;
+    --ink: #E8ECEE;
+    --ink-muted: #9BA6AF;
+    --brand: #4FB3C2;
+    --on-brand: #062A30;
+    --focus: #7FD3DF;
+    --pass: #7DB4F0;
+    --pass-soft: #14273D;
+    --violation: #FF9A62;
+    --violation-soft: #3A1E10;
+    --unsure: #E8C25A;
+    --unsure-soft: #33290A;
+    --evidence: #5C4A08;
+  }
+}

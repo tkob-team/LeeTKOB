@@ -4,6 +4,7 @@ Monorepo:
 
 - `backend/` — Spring Boot (Java 25, Maven wrapper)
 - `checker/` — Python 3.12 (uv)
+- `frontend/` — React + Vite + TypeScript (Node.js 22); UI from `docs/design-system/`
 
 ## Prerequisites
 
@@ -11,6 +12,7 @@ Monorepo:
 - [uv](https://docs.astral.sh/uv/)
 - Docker (backend tests start PostgreSQL via Testcontainers)
 - make
+- Node.js 22 (`frontend/.nvmrc`); run `cd frontend && npm ci` once before the checks
 
 On Windows, use WSL and run everything from inside the WSL shell.
 
