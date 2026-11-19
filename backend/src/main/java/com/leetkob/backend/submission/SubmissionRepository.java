@@ -69,18 +69,23 @@ class SubmissionRepository {
   }
 
   /**
-   * Inserts the submission unless the student already used the key. A concurrent insert with the
-   * same key waits for the first one to finish and then inserts nothing.
+   * Inserts the submission and its grading job atomically unless the student already used the key.
+   * A concurrent insert with the same key waits for the winner and then inserts neither row.
    *
    * @return true if a row was inserted
    */
   boolean insertIfAbsent(Stored submission, String key) {
     return jdbc.sql(
                 """
-                insert into submissions
-                  (id, lab_id, student_id, idempotency_key, code, size_bytes, submitted_at)
-                values (?, ?, ?, ?, ?, ?, ?)
-                on conflict (student_id, idempotency_key) do nothing
+                with created as (
+                  insert into submissions
+                    (id, lab_id, student_id, idempotency_key, code, size_bytes, submitted_at)
+                  values (?, ?, ?, ?, ?, ?, ?)
+                  on conflict (student_id, idempotency_key) do nothing
+                  returning id, submitted_at
+                )
+                insert into judge_jobs (submission_id, enqueued_at)
+                select id, submitted_at from created
                 """)
             .params(
                 submission.id(),

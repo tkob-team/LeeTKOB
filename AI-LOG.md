@@ -196,3 +196,22 @@
 - Rejected: the first `make` run in WSL used a non-login shell, so `uv` was missing and lint/typecheck failed; re-ran in a login shell (the T01 lesson). The first full `make test` failed only because Docker was not running (50 backend errors finding a Docker environment); re-ran after Docker was started. A login redirect that raced the session update and ignored the requested page was caught by a test and fixed.
 - Validation: in WSL (Node 22.23.4, JDK 25, uv 0.13.7) `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0 (backend 50 tests, checker 1, frontend 30). Each frontend check was broken once through make (inline colour in a feature page, misformatted file, wrong return type, wrong verdict glyph): exit 2 each, then reverted with checksums matching.
 - By hand: Chose Vietnamese for the UI copy (product terms kept in English); checked the four deliberate frontend check failures, each exiting 2 through make; viewed the pages at 400px width.
+
+## 2026-11-19 - Judge queue and submission preview (Hoa tasks)
+
+- Tool: Codex. Asked for: implement the available submission and grading work and leave it ready for review.
+- Kept: the submission POST receipt, idempotency and deadline rules, the PostgreSQL queue decision, and the frontend design system.
+- Changed: drafted the T43 internal judge contract, measured the T22 Docker prototype, and added the approved V3 migration and T52 queue. Added the T54 submission preview with sample verdicts, a T56 loopback submission script, and worker log fields and a queue depth query for T57.
+- Rejected: a production fake grader and fabricated readiness for student code execution. The Docker smoke test uses fixed trusted source. The frontend preview uses sample results. Actual verdict polling, checker handoff and T53 verification need their integration inputs.
+- Validation: the Docker sample returned exact stdout in all five runs. The median was 541.1 ms including container startup, compilation and cleanup. A separate PostgreSQL check applied V3 to a V2 database with a legacy submission and verified one pending job with its original timestamp. The load script returned eight HTTP 201 receipts from a local fixture, reported an HTTP 401 failure correctly and rejected a non-loopback URL before sending a request.
+- Live local check: the load script sent eight requests at concurrency four to a temporary Spring Boot service and PostgreSQL database. It returned eight HTTP 201 receipts, zero failures, receipt p50 of 21.5 ms and receipt p95 of 223.5 ms. A database query verified eight matching pending judge jobs.
+- Quality gates: `make lint`, `make format-check`, `make typecheck` and `make test` exited 0 in a Linux Bash container on Docker Desktop, with JDK 25.0.5, Node 22.23.4 and uv 0.13.7. Tests passed in all three modules (backend 56, checker 1, frontend 32).
+- By hand: The requester approved the V3 migration. Task owner and reviewer checks are pending.
+
+## 2026-11-19 - Judge queue review follow-up
+
+- Tool: Codex. Asked for: resolve the review findings before publishing the feature branch and opening a pull request.
+- Kept: queue recovery, the submission receipt, and the ordered per-test result format.
+- Changed: check the lease and read the completion clock after acquiring the job row lock. Require the overall verdict to match the first failed test in order, with AC for a passing run and CE for a compile failure. Added PostgreSQL contention coverage and verdict aggregation tests.
+- Rejected: using the time at the start of the UPDATE as the completion time. The old SQL returned UPDATE 1 when it began before expiry and waited on the row until after expiry. The old Result constructor also accepted WA for a run whose only test was TLE.
+- Validation: the seven focused judge tests passed, including the lock-wait regression and both verdict aggregation tests. All four make commands exited 0 in Linux Bash on Docker Desktop. Backend passed 59 tests, checker passed 1 and frontend passed 32.

@@ -9,10 +9,11 @@ message, without introducing an outbox and another service.
 
 Workers claim available jobs with `FOR UPDATE SKIP LOCKED`, commit the claim
 promptly, and release database locks before compiling/running student code.
-Recovery from a dead worker and idempotent result writes belong to T31.
+Recovery from a dead worker and idempotent result writes belong to T52.
 
 Queue depth can be measured with SQL. Sandbox CPU capacity is expected to be the
-main constraint; actual throughput must be measured by T22/T32 and later load tests.
+main constraint. T22 measures one sample run, and T56 and T58 cover load testing.
 
-This document records the decision only. PA#02 has the submission endpoint and
-returns `queued`; the queue, worker, retry/recovery and sandbox are not yet implemented.
+PA#02 established the submission endpoint and its `queued` receipt. See
+[the internal judge contract](../contract/internal-judge.md) for T52 queue and
+worker behavior and its integration boundaries.
