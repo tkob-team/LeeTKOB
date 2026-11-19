@@ -1,6 +1,6 @@
 # Contract: `POST /labs/{labId}/submissions`
 
-Status: 1.0.3 (PA#02). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
+Status: 1.1.0 (PA#03 preparation). Source of truth for this endpoint: code and tests must follow this file, not the other way round. Product rules come from the FAQ (FAQ-01, FAQ-02, FAQ-03, FAQ-05) and the team decisions (Bearer JWT HS256, `Idempotency-Key` stored in the database).
 
 Mapping to IA#3 CONTRACT.md sections:
 
@@ -61,7 +61,7 @@ The first failing step decides the response:
 6. Body is valid JSON with a valid `code` (400 / 413).
 7. Idempotency lookup, see section 5 (replay 200, or 422).
 8. Lab is open for submissions: `now >= opens_at` (else 409 `lab-not-open`) and `now < due_at` (else 409 `lab-closed`).
-9. Create the submission (201).
+9. Create the submission and its grading job in one database transaction (201). See the [internal judge contract](internal-judge.md).
 
 Time rules (FAQ-03): `now` is captured in UTC at the first application request filter, before authentication, database access and body processing. This instant is kept for the whole request; processing latency cannot turn an on-time request into a late one or a request before opening into an accepted one. Deadline comparisons retain the full captured precision; only the stored/returned `submittedAt` is truncated to milliseconds. A request received before `due_at` stays valid even if it waits in the grading queue. A submission at exactly `due_at` is late.
 
@@ -162,7 +162,7 @@ Content-Type: application/problem+json
 
 Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab` (class, `opens_at`, `due_at`) and `Submission` (lab, student, key, code, `submitted_at`). Replay compares the stored code directly, byte-exact after JSON decoding; no code-hash column is required. Only the fields above are part of the contract; column names are an implementation detail.
 
-`sizeBytes` is the UTF-8 byte length of `code`, computed when the submission is created and stored with it; a replay returns the stored value. `status` is not stored in PA#02: this endpoint always returns `queued`, and a stored status arrives with the grading features.
+`sizeBytes` is the UTF-8 byte length of `code`, computed when the submission is created and stored with it; a replay returns the stored value. This endpoint always returns `queued` as a receipt. The judge queue tracks processing and completion separately.
 
 ## 7. Changing this contract
 
@@ -181,6 +181,7 @@ Tables introduced with the endpoint: `Class`, `ClassMember` (class, user), `Lab`
 | 1.0.1 | Patch: listed method-not-allowed in the section 4 table (already in section 9 and tested by methodNotAllowedReturnsProblemBody). No behaviour change. |
 | 1.0.2 | Patch: status is no longer draft. No behaviour change. |
 | 1.0.3 | Patch: full 200 replay example, Title column, IA#3 section mapping, data origin of status and sizeBytes. No behaviour change. |
+| 1.1.0 | Non-breaking: create the grading job atomically with a new submission. The HTTP responses are identical to 1.0.3. |
 
 ## 8. Contract tests this file requires
 
@@ -194,6 +195,8 @@ One test per row; names are suggestions.
 | `TA` and `ADMIN` cannot submit | `taAndAdminAreForbidden` |
 | Student identity comes from the token only | `studentIdIsTokenSubject` |
 | Retry with same key and body | `sameKeySameBodyReplaysWithoutNewRow` (200, header, one row) |
+| New submission and replay leave exactly one job | `submissionAndReplayCreateOnlyOneJobForTheReceiptId` |
+| Roll back the submission when enqueue fails | `failedJobInsertionRollsBackTheSubmissionAndItsIdempotencyKey` |
 | Same key, different body or lab | `sameKeyDifferentBodyIsRejected` |
 | Concurrent same key | `concurrentSameKeyCreatesOneSubmission` |
 | Retry after the deadline still replays | `replayAfterDeadlineStillReturnsOriginal` |
@@ -212,7 +215,7 @@ Rules added after a blind read of version 0.1.0. They only fill gaps; no rule ab
 - Base URL, port and scheme: set per environment, not defined here.
 - How tokens are issued: no login endpoint exists in PA#02. Tests and clients create their own HS256 tokens with the secret configured for the environment.
 - Seed data (classes, labs, students, `opens_at`, `due_at`): created by each test. A lab always has `opens_at < due_at`.
-- Grading, verdicts, and how long `queued` lasts: later features. There is no read endpoint for a submission in PA#02.
+- Grading, verdicts, and the read endpoint for a submission are separate contracts.
 - Rate limiting: none in PA#02.
 
 ### Authentication details

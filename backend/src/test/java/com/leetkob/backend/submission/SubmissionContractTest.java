@@ -537,6 +537,35 @@ class SubmissionContractTest {
   }
 
   @Test
+  void submissionAndReplayCreateOnlyOneJobForTheReceiptId() throws Exception {
+    String token = token(studentId, "STUDENT");
+    String receipt =
+        submit(labId, token, KEY, CODE)
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    UUID id = UUID.fromString(JSON.readTree(receipt).get("id").asString());
+    submit(labId, token, KEY, CODE).andExpect(status().isOk());
+
+    assertThat(jdbc.sql("select submission_id from judge_jobs").query(UUID.class).list())
+        .containsExactly(id);
+  }
+
+  @Test
+  void failedJobInsertionRollsBackTheSubmissionAndItsIdempotencyKey() throws Exception {
+    String token = token(studentId, "STUDENT");
+    jdbc.sql("alter table judge_jobs add constraint reject_test_job check (false)").update();
+    try {
+      submit(labId, token, KEY, CODE).andExpect(status().isInternalServerError());
+      assertThat(rows()).isZero();
+    } finally {
+      jdbc.sql("alter table judge_jobs drop constraint reject_test_job").update();
+    }
+    submit(labId, token, KEY, CODE).andExpect(status().isCreated());
+  }
+
+  @Test
   void replayAfterDeadlineStillReturnsOriginal() throws Exception {
     String token = token(studentId, "STUDENT");
     submit(labId, token, KEY, CODE).andExpect(status().isCreated());

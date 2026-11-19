@@ -84,7 +84,18 @@ interactive enforcement or universal secret-file isolation.
 
 See [PA2.md](PA2.md) for the evidence links and remaining release-tag step.
 The [PostgreSQL queue ADR](docs/decisions/0001-postgresql-judge-queue.md) records
-T27; workers and sandbox execution remain later tasks.
+T27. See the [internal judge contract](docs/contract/internal-judge.md) for the
+queue, worker and recovery rules.
+
+## PA#03 judge preview
+
+- Review the [Docker prototype and timings](docs/decisions/0002-docker-judge-prototype.md).
+- In the frontend, sign in as Student through the mock login and open Nop bai to try the submission form and sample per-test verdicts. This preview runs in the browser with a fixed lab and fixed results.
+- To measure submission receipt latency, use a disposable local test lab. Set `LEETKOB_LOAD_TOKEN` to the student's JWT and `LEETKOB_LAB_ID` to the lab UUID in your shell. The script sends one unique idempotency key per submission and reports receipt p50 and p95 for successful HTTP 201 responses.
+
+```sh
+node scripts/submission-load.mjs --url http://127.0.0.1:8080 --lab "$LEETKOB_LAB_ID" --count 8 --concurrency 4
+```
 
 ## Model and cost
 
