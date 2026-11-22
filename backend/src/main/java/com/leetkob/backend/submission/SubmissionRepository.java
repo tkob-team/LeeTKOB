@@ -37,10 +37,9 @@ class SubmissionRepository {
             """
             select l.id, l.opens_at, l.due_at
             from labs l
-            join class_members m on m.class_id = l.class_id
-            where l.id = ? and m.user_id = ?
+            where l.id = ?
             """)
-        .params(labId, userId)
+        .params(labId)
         .query((rs, row) ->
             new Lab(
                 rs.getObject("id", UUID.class),
