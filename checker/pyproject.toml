@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "LeetKOB checker"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "google-genai>=3.6.1",
+    "pydantic>=2.14.4",
     "tree-sitter>=0.26.1",
     "tree-sitter-cpp>=0.23.4",
 ]

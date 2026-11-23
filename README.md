@@ -103,11 +103,23 @@ One command reads a dataset folder (layout in [eval/dev/README.md](eval/dev/READ
 writes one prediction line per (solution, constraint). It reads only each problem's
 `statement.md` and `constraints.json`; there is no per-problem configuration. Ban-list
 constraints ("Do not use" / "Do not call") go to the syntax-tree hard rules; semantic
-constraints go to the model judge, which answers `unsure` until the model is added.
+constraints go to the Gemini judge (`checker/src/checker/model_judge.py`). Without
+`GEMINI_API_KEY` and `GEMINI_MODEL` they are `unsure`.
 
 ```sh
 cd checker && uv run leetkob-check --data ../eval/dev --out ../out/predictions.jsonl
 ```
+
+Before a call, comments are replaced by spaces (line numbers stay the same) and 8-digit
+student IDs and email addresses are masked; no solution id, file name or identity is sent.
+The model answers JSON (`verdict`, `evidence`, `reason`; no deduction field), checked again
+locally. Options: `--call-log <file>` writes one line per pair (hard rule or model call,
+with response id, model, prompt, tokens, latency and a cost estimate at paid-tier prices
+although calls run on the Free tier); `--concurrency N` (default 1); `--timeout S` (default
+30); `--no-fallback` uses only `GEMINI_MODEL` (use it for dev-set runs that are committed).
+`GEMINI_FALLBACK_MODELS` is a comma-separated list tried in order after a daily-quota 429;
+other 429s are retried 3 times with backoff and then give `unsure`. `GEMINI_RPM` paces the
+calls (default 15 per minute).
 
 `MODEL_OFF=1` runs the hard rules only: semantic constraints are `unsure` and no network
 client is imported or created. Docker image (dependencies are installed at build time, so
