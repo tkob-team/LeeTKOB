@@ -237,3 +237,105 @@ with an invitation code. Class lists, details and rosters enforce class membersh
 See the [class API contract](docs/contract/classes.md) for endpoints and role rules.
 Account/password login and production JWT issuance remain T28; this feature uses
 the existing JWT verifier and persisted account roles.
+
+## Deployment runbook
+
+One Linux VM runs everything with [deploy/docker-compose.yml](deploy/docker-compose.yml).
+Only `web` (nginx) publishes a port, 80; it serves the frontend build and proxies `/api/` to
+the API on the same origin. PostgreSQL (persistent volume `pgdata`), `api`, `judge-worker`
+and `checker-worker` have no published port.
+
+| Service | Image | Receives |
+| --- | --- | --- |
+| `postgres` | `postgres:17-alpine` | `DB_USER`, `DB_PASSWORD` |
+| `api` | `leetkob-api` (backend jar) | database, `JWT_SECRET` |
+| `judge-worker` | `leetkob-judge-worker` (same jar + Docker CLI), `judge-worker` | database, `/var/run/docker.sock`; no `GEMINI_API_KEY` |
+| `checker-worker` | `leetkob-checker`, `worker` | database, Gemini variables; the only service with `GEMINI_API_KEY` |
+| `web` | `leetkob-web` (nginx + `frontend/dist`) | nothing |
+| `seed` (profile `seed`) | `leetkob-api`, `seed` | database, `SEED_*_PASSWORD` |
+| `sandbox` (profile `build`) | `leetkob-sandbox:pa3` from `sandbox/` | build only |
+| `sandbox-check` (profile `check`) | JDK + Docker CLI + backend sources | Docker socket |
+
+Each service lists its variables explicitly; none loads the whole `deploy/.env`.
+The site is plain HTTP on port 80; put TLS in front before real passwords are used widely.
+
+### 1. Set up the VM
+
+Ubuntu 24.04 LTS, at least 2 vCPU and 4 GB RAM, ports 22 and 80 open. Install Docker Engine
+with the Compose plugin ([docs.docker.com/engine/install/ubuntu](https://docs.docker.com/engine/install/ubuntu/)),
+then add your user to the `docker` group and log in again.
+
+The sandbox needs cgroup v2 with memory, CPU, PID **and swap** accounting. If
+`memory.swap.max` is missing, `sandbox/supervise.py` returns an infrastructure error for every
+submission, so no student gets a verdict.
+
+```sh
+stat -fc %T /sys/fs/cgroup                    # cgroup2fs
+docker info --format 'cgroup={{.CgroupVersion}} swap={{.SwapLimit}}'   # cgroup=2 swap=true
+ls /sys/fs/cgroup/system.slice/memory.swap.max
+```
+
+If one of them fails, add `systemd.unified_cgroup_hierarchy=1 swapaccount=1` to
+`GRUB_CMDLINE_LINUX` in `/etc/default/grub`, run `sudo update-grub`, reboot and check again.
+
+### 2. Configure and build
+
+```sh
+git clone https://github.com/tkob-team/LeeTKOB.git leetkob && cd leetkob
+cp deploy/.env.example deploy/.env && chmod 600 deploy/.env
+stat -c %g /var/run/docker.sock               # DOCKER_GID
+openssl rand -base64 48                       # a JWT_SECRET
+nano deploy/.env                              # DB_USER, DB_PASSWORD, JWT_SECRET, DOCKER_GID, GEMINI_*
+docker compose -f deploy/docker-compose.yml --profile build build
+```
+
+`--profile build` also builds `leetkob-sandbox:pa3` from `sandbox/` on the VM's daemon, which
+is where `judge-worker` starts sandbox containers.
+
+### 3. Mandatory check before opening the site
+
+Run the sandbox probes (`DockerSandboxTest` with `JUDGE_SANDBOX_TESTS=1`) against this VM's
+daemon. Do not give the URL to anyone until it reports `Tests run: 11, Failures: 0, Errors: 0,
+Skipped: 0`.
+
+```sh
+docker compose -f deploy/docker-compose.yml --profile check run --rm --build sandbox-check
+```
+
+### 4. Start and seed
+
+```sh
+docker compose -f deploy/docker-compose.yml up -d
+docker compose -f deploy/docker-compose.yml ps
+read -rs SEED_ADMIN_PASSWORD; read -rs SEED_TA_PASSWORD; read -rs SEED_STUDENT_PASSWORD
+export SEED_ADMIN_PASSWORD SEED_TA_PASSWORD SEED_STUDENT_PASSWORD
+docker compose -f deploy/docker-compose.yml --profile seed run --rm seed
+unset SEED_ADMIN_PASSWORD SEED_TA_PASSWORD SEED_STUDENT_PASSWORD
+```
+
+The seed creates `admin@leetkob.test`, `ta1@leetkob.test`, `ta2@leetkob.test`,
+`sv1@leetkob.test`, `sv2@leetkob.test`, the classes "Lớp thử nghiệm 1" (ta1, sv1, sv2) and
+"Lớp thử nghiệm 2" (ta2), and no lab. Each password needs 12 characters to 72 bytes. A second
+run creates nothing and keeps existing passwords (`accountsCreated=0 classesCreated=0`).
+
+### 5. Update to a new version
+
+```sh
+git pull --ff-only
+docker compose -f deploy/docker-compose.yml --profile build build
+docker compose -f deploy/docker-compose.yml up -d
+```
+
+The API applies new Flyway migrations at start. If `sandbox/` or `DockerSandbox` changed,
+run the check of step 3 again.
+
+### 6. Logs and restarts
+
+```sh
+docker compose -f deploy/docker-compose.yml logs -f --tail=200 api judge-worker checker-worker
+docker compose -f deploy/docker-compose.yml restart judge-worker checker-worker
+docker compose -f deploy/docker-compose.yml exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" leetkob' > "backup-$(date +%F).sql"
+```
+
+A restarted worker leaves its job leased; another claim takes it after the lease expires
+(60 s for the judge, `--lease-seconds 600` for the checker).
