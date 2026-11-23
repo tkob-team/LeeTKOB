@@ -130,12 +130,21 @@ class DockerSandboxTest {
   }
 
   @Test
-  void submissionCannotBecomeRoot() {
+  void nonRootSubmissionRunsUnderAnIsolatedSupervisor() {
     var result =
         run(
             """
+            #include <fstream>
+            #include <string>
             #include <unistd.h>
-            int main() { return getuid() != 0 && geteuid() != 0 && setuid(0) == -1 ? 0 : 1; }
+            int main() {
+              if (getuid() == 0 || geteuid() == 0 || setuid(0) != -1) return 1;
+              std::ifstream status("/proc/1/status");
+              for (std::string line; std::getline(status, line);)
+                if (line.rfind("SigIgn:", 0) == 0)
+                  return (std::stoull(line.substr(7), nullptr, 16) & 2) ? 0 : 2;
+              return 3;
+            }
             """);
     assertThat(result.outcome()).isEqualTo(Outcome.OK);
   }

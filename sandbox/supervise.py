@@ -4,6 +4,7 @@ import ctypes
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -30,6 +31,7 @@ def execute(command: list[str], env: dict[str, str], cpu_ms: int, wall_ms: int) 
     # Also deny the child access to the supervisor through ptrace or /proc/1/fd.
     if ctypes.CDLL(None).prctl(4, 0, 0, 0, 0) != 0:  # PR_SET_DUMPABLE
         return INFRASTRUCTURE
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
     start_cpu = counter("cpu.stat", "usage_usec")
     start_oom = counter("memory.events", "oom_kill")
