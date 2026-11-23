@@ -20,9 +20,12 @@ from checker.hard_rules import Evidence, RuleResult
 from checker.redact import sanitize
 from checker.semantic import Judgement, SemanticCase
 
-# USD per 1M tokens (input, output), paid tier, from README "Model and cost".
+# USD per 1M tokens (input text, output including thinking), paid tier, Standard (not Batch).
+# Source: https://ai.google.dev/gemini-api/docs/pricing (now served at
+# https://aistudio.google.com/docs/pricing), read on 2026-11-23. Re-check before relying on it.
 PRICES_USD_PER_MTOK: dict[str, tuple[float, float]] = {
-    "gemini-3.6-flash": (0.75, 3.75),
+    "gemini-3.5-flash-lite": (0.30, 2.50),
+    "gemini-3.1-flash-lite": (0.25, 1.50),
 }
 COST_NOTE = "estimate at paid-tier prices; calls run on the Free tier and are not billed"
 
