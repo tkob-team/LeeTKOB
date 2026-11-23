@@ -1,0 +1,142 @@
+# Public deployment of LeetKOB on one Linux VM. Runbook: README.md, "Deployment runbook".
+#
+#   docker compose -f deploy/docker-compose.yml --profile build build   # all images + sandbox
+#   docker compose -f deploy/docker-compose.yml up -d
+#
+# Values come from deploy/.env (copy deploy/.env.example; never commit it). Every service lists
+# its variables explicitly; no service loads the whole file, so GEMINI_API_KEY reaches only
+# checker-worker and the Docker socket is mounted only in judge-worker.
+# Only web publishes a port (80). PostgreSQL, the API and the workers stay on the internal network.
+
+name: leetkob
+
+x-database: &database
+  DB_URL: jdbc:postgresql://postgres:5432/leetkob
+  DB_USER: ${DB_USER:?set DB_USER in deploy/.env}
+  DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: leetkob
+      POSTGRES_USER: ${DB_USER:?set DB_USER in deploy/.env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d leetkob']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    image: leetkob-api:latest
+    build:
+      context: ../backend
+      dockerfile: ../deploy/backend.Dockerfile
+      target: api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *database
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in deploy/.env}
+      # Trust X-Forwarded-For from web (a private address) so the login attempt limit
+      # counts the real client address instead of the proxy's.
+      SERVER_FORWARD_HEADERS_STRATEGY: native
+
+  judge-worker:
+    image: leetkob-judge-worker:latest
+    build:
+      context: ../backend
+      dockerfile: ../deploy/backend.Dockerfile
+      target: judge-worker
+    command: ['judge-worker']
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # The socket lets the worker start sandbox containers on the host daemon. It is
+    # root-equivalent on the host: only this service gets it, and the sandbox containers
+    # receive neither the socket nor this environment (see DockerSandbox).
+    group_add:
+      - ${DOCKER_GID:?set DOCKER_GID in deploy/.env (stat -c %g /var/run/docker.sock)}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      <<: *database
+      JUDGE_SANDBOX_IMAGE: ${JUDGE_SANDBOX_IMAGE:-leetkob-sandbox:pa3}
+
+  checker-worker:
+    image: leetkob-checker:latest
+    build:
+      context: ../checker
+    command: ['worker', '--lease-seconds', '600']
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *database
+      # The only service with the model key.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      GEMINI_FALLBACK_MODELS: ${GEMINI_FALLBACK_MODELS:-}
+      GEMINI_RPM: ${GEMINI_RPM:-}
+      MODEL_OFF: ${MODEL_OFF:-}
+
+  web:
+    image: leetkob-web:latest
+    build:
+      context: ../frontend
+      dockerfile: ../deploy/web.Dockerfile
+      additional_contexts:
+        deploy: .
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - '80:80'
+
+  # One-shot jobs and build-only images; not started by `up`.
+  seed:
+    image: leetkob-api:latest
+    profiles: ['seed']
+    command: ['seed']
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *database
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      SEED_TA_PASSWORD: ${SEED_TA_PASSWORD:-}
+      SEED_STUDENT_PASSWORD: ${SEED_STUDENT_PASSWORD:-}
+
+  sandbox:
+    image: leetkob-sandbox:pa3
+    profiles: ['build']
+    build:
+      context: ../sandbox
+    network_mode: none
+    entrypoint: ['true']
+
+  # Pre-launch check: the nine sandbox probes against this VM's Docker daemon.
+  sandbox-check:
+    image: leetkob-sandbox-check:latest
+    profiles: ['check']
+    build:
+      context: ../backend
+      dockerfile: ../deploy/backend.Dockerfile
+      target: sandbox-check
+    restart: 'no'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - m2:/root/.m2
+
+volumes:
+  pgdata:
+  m2:
