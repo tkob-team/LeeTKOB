@@ -343,3 +343,13 @@
 - Edited an existing test, with the requester's approval: `TaLabsPage.test.tsx` (written in T82) looked up the region named `Lớp CTT1`; it now looks for `CTT1`, following the requested label change. No assertion was removed.
 - Rejected: a three-way select (system/light/dark); the request was a light/dark switch, and clearing `leetkob.theme` returns to the system theme. Renaming the seeded classes (they keep their names; with the prefix gone they display once).
 - Validation: 6 new tests (system default, saved choice wins, unknown value ignored, toggle applies and saves both ways, brand links for TA and student with the toggle in the header). In WSL (`bash -lic`) the four `make` targets exited 0 (counts in the PR).
+
+## 2026-11-24 — T84 follow-up: theme switch instead of a button (C, Hoang)
+
+- Tool: Claude Code (Claude Opus 5.5). `.env` was not read; no model call was made.
+- Asked for (after checking PR #34 on the VM): the theme button changed width with its label ("Giao diện sáng" vs "Giao diện tối"), its label named the action rather than the state, and the colours changed in one jump; use a toggle switch and a transition instead.
+- Kept: the storage key `leetkob.theme`, the saved-choice-over-OS rule, the pre-paint script in `index.html`, the tokens.
+- Changed: `ThemeToggle` is a `role="switch"` button with the fixed label "Giao diện tối" (on = dark) and a track and thumb showing a sun or moon, so its width never changes. `chooseTheme` adds `lk-theme-changing` to `<html>` for 250 ms, during which `shell.css` cross-fades background, text, border and icon colours over 200 ms; with `prefers-reduced-motion: reduce` there is no fade and the thumb does not slide. Switch sizes use spacing and radius tokens only. The design-system README's motion rule now names the 200 ms theme cross-fade.
+- Edited existing tests from PR #34, following the requested change from button to switch: in `ThemeToggle.test.tsx` the toggle test now finds `switch` "Giao diện tối" and also checks its checked state, and the header test looks for the switch instead of the button. Every earlier assertion (theme applied and saved both ways, toggle present in both headers) is kept.
+- Rejected: the View Transitions API (not in every browser the class targets; the CSS class needs none); a transition on every element at all times (would slow hover effects and every repaint).
+- Validation: 2 new tests (cross-fade class added and removed after 250 ms with fake timers; none under reduced motion); the theme test file has 8 tests. In WSL (`bash -lic`) the four `make` targets exited 0 (counts in the PR).

@@ -17,7 +17,7 @@ LeeTKOB is a grading tool for teaching assistants (TAs) of an introductory C++ l
 - Spacing: a 4px base (`space-1`…`space-8`). Panels pad `space-6` on desktop, `space-4` on phones. Table rows are 40px tall with `space-3` cell padding.
 - Radius: `radius-sm` for badges and inputs, `radius-md` for buttons, panels and code blocks, `radius-lg` for dialogs. Nothing is fully round.
 - Layout: TA screens are dense and wide (tables, a code panel beside the queue, max 1280px). Student screens are one column, max 760px. Every screen works at 400px wide; tables scroll inside their own container.
-- Motion: none beyond 120ms colour transitions on hover and focus. Respect `prefers-reduced-motion`.
+- Motion: none beyond 120ms colour transitions on hover and focus, and a 200ms colour cross-fade right after the viewer switches theme. Respect `prefers-reduced-motion`.
 
 ## Verdicts and evidence
 
