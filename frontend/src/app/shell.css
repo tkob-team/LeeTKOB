@@ -30,6 +30,8 @@
 }
 
 .lk-shell__brand {
+  color: var(--ink);
+  text-decoration: none;
   font-size: var(--section-font-size);
   line-height: var(--section-line-height);
   font-weight: var(--section-font-weight);

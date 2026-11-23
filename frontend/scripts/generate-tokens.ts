@@ -32,7 +32,7 @@ export const tokensCssUrl = new URL('../src/styles/tokens.css', import.meta.url)
 
 export function generateTokensCss(tokens: DesignTokens): string {
   const light = tokens.color.tokens.map((t) => `  --${t.name}: ${t.value.light};`);
-  const dark = tokens.color.tokens.map((t) => `    --${t.name}: ${t.value.dark};`);
+  const dark = tokens.color.tokens.map((t) => `--${t.name}: ${t.value.dark};`);
   const families = Object.entries(tokens.type.families).map(
     ([name, value]) => `  --font-${name}: ${value};`,
   );
@@ -56,10 +56,20 @@ export function generateTokensCss(tokens: DesignTokens): string {
     ...sizes,
     '}',
     '',
+    '/* The operating system theme applies unless the viewer chose one (data-theme on <html>). */',
     '@media (prefers-color-scheme: dark) {',
-    '  :root {',
-    ...dark,
+    "  :root:not([data-theme='light']) {",
+    ...dark.map((line) => `    ${line}`),
     '  }',
+    '}',
+    '',
+    ":root[data-theme='dark'] {",
+    '  color-scheme: dark;',
+    ...dark.map((line) => `  ${line}`),
+    '}',
+    '',
+    ":root[data-theme='light'] {",
+    '  color-scheme: light;',
     '}',
     '',
   ].join('\n');

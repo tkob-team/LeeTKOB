@@ -10,6 +10,13 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
     />
     <title>LeeTKOB</title>
+    <script>
+      // Apply the saved theme before the first paint (same key as src/app/theme.ts).
+      try {
+        var theme = localStorage.getItem('leetkob.theme');
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -43,7 +43,7 @@ describe('TA lab list', () => {
       </MemoryRouter>,
     );
 
-    const panel = await screen.findByRole('region', { name: 'Lớp CTT1' });
+    const panel = await screen.findByRole('region', { name: 'CTT1' });
     const row = within(panel).getByRole('row', { name: /Sorting with merge sort/ });
     expect(row).toHaveTextContent('12 bài · 5 sinh viên');
     expect(
