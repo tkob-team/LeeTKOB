@@ -60,10 +60,7 @@ export function TaLayout() {
     <AppLayout
       width="wide"
       roleLabel="Trợ giảng"
-      nav={[
-        { to: '/ta/classes', label: 'Lớp và chấm điểm' },
-        { to: '/ta/labs', label: 'Hàng chờ duyệt' },
-      ]}
+      nav={[{ to: '/ta/labs', label: 'Hàng chờ duyệt' }]}
     />
   );
 }

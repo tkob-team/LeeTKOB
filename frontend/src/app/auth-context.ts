@@ -29,5 +29,5 @@ export function useAuth(): AuthState {
 }
 
 export function homePath(role: Role): string {
-  return role === 'ta' ? '/ta/classes' : '/student/submit';
+  return role === 'ta' ? '/ta/labs' : '/student/submit';
 }
