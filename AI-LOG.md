@@ -255,7 +255,7 @@
 - Validation: commit 1 alone and commit 2 each passed `make lint`, `make format-check`, `make typecheck`, `make test` in WSL (checker 57 then 79 tests). The 19 new limit tests failed before the commit 2 code.
 - Known limits: masking 8-digit numbers also hides 8-digit constants in code; a timed-out worker thread keeps running in the background until the SDK timeout ends it.
 
-## 2026-11-23 - PA3 submission and judge (A, Hoa, T88)
+## 2026-11-23 - T88: PA3 submission and judge (B, Hoa)
 
 - Tool: OpenAI Codex.
 - Asked for: complete Hoa's PA3 submission and judging tasks on a dedicated branch. Keep tests in the same or an earlier commit and one part per commit.
@@ -298,7 +298,7 @@
 - Rejected: 403 for a TA of another class (would reveal that the lab exists and differ from the existing contracts); showing student names in the queue; a feature-level CSS file.
 - Validation: the 7 contract tests failed with 404 before the controller existed, then passed. 6 new page tests (rows with verdict, evidence, deduction and unsure cause; panel with evidence and reason; reviewing and not-checked groups; polling refresh with fake timers; 404 stops polling; paging; empty page without a lab). In WSL `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0 (backend 87 tests, checker 103, frontend 39).
 
-## 2026-11-23 - T78: sandbox rubric follow-up (A, Hoa)
+## 2026-11-23 - T78: sandbox rubric follow-up (B, Hoa)
 
 - Tool: OpenAI Codex.
 - Kept: the sandbox runtime, existing job and release-tag trigger.
