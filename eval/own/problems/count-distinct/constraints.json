@@ -1,0 +1,7 @@
+[
+  {
+    "id": "C1",
+    "text": "Do not use a library container or algorithm that deduplicates or sorts for you: `std::set`, `std::multiset`, `std::unordered_set`, `std::map`, `std::unordered_map`, `std::unique`, `std::sort`, `qsort`.",
+    "deduction": 3
+  }
+]

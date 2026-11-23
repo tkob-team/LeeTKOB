@@ -1,0 +1,7 @@
+[
+  {
+    "id": "C1",
+    "text": "Do not use loop statements: `for`, `while`, `do`-`while`, range-based `for`, or `goto`. All repetition must come from recursion.",
+    "deduction": 4
+  }
+]
