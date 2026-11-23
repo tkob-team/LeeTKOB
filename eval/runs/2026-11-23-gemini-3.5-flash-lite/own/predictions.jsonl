@@ -1,0 +1,14 @@
+{"solution": "count-distinct/s01", "constraint": "C1", "verdict": "pass", "evidence": []}
+{"solution": "count-distinct/s02", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 7, "text": "    std::set<long long> values;"}]}
+{"solution": "count-distinct/s03", "constraint": "C1", "verdict": "pass", "evidence": []}
+{"solution": "count-distinct/s04", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 15, "text": "    sort(a.begin(), a.end());"}, {"line": 16, "text": "    cout << unique(a.begin(), a.end()) - a.begin() << \"\\n\";"}]}
+{"solution": "count-distinct/s05", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 3, "text": "#define DEDUP(p, n) (std::unique((p), (p) + (n)) - (p))"}, {"line": 24, "text": "    printf(\"%d\\n\", (int)DEDUP(a, n));"}]}
+{"solution": "digit-sum-recursive/s01", "constraint": "C1", "verdict": "pass", "evidence": []}
+{"solution": "digit-sum-recursive/s02", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 8, "text": "next:"}, {"line": 12, "text": "        goto next;"}]}
+{"solution": "digit-sum-recursive/s03", "constraint": "C1", "verdict": "pass", "evidence": []}
+{"solution": "digit-sum-recursive/s04", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 3, "text": "#define REP(i, n) for (int i = 0; i < (int)(n); ++i)"}, {"line": 9, "text": "    REP(i, s.size()) sum += s[i] - '0';"}]}
+{"solution": "modpow-fast/s01", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 9, "text": "        half -= 1;"}]}
+{"solution": "modpow-fast/s02", "constraint": "C1", "verdict": "pass", "evidence": []}
+{"solution": "modpow-fast/s03", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 10, "text": "    for (long long i = 0; i < b; ++i) r = r * a % m;"}]}
+{"solution": "modpow-fast/s04", "constraint": "C1", "verdict": "pass", "evidence": []}
+{"solution": "modpow-fast/s05", "constraint": "C1", "verdict": "violation", "evidence": [{"line": 10, "text": "        for (long long i = 0; i < b; i++) r = r * (a % m) % m;"}]}

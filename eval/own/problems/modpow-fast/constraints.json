@@ -1,0 +1,7 @@
+[
+  {
+    "id": "C1",
+    "text": "Compute each power with fast exponentiation written by you (repeated squaring, iterative or recursive): every step must at least halve the remaining exponent. Multiplying by the base once per unit of the exponent, or calling a library power function, does not satisfy this constraint, whatever the function or its variables are called.",
+    "deduction": 4
+  }
+]

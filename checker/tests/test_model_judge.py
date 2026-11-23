@@ -12,6 +12,7 @@ from checker.model_judge import (
     GeminiJudge,
     ModelReply,
     RateLimited,
+    ServerUnavailable,
     build_prompt,
     number_lines,
 )
@@ -302,3 +303,37 @@ def test_fallback_models_come_from_the_environment(monkeypatch: pytest.MonkeyPat
     assert cli.configured_models(no_fallback=True) == ["first"]
     monkeypatch.setenv("GEMINI_FALLBACK_MODELS", "")
     assert cli.configured_models(no_fallback=False) == ["first"]
+
+
+def test_call_log_records_the_reason_of_each_verdict(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    install_fake(
+        monkeypatch, lambda: always({"verdict": "pass", "evidence": [], "reason": "fake reason"})
+    )
+    log = tmp_path / "calls.jsonl"
+    cli.main(
+        ["--data", str(EVAL / "own"), "--out", str(tmp_path / "p.jsonl"), "--call-log", str(log)]
+    )
+    calls = [json.loads(x) for x in log.read_text("utf-8").splitlines()]
+    assert {c["reason"] for c in calls if c["called"]} == {"fake reason"}
+    assert all(c["reason"] for c in calls if not c["called"])
+
+
+def test_server_error_is_retried_with_backoff() -> None:
+    ok = reply({"verdict": "pass", "evidence": [], "reason": "ok"})
+    client = FakeClient([ServerUnavailable("503"), ServerUnavailable("500"), ok])
+    judge, fake_time = judge_with(client, rpm=0)
+    outcome = judge.judge(CASE)
+    assert outcome.result.verdict == "pass"
+    assert fake_time.sleeps == [2.0, 4.0]
+
+
+def test_server_error_after_three_retries_is_unsure() -> None:
+    client = FakeClient([ServerUnavailable("503") for _ in range(4)])
+    judge, _ = judge_with(client, rpm=0)
+    outcome = judge.judge(CASE)
+    assert outcome.result.verdict == "unsure"
+    assert outcome.result.unsure_cause == "model"
+    assert outcome.call["outcome"] == "server_error"
+    assert len(client.calls) == 4

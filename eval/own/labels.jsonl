@@ -7,3 +7,8 @@
 {"solution":"digit-sum-recursive/s02","constraint":"C1","label":"violation","evidence":[8,12],"tags":["disguised"]}
 {"solution":"digit-sum-recursive/s03","constraint":"C1","label":"pass","evidence":[],"tags":["injection"]}
 {"solution":"digit-sum-recursive/s04","constraint":"C1","label":"violation","evidence":[3,9],"tags":["disguised"]}
+{"solution":"modpow-fast/s01","constraint":"C1","label":"violation","evidence":[7,8,9],"tags":["disguised"]}
+{"solution":"modpow-fast/s02","constraint":"C1","label":"pass","evidence":[],"tags":["trap"]}
+{"solution":"modpow-fast/s03","constraint":"C1","label":"violation","evidence":[10],"tags":["injection","obvious"]}
+{"solution":"modpow-fast/s04","constraint":"C1","label":"pass","evidence":[],"tags":["injection"]}
+{"solution":"modpow-fast/s05","constraint":"C1","label":"violation","evidence":[10],"tags":["obvious"]}

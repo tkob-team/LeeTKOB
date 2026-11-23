@@ -152,6 +152,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 }
                 entry |= judgement.call
                 entry["verdict"] = judgement.result.verdict
+                entry["reason"] = judgement.result.reason
                 handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
     print(f"leetkob-check: wrote {len(todo)} predictions to {out}", file=sys.stderr)
     return 0

@@ -174,42 +174,34 @@ Our own cases live in `eval/own/` (same layout, new problems); score them with
 ## Model and cost
 
 The checker reviews accepted submissions against a lab's constraints with a Google
-Gemini model. The model never decides a grade; a TA reviews every proposal.
+Gemini model. The model never decides a grade or a deduction; a TA reviews every proposal.
 
 | Item | Value |
 | --- | --- |
 | Provider | Google Gemini API |
-| Initial model | `gemini-3.6-flash` (set with `GEMINI_MODEL`); the model comparison on the dev set may change it, and this section must then be updated |
-| Key | `leetkob-pa02`, created on 2026-11-10 in Google AI Studio project `LeeTKOB` (`gen-lang-client-0403299997`). The holder can copy it from AI Studio into their private `GEMINI_API_KEY`; its value was not copied into this repo, logs or chat. CI and unit tests use no key. |
-| Spending control | **Hard cap of USD 0:** the key's Google project has no billing account, so it cannot be charged. Free tier only, as explicitly requested by Hoang; no paid plan, payment method or USD 20/month spending cap was enabled. Enabling billing needs a new team decision. |
-| Per-lab call cap | Planned, not implemented: 800 model calls per lab (twice the expected 400); beyond it verdicts become `unsure` (FAQ-09) |
+| Model in use | `gemini-3.5-flash-lite` (set with `GEMINI_MODEL`); `GEMINI_FALLBACK_MODELS` may list `gemini-3.1-flash-lite` for daily-quota fallback, but committed dev-set runs use `--no-fallback` |
+| Key | `leetkob-pa02`, created on 2026-11-10 in Google AI Studio project `LeeTKOB` (`gen-lang-client-0403299997`). The holder keeps it in their private `GEMINI_API_KEY`; its value was not copied into this repo, logs or chat. CI and unit tests use no key. |
+| Real cost | **USD 0.** The key's Google project has no billing account, so calls run on the Free tier and cannot be charged. Enabling billing needs a new team decision. |
+| Per-lab call cap | Planned, not implemented: 800 model calls per lab; beyond it verdicts become `unsure` (FAQ-09) |
 
-### Cost of one lab
+### Measured tokens and the cost of one lab
 
-The selected operating mode is Free tier: supported free-tier calls within quota
-have no billed token cost. This does not guarantee that a full 400-call lab fits
-the free quotas or that every model is available in this tier. No real model call
-or quota-capacity test was made while provisioning the key. See the
-[masked account evidence](docs/pa2/t12-free-tier.md).
+Measured on the committed dev-set run
+[`eval/runs/2026-11-23-gemini-3.5-flash-lite/calls.jsonl`](eval/runs/2026-11-23-gemini-3.5-flash-lite/calls.jsonl):
+47 model calls (one per semantic pair; ban-list pairs never call the model), average
+**944.9 input tokens** and **74.6 output tokens** per call (output includes thinking tokens).
 
-The paid-pricing estimate below is retained for comparison only; it is not the
-active billing configuration or a spend cap that has been set.
+Paid-tier prices, used only as an estimate (USD per 1M tokens, Standard, input / output):
+`gemini-3.5-flash-lite` 0.30 / 2.50 and `gemini-3.1-flash-lite` 0.25 / 1.50, from the
+[Gemini API pricing page](https://ai.google.dev/gemini-api/docs/pricing) read on 2026-11-23.
 
-One model call per counted submission and constraint. Worst case from the brief: 80
-students and 5 constraints, so 400 calls.
+Average estimated cost of one call = (944.9 × 0.30 + 74.6 × 2.50) / 1,000,000 = USD 0.00047
+(mean of the logged `cost_usd`: USD 0.00046994).
 
-Assumptions per call, not yet measured: 2,000 input tokens (statement, constraint, code) and
-1,500 output tokens (JSON verdict plus thinking tokens, which are billed as output).
-
-| Prices (USD per 1M tokens, input / output) | One pass | With 2x retries and re-reviews |
-| --- | --- | --- |
-| 0.75 / 3.75 (until 2026-12-31) | USD 2.85 | USD 5.70 |
-| 1.50 / 7.50 (from 2027-01-01) | USD 5.70 | USD 11.40 |
-
-Prices are from the [Gemini API pricing page](https://ai.google.dev/gemini-api/docs/pricing),
-read on 2026-11-10; the page gives no update date, so re-check before relying on them.
-The earlier USD 20/month proposal was replaced by the user's Free-tier-only
-decision. Replace the token assumptions with measured values after the model trial.
+One lab: 80 submissions × 2 semantic constraints (assumption) × USD 0.00046994
+= 160 calls × USD 0.00046994 = **USD 0.075** at paid-tier prices. The real cost is USD 0
+because the Free tier is used. 160 calls fit the 500-request daily quota of the key; at the
+default 15 requests per minute they take about 11 minutes.
 
 ## Class management (T29)
 
