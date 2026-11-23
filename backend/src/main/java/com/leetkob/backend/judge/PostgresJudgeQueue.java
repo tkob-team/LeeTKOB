@@ -56,6 +56,36 @@ class PostgresJudgeQueue implements JudgeQueue {
   }
 
   @Override
+  public boolean renew(Claim claim, Duration lease) {
+    long millis = lease.toMillis();
+    if (millis < 1) {
+      throw new IllegalArgumentException("The lease must be at least one millisecond.");
+    }
+    return jdbc.sql(
+                """
+                with locked as materialized (
+                  select submission_id, lease_expires_at
+                  from judge_jobs
+                  where submission_id = :submissionId and lease_token = :token
+                    and finished_at is null
+                  for update
+                ), renewal as materialized (
+                  select submission_id, lease_expires_at, clock_timestamp() as renewed_at
+                  from locked
+                )
+                update judge_jobs j
+                set lease_expires_at = r.renewed_at + :millis * interval '1 millisecond'
+                from renewal r
+                where j.submission_id = r.submission_id and r.lease_expires_at > r.renewed_at
+                """)
+            .param("submissionId", claim.submissionId())
+            .param("token", claim.leaseToken())
+            .param("millis", millis)
+            .update()
+        == 1;
+  }
+
+  @Override
   public boolean complete(Claim claim, Result result) {
     return jdbc.sql(
             """

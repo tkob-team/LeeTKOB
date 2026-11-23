@@ -63,6 +63,9 @@ public interface JudgeQueue {
   /** Claim one job for at least one millisecond, with no transaction held during grading. */
   Optional<Claim> claim(Duration lease);
 
+  /** Renew only a current, unexpired claim before starting another bounded sandbox phase. */
+  boolean renew(Claim claim, Duration lease);
+
   /** Store a terminal result once. Return false if the claim has expired or was replaced. */
   boolean complete(Claim claim, Result result);
 }

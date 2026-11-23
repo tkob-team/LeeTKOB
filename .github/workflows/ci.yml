@@ -76,11 +76,11 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
       - run: docker build -t leetkob-sandbox:pa3 sandbox
-      - name: Run sandbox minimum checks
+      - name: Run sandbox and worker restart checks
         working-directory: backend
         env:
           JUDGE_SANDBOX_TESTS: '1'
-        run: sh ./mvnw -B -ntp -Dtest=DockerSandboxTest test
+        run: sh ./mvnw -B -ntp -Dtest=DockerSandboxTest,JudgeWorkerRestartTest test
 
   secrets:
     name: secrets

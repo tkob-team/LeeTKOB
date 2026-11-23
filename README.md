@@ -87,11 +87,37 @@ The [PostgreSQL queue ADR](docs/decisions/0001-postgresql-judge-queue.md) record
 T27. See the [internal judge contract](docs/contract/internal-judge.md) for the
 queue, worker and recovery rules.
 
-## PA#03 judge preview
+## PA#03 submission and judge
 
-- Review the [Docker prototype and timings](docs/decisions/0002-docker-judge-prototype.md).
-- In the frontend, sign in as Student through the mock login and open Nop bai to try the submission form and sample per-test verdicts. This preview runs in the browser with a fixed lab and fixed results.
-- To measure submission receipt latency, use a disposable local test lab. Set `LEETKOB_LOAD_TOKEN` to the student's JWT and `LEETKOB_LAB_ID` to the lab UUID in your shell. The script sends one unique idempotency key per submission and reports receipt p50 and p95 for successful HTTP 201 responses.
+Build the trusted sandbox image on the Linux Docker daemon that the judge worker uses.
+The daemon must provide cgroup v2 with CPU, memory, swap and PID accounting.
+
+```sh
+docker build -t leetkob-sandbox:pa3 sandbox
+(cd backend && sh ./mvnw -B -ntp package)
+java -jar backend/target/backend-0.0.1-SNAPSHOT.jar judge-worker
+```
+
+The HTTP API uses the same jar without the `judge-worker` argument. Run them as
+separate processes against the same PostgreSQL database. The judge worker needs the
+Docker CLI and permission to talk to its daemon. In a deployment, mount the Docker
+socket only in the judge worker service. Its sandbox containers receive neither the
+socket nor the service environment. `JUDGE_SANDBOX_IMAGE` can select a trusted image
+already available to that daemon.
+
+The `sandbox` job runs on PRs, `main`, and the `pa3` tag. Reproduce its nine sandbox
+checks and the worker restart test after building the image.
+
+```sh
+(cd backend && JUDGE_SANDBOX_TESTS=1 sh ./mvnw -B -ntp \
+  -Dtest=DockerSandboxTest,JudgeWorkerRestartTest test)
+```
+
+For the original trusted-sample baseline, see the
+[Docker prototype timings](docs/decisions/0002-docker-judge-prototype.md).
+
+The local receipt script measures HTTP receipt latency. Set `LEETKOB_LOAD_TOKEN` to a
+fixture student's JWT and `LEETKOB_LAB_ID` to its lab UUID in your shell.
 
 ```sh
 node scripts/submission-load.mjs --url http://127.0.0.1:8080 --lab "$LEETKOB_LAB_ID" --count 8 --concurrency 4
