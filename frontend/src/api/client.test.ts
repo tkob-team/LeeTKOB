@@ -84,3 +84,26 @@ describe('createApiClient', () => {
     await expect(client.request('/x')).rejects.toMatchObject({ problem: { status: 0 } });
   });
 });
+
+describe('onUnauthorized', () => {
+  it('fires for a 401 on a request that carried a token, not on an anonymous one', async () => {
+    const onUnauthorized = vi.fn();
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(problemResponse({ type: 'x', title: 'x', status: 401 }, 401)),
+    );
+    let token: string | null = null;
+    const client = createApiClient({
+      baseUrl: '',
+      getToken: () => token,
+      fetch: fetchMock,
+      onUnauthorized,
+    });
+
+    await expect(client.request('/auth/login', { method: 'POST', body: '{}' })).rejects.toThrow();
+    expect(onUnauthorized).not.toHaveBeenCalled();
+
+    token = 'expired';
+    await expect(client.request('/student/labs')).rejects.toBeInstanceOf(ApiProblemError);
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
+});
