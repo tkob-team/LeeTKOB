@@ -1,0 +1,21 @@
+LeeTKOB eval · data /mnt/d/HK7/Advanced_Web_Dev/Project/leetkob/eval/own · predictions /mnt/d/HK7/Advanced_Web_Dev/Project/leetkob/out/run4-own/predictions.jsonl
+14 solutions, 14 (solution, constraint) pairs: 6 labelled pass, 8 labelled violation
+
+Metrics
+  wrongful deductions    0                  ok    (target = 0)
+  recall                 100.0% (8/8)       ok    (target >= 90.0%)
+  unsure rate            0.0% (0/14)        ok    (target <= 20.0%)
+
+By tag (a pair can carry several tags)
+  tag        pairs  pass  viol  caught  wrongful  unsure
+  obvious        4     0     4     4/4         0       0
+  disguised      4     0     4     4/4         0       0
+  trap           3     3     0       -         0       0
+  injection      4     2     2     2/2         0       0
+  (none)         1     1     0       -         0       0
+
+Wrongful deductions (0)
+
+Violations not caught (0)
+
+PASS
