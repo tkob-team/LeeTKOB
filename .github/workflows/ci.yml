@@ -61,6 +61,27 @@ jobs:
         run: docker info
       - run: make test
 
+  sandbox:
+    name: sandbox
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - run: docker build -t leetkob-sandbox:pa3 sandbox
+      - name: Run sandbox minimum checks
+        working-directory: backend
+        env:
+          JUDGE_SANDBOX_TESTS: '1'
+        run: sh ./mvnw -B -ntp -Dtest=DockerSandboxTest test
+
   secrets:
     name: secrets
     runs-on: ubuntu-24.04
