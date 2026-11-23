@@ -21,6 +21,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <HomeRedirect /> },
       { path: 'classes', element: <ClassesGradingPage /> },
       { path: 'review-queue', element: <ReviewQueuePage /> },
+      { path: 'labs/:labId/review', element: <ReviewQueuePage /> },
     ],
   },
   {

@@ -112,3 +112,45 @@
     transition: none;
   }
 }
+
+.lk-cause {
+  margin: var(--space-1) 0 0;
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  color: var(--ink-muted);
+  white-space: normal;
+}
+
+/* Page sections, raised panels and plain lists for dense TA screens. */
+.lk-section {
+  display: grid;
+  gap: var(--space-6);
+}
+.lk-section__head {
+  display: grid;
+  gap: var(--space-2);
+}
+.lk-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.lk-panel p {
+  margin: 0;
+}
+.lk-panel__title {
+  margin: 0;
+  font-size: var(--section-font-size);
+  line-height: var(--section-line-height);
+  font-weight: var(--section-font-weight);
+}
+.lk-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}

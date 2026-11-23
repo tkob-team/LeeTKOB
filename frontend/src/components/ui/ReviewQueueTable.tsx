@@ -7,9 +7,12 @@ export interface ReviewQueueRow {
   constraint: string;
   /** Marks deducted, as a positive number; shown with a minus sign. */
   deduction: number;
-  source: 'hard rule' | 'model';
+  /** `guardrail`: a limit (timeout, schema, evidence check, cost cap) produced the verdict. */
+  source: 'hard rule' | 'model' | 'guardrail';
   verdict: Verdict;
   evidenceLines: number[];
+  /** Why the verdict is `unsure`, shown under the badge (TA views only). */
+  unsureCause?: string;
 }
 
 export interface ReviewQueueTableProps {
@@ -68,6 +71,7 @@ export function ReviewQueueTable({ rows, selectedId, onSelect }: ReviewQueueTabl
                 <td>{row.source}</td>
                 <td>
                   <VerdictBadge verdict={row.verdict} />
+                  {row.unsureCause ? <p className="lk-cause">{row.unsureCause}</p> : null}
                 </td>
                 <td className="lk-mono">
                   {row.evidenceLines.length > 0 ? row.evidenceLines.join(', ') : '—'}
