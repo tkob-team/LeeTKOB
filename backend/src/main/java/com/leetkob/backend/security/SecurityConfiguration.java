@@ -54,7 +54,8 @@ class SecurityConfiguration {
         };
     http.csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(a -> a.anyRequest().authenticated())
+        .authorizeHttpRequests(
+            a -> a.requestMatchers("/auth/login").permitAll().anyRequest().authenticated())
         .exceptionHandling(e -> e.authenticationEntryPoint(entryPoint))
         .oauth2ResourceServer(
             o -> o.jwt(Customizer.withDefaults()).authenticationEntryPoint(entryPoint));
