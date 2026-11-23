@@ -7,6 +7,7 @@ public enum ProblemType {
   UNAUTHENTICATED("unauthenticated", 401, "Authentication is required"),
   FORBIDDEN_ROLE("forbidden-role", 403, "Role is not allowed to submit"),
   LAB_NOT_FOUND("lab-not-found", 404, "Lab not found"),
+  SUBMISSION_NOT_FOUND("submission-not-found", 404, "Submission not found"),
   CLASS_NOT_FOUND("class-not-found", 404, "Class not found"),
   CLASS_ACCESS_DENIED("class-access-denied", 403, "Class action is not allowed"),
   METHOD_NOT_ALLOWED("method-not-allowed", 405, "Method not allowed"),

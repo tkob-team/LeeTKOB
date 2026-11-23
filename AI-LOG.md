@@ -255,6 +255,18 @@
 - Validation: commit 1 alone and commit 2 each passed `make lint`, `make format-check`, `make typecheck`, `make test` in WSL (checker 57 then 79 tests). The 19 new limit tests failed before the commit 2 code.
 - Known limits: masking 8-digit numbers also hides 8-digit constants in code; a timed-out worker thread keeps running in the background until the SDK timeout ends it.
 
+## 2026-11-23 - PA3 submission and judge (A, Hoa, T88)
+
+- Tool: OpenAI Codex.
+- Asked for: complete Hoa's PA3 submission and judging tasks on a dedicated branch. Keep tests in the same or an earlier commit and one part per commit.
+- Kept: the V4 table ownership, submission POST and replay contract, and existing PostgreSQL lease and recovery rules.
+- Changed: T52 runs the judge as a separate process. T78 builds the sandbox and adds a CI job with one submission per minimum. T79 reads V4 lab tests and limits and verifies recovery with a stopped and restarted worker process. T80 saves AC and enqueues checker work atomically. T54 uses real polling and identifies the last on-time attempt regardless of verdict.
+- Rejected: a Docker command that waited for input EOF. One local compile stalled on that handoff, so the supervisor now reads the declared byte count. Rejected returning the Docker client exit alone as proof of cleanup. The wall-time test checks that the named container is gone. Rejected using the last AC as the counted attempt after reading FAQ-02.
+- Validation: the two enqueue tests failed on the missing AC handoff before the fix. The backend suite passed 80 tests locally with Docker enabled, including nine sandbox checks, the restart test, and three polling contract tests. The focused frontend submission suite passed all three tests. Tests use fixture users and labs.
+- By hand: Hoa authorized sandbox CI changes, Docker, committing, pushing the branch and opening a PR. Teammate review is pending.
+- Follow-up: a read-only process check found that the sandbox supervisor still used Python's default interrupt handling. The supervisor now ignores that signal and the non-root check verifies the updated disposition.
+- T56 timing: the local restart fixture logged `gradingMillis=1532` for one submission with two tests. This measures the Docker adapter after claim, including compilation and both runs. The existing receipt-load script measures HTTP intake separately.
+
 ## 2026-11-23 — T76: real dev-set run with gemini-3.5-flash-lite (A, Hiep)
 
 - Prompt change 1 (judge only this constraint, read literally; a constraint that says some programs pass is followed; violation only when clearly broken, otherwise unsure): dev run 1 → run 2 went from wrongful 1, recall 97.3% (36/37), unsure 1.0% to wrongful 0, recall 100% (37/37), unsure 0.0%. The run 1 wrongful deduction applied a different constraint's container ban to a "free what you allocate" constraint that passes programs which allocate nothing; the run 1 unsure was one failed call (`outcome=error`, reason not logged yet, so the call log now records the reason).
