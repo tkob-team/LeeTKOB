@@ -302,3 +302,18 @@ def test_fallback_models_come_from_the_environment(monkeypatch: pytest.MonkeyPat
     assert cli.configured_models(no_fallback=True) == ["first"]
     monkeypatch.setenv("GEMINI_FALLBACK_MODELS", "")
     assert cli.configured_models(no_fallback=False) == ["first"]
+
+
+def test_call_log_records_the_reason_of_each_verdict(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    install_fake(
+        monkeypatch, lambda: always({"verdict": "pass", "evidence": [], "reason": "fake reason"})
+    )
+    log = tmp_path / "calls.jsonl"
+    cli.main(
+        ["--data", str(EVAL / "own"), "--out", str(tmp_path / "p.jsonl"), "--call-log", str(log)]
+    )
+    calls = [json.loads(x) for x in log.read_text("utf-8").splitlines()]
+    assert {c["reason"] for c in calls if c["called"]} == {"fake reason"}
+    assert all(c["reason"] for c in calls if not c["called"])
