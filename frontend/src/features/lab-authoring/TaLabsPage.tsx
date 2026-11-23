@@ -68,9 +68,9 @@ export function TaLabsPage() {
         <EmptyState title="Chưa có lớp">Bạn chưa được phân công trợ giảng lớp nào.</EmptyState>
       ) : null}
       {classes?.map(({ classroom, labs }) => (
-        <section key={classroom.id} className="lk-panel" aria-label={`Lớp ${classroom.name}`}>
+        <section key={classroom.id} className="lk-panel" aria-label={classroom.name}>
           <div className="lk-row">
-            <h2 className="lk-panel__title">Lớp {classroom.name}</h2>
+            <h2 className="lk-panel__title">{classroom.name}</h2>
             <Link
               className="lk-btn lk-btn--primary"
               to={`/ta/classes/${encodeURIComponent(classroom.id)}/labs/new`}

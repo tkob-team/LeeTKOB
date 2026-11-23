@@ -1,6 +1,7 @@
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 import { Button } from '../components/ui';
-import { useAuth } from './auth-context';
+import { homePath, useAuth } from './auth-context';
+import { ThemeToggle } from './ThemeToggle';
 
 export interface NavItem {
   to: string;
@@ -21,7 +22,9 @@ export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
     <div className="lk-shell">
       <header className="lk-shell__header">
         <div className={`lk-shell__bar lk-shell__bar--${width}`}>
-          <span className="lk-shell__brand">LeeTKOB</span>
+          <Link to={session ? homePath(session.role) : '/login'} className="lk-shell__brand">
+            LeeTKOB
+          </Link>
           <nav className="lk-shell__nav" aria-label="Điều hướng chính">
             {nav.map((item) => (
               <NavLink key={item.to} to={item.to} className="lk-shell__link">
@@ -33,6 +36,7 @@ export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
             <span className="lk-shell__who">
               {session?.displayName} · {roleLabel}
             </span>
+            <ThemeToggle />
             <Button
               onClick={() => {
                 logout();
