@@ -200,7 +200,11 @@ class GeminiJudge:
                 call["attempts"] = int(str(call["attempts"])) + 1
                 started = self._clock()
                 try:
-                    answer = self._client.generate(model, prompt, self._timeout_s)
+                    answer = self._generate_within_deadline(model, prompt)
+                except TimeoutError:
+                    return self._unsure(
+                        call, "timeout", f"no answer within {self._timeout_s:g} s", "timeout"
+                    )
                 except RateLimited as limit:
                     if limit.daily:
                         outcome = "quota_exhausted"
@@ -209,13 +213,40 @@ class GeminiJudge:
                         self._sleep(BACKOFF_S[retries])
                         retries += 1
                         continue
-                    return self._unsure(call, "rate_limited", "rate limited after 3 retries")
+                    return self._unsure(
+                        call, "rate_limited", "rate limited after 3 retries", "model"
+                    )
                 except Exception as error:
-                    return self._unsure(call, "error", f"model call failed: {type(error).__name__}")
+                    reason = f"model call failed: {type(error).__name__}"
+                    return self._unsure(call, "error", reason, "model")
                 call["latency_ms"] = round((self._clock() - started) * 1000)
                 self._record_reply(call, model, answer)
-                return self._decide(call, answer, case.source)
-        return self._unsure(call, outcome, "daily quota exhausted on every model")
+                return self._decide(call, answer, case.source, clean)
+        return self._unsure(call, outcome, "daily quota exhausted on every model", "model")
+
+    def _generate_within_deadline(self, model: str, prompt: str) -> ModelReply:
+        """Run one call; raise TimeoutError if it takes longer than the timeout.
+
+        The client also receives the timeout, so the SDK cancels a real request; the daemon
+        thread only guarantees that the checker itself never waits longer.
+        """
+        box: list[ModelReply | BaseException] = []
+
+        def work() -> None:
+            try:
+                box.append(self._client.generate(model, prompt, self._timeout_s))
+            except BaseException as error:
+                box.append(error)
+
+        worker = threading.Thread(target=work, daemon=True)
+        worker.start()
+        worker.join(self._timeout_s)
+        if not box:
+            raise TimeoutError(f"model call exceeded {self._timeout_s} s")
+        result = box[0]
+        if isinstance(result, BaseException):
+            raise result
+        return result
 
     def _record_reply(self, call: dict[str, object], model: str, answer: ModelReply) -> None:
         call["provider_request_id"] = answer.response_id
@@ -227,26 +258,40 @@ class GeminiJudge:
             cost = (answer.input_tokens * price[0] + answer.output_tokens * price[1]) / 1e6
             call["cost_usd"] = round(cost, 6)
 
-    def _decide(self, call: dict[str, object], answer: ModelReply, source: str) -> Judgement:
+    def _decide(
+        self, call: dict[str, object], answer: ModelReply, source: str, clean: str
+    ) -> Judgement:
         try:
             output = JudgeOutput.model_validate_json(answer.text)
         except ValidationError:
-            return self._unsure(call, "schema", "model output does not match the schema")
-        call["outcome"] = "ok"
-        if output.verdict != "violation":
-            return Judgement(RuleResult(output.verdict, (), output.reason), call)
-        lines = source.split("\n")
+            return self._unsure(call, "schema", "model output does not match the schema", "schema")
+        if output.verdict == "unsure":
+            return self._unsure(call, "ok", output.reason, "model")
+        if output.verdict == "pass":
+            call["outcome"] = "ok"
+            call["unsure_cause"] = None
+            return Judgement(RuleResult("pass", (), output.reason), call)
+        if not output.evidence:
+            return self._unsure(call, "evidence", "violation without evidence", "evidence")
+        original = source.split("\n")
+        cleaned = clean.split("\n")
+        for entry in output.evidence:
+            if entry.line > len(cleaned) or entry.text.strip() != cleaned[entry.line - 1].strip():
+                reason = f"evidence line {entry.line} does not match the code"
+                return self._unsure(call, "evidence", reason, "evidence")
+        # The prediction file shows the original line, comments included.
         evidence = tuple(
-            Evidence(e.line, lines[e.line - 1].rstrip("\r"))
-            for e in output.evidence
-            if e.line <= len(lines)
+            Evidence(e.line, original[e.line - 1].rstrip("\r")) for e in output.evidence
         )
+        call["outcome"] = "ok"
+        call["unsure_cause"] = None
         return Judgement(RuleResult("violation", evidence, output.reason), call)
 
     @staticmethod
-    def _unsure(call: dict[str, object], outcome: str, reason: str) -> Judgement:
+    def _unsure(call: dict[str, object], outcome: str, reason: str, cause: str) -> Judgement:
         call["outcome"] = outcome
-        return Judgement(RuleResult("unsure", (), reason), call)
+        call["unsure_cause"] = cause
+        return Judgement(RuleResult("unsure", (), reason, cause), call)
 
 
 class GeminiClient:
@@ -275,6 +320,11 @@ class GeminiClient:
                 detail = f"{error.message} {getattr(error, 'details', '')}"
                 daily = "PerDay" in detail or "per day" in detail.lower()
                 raise RateLimited(str(error.message), daily=daily) from error
+            raise
+        except Exception as error:
+            # httpx raises its own timeout classes; report them as a plain timeout.
+            if "timeout" in type(error).__name__.lower():
+                raise TimeoutError(str(error)) from error
             raise
         usage = response.usage_metadata
         output_tokens = 0

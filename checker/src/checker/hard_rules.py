@@ -80,6 +80,8 @@ class RuleResult:
     verdict: Verdict
     evidence: tuple[Evidence, ...]
     reason: str
+    # For unsure only: model, schema, timeout, evidence or cost_cap (findings.unsure_cause).
+    unsure_cause: str | None = None
 
 
 def banned_names(constraint_text: str) -> list[str] | None:
