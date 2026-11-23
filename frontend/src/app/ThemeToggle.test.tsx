@@ -3,14 +3,22 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StudentLayout, TaLayout } from './AppLayout';
 import { AuthContext, type AuthState, type Role } from './auth-context';
-import { applyStoredTheme, currentTheme, THEME_KEY } from './theme';
+import {
+  applyStoredTheme,
+  currentTheme,
+  THEME_CHANGING_CLASS,
+  THEME_KEY,
+  THEME_TRANSITION_MS,
+} from './theme';
 import { ThemeToggle } from './ThemeToggle';
 
-function systemPrefersDark(dark: boolean) {
+function systemPrefersDark(dark: boolean, reducedMotion = false) {
   vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({
-      matches: dark && query === '(prefers-color-scheme: dark)',
+      matches:
+        (dark && query === '(prefers-color-scheme: dark)') ||
+        (reducedMotion && query === '(prefers-reduced-motion: reduce)'),
       media: query,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
@@ -60,16 +68,44 @@ describe('theme', () => {
     expect(currentTheme()).toBe('light');
   });
 
-  it('the toggle switches, applies and saves the theme', () => {
+  it('the switch shows the theme, and switching applies and saves it', () => {
     systemPrefersDark(true);
     render(<ThemeToggle />);
-    fireEvent.click(screen.getByRole('button', { name: 'Chuyển sang giao diện sáng' }));
+    const toggle = screen.getByRole('switch', { name: 'Giao diện tối' });
+    expect(toggle).toBeChecked();
+
+    fireEvent.click(toggle);
+    expect(toggle).not.toBeChecked();
+    expect(toggle).toHaveAccessibleName('Giao diện tối');
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(localStorage.getItem(THEME_KEY)).toBe('light');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Chuyển sang giao diện tối' }));
+    fireEvent.click(toggle);
+    expect(toggle).toBeChecked();
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(localStorage.getItem(THEME_KEY)).toBe('dark');
+  });
+
+  it('cross-fades colours briefly after a switch', () => {
+    vi.useFakeTimers();
+    try {
+      systemPrefersDark(false);
+      render(<ThemeToggle />);
+      fireEvent.click(screen.getByRole('switch', { name: 'Giao diện tối' }));
+      expect(document.documentElement).toHaveClass(THEME_CHANGING_CLASS);
+      vi.advanceTimersByTime(THEME_TRANSITION_MS);
+      expect(document.documentElement).not.toHaveClass(THEME_CHANGING_CLASS);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('switches without a cross-fade when the viewer prefers reduced motion', () => {
+    systemPrefersDark(false, true);
+    render(<ThemeToggle />);
+    fireEvent.click(screen.getByRole('switch', { name: 'Giao diện tối' }));
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(document.documentElement).not.toHaveClass(THEME_CHANGING_CLASS);
   });
 });
 
@@ -85,6 +121,6 @@ describe('app header', () => {
     );
     const header = screen.getByRole('banner');
     expect(within(header).getByRole('link', { name: 'LeeTKOB' })).toHaveAttribute('href', home);
-    expect(within(header).getByRole('button', { name: /Chuyển sang giao diện/ })).toBeVisible();
+    expect(within(header).getByRole('switch', { name: 'Giao diện tối' })).toBeVisible();
   });
 });

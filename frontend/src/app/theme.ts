@@ -30,14 +30,37 @@ export function currentTheme(): Theme {
   return storedTheme() ?? systemTheme();
 }
 
-/** Saves the choice and applies it at once. */
+/** Class on <html> while colours cross-fade after a switch (shell.css). */
+export const THEME_CHANGING_CLASS = 'lk-theme-changing';
+
+/** Slightly longer than the 200ms colour transition in shell.css. */
+export const THEME_TRANSITION_MS = 250;
+
+let transitionTimer: ReturnType<typeof setTimeout> | undefined;
+
+function reducedMotion(): boolean {
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
+/** Saves the choice and applies it, cross-fading colours unless the viewer asked for less motion. */
 export function chooseTheme(theme: Theme): void {
   try {
     localStorage.setItem(THEME_KEY, theme);
   } catch {
     // Private mode or blocked storage: the choice still applies to this page.
   }
-  document.documentElement.dataset.theme = theme;
+  const root = document.documentElement;
+  if (!reducedMotion()) {
+    root.classList.add(THEME_CHANGING_CLASS);
+    clearTimeout(transitionTimer);
+    transitionTimer = setTimeout(() => {
+      root.classList.remove(THEME_CHANGING_CLASS);
+    }, THEME_TRANSITION_MS);
+  }
+  root.dataset.theme = theme;
 }
 
 /** Applies the saved choice, or removes `data-theme` so the operating system decides. */

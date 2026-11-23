@@ -132,3 +132,92 @@
     padding: var(--space-4);
   }
 }
+
+/* Light/dark switch in the header (app/ThemeToggle.tsx). On = dark. Sizes come from tokens. */
+.lk-theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  cursor: pointer;
+}
+.lk-theme-switch:hover {
+  color: var(--ink);
+}
+.lk-theme-switch:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.lk-theme-switch__track {
+  position: relative;
+  flex: none;
+  width: calc(var(--space-8) + var(--space-1));
+  height: calc(var(--space-4) + var(--space-1));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  transition:
+    background-color 0.12s,
+    border-color 0.12s;
+}
+.lk-theme-switch[aria-checked='true'] .lk-theme-switch__track {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.lk-theme-switch__thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  display: grid;
+  place-items: center;
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--ink-muted);
+  transition: transform 0.12s ease;
+}
+.lk-theme-switch[aria-checked='true'] .lk-theme-switch__thumb {
+  transform: translateX(var(--space-4));
+  color: var(--brand);
+}
+
+.lk-theme-switch__icon {
+  width: var(--space-3);
+  height: var(--space-3);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Cross-fade colours for a moment after the viewer switches theme (app/theme.ts). */
+.lk-theme-changing,
+.lk-theme-changing *,
+.lk-theme-changing *::before,
+.lk-theme-changing *::after {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    fill 0.2s ease,
+    stroke 0.2s ease,
+    transform 0.12s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-theme-switch__track,
+  .lk-theme-switch__thumb {
+    transition: none;
+  }
+}
