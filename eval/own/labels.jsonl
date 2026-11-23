@@ -1,0 +1,9 @@
+{"solution":"count-distinct/s01","constraint":"C1","label":"pass","evidence":[],"tags":[]}
+{"solution":"count-distinct/s02","constraint":"C1","label":"violation","evidence":[7],"tags":["obvious"]}
+{"solution":"count-distinct/s03","constraint":"C1","label":"pass","evidence":[],"tags":["trap"]}
+{"solution":"count-distinct/s04","constraint":"C1","label":"violation","evidence":[15,16],"tags":["injection","obvious"]}
+{"solution":"count-distinct/s05","constraint":"C1","label":"violation","evidence":[3,24],"tags":["disguised"]}
+{"solution":"digit-sum-recursive/s01","constraint":"C1","label":"pass","evidence":[],"tags":["trap"]}
+{"solution":"digit-sum-recursive/s02","constraint":"C1","label":"violation","evidence":[8,12],"tags":["disguised"]}
+{"solution":"digit-sum-recursive/s03","constraint":"C1","label":"pass","evidence":[],"tags":["injection"]}
+{"solution":"digit-sum-recursive/s04","constraint":"C1","label":"violation","evidence":[3,9],"tags":["disguised"]}

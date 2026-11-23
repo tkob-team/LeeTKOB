@@ -3,7 +3,10 @@ name = "checker"
 version = "0.1.0"
 description = "LeetKOB checker"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "tree-sitter>=0.26.1",
+    "tree-sitter-cpp>=0.23.4",
+]
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]

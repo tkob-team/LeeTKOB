@@ -1,3 +1,6 @@
 * text=auto eol=lf
 *.cmd text eol=crlf
 *.jar binary
+
+# Dev eval set is copied byte for byte from fithcmus/awad-leetkob-eval; never convert it.
+eval/dev/** -text
