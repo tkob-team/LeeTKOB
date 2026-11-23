@@ -171,6 +171,33 @@ node eval/dev/eval.mjs --data eval/dev --predictions out/predictions.jsonl
 Our own cases live in `eval/own/` (same layout, new problems); score them with
 `--data eval/own`. Never edit `eval/dev/`: it is a byte-for-byte copy of the lecturer's set.
 
+## Check worker
+
+`leetkob-check-worker` turns AC submissions into findings. The judge inserts a `check_jobs`
+row with every AC verdict; the worker claims the oldest job with `FOR UPDATE SKIP LOCKED`
+and a lease, runs the same pipeline as the checker command (hard rules first, then the
+Gemini judge, with limits turning into `unsure`), and in one transaction writes
+`model_calls`, then `findings` (`ON CONFLICT DO NOTHING`, evidence with original lines),
+then marks the job finished. A write is accepted only under the live lease, so a job that
+is re-claimed after its lease expired still ends with one set of findings. Rules:
+[internal judge contract](docs/contract/internal-judge.md) and
+[PA3 data boundaries](docs/contract/pa3-boundaries.md).
+
+It reads the backend's database settings: `DB_URL` in JDBC form
+(`jdbc:postgresql://host:port/database`), `DB_USER`, `DB_PASSWORD`, plus the Gemini
+variables. The worker is the only process that receives `GEMINI_API_KEY`.
+
+```sh
+cd checker && uv run leetkob-check-worker            # poll every 2 s; --once handles one job
+docker run --rm -e DB_URL -e DB_USER -e DB_PASSWORD -e GEMINI_API_KEY -e GEMINI_MODEL \
+  leetkob-checker worker --lease-seconds 600
+```
+
+The first argument of the image picks the process: `worker` starts the worker; anything else
+(or `check`) runs the checker command, and the image's entrypoint removes `GEMINI_API_KEY`
+for it. Set `--lease-seconds` (default 600) longer than all model calls of one submission;
+the worker does not renew its lease yet.
+
 ## Model and cost
 
 The checker reviews accepted submissions against a lab's constraints with a Google
