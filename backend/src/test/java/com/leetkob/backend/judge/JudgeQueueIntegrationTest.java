@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.json.JsonMapper;
@@ -212,6 +213,48 @@ class JudgeQueueIntegrationTest {
     expire(id);
     assertThat(new JudgeWorker(queue, claim -> AC, LEASE).runOne())
         .isEqualTo(JudgeWorker.Outcome.COMPLETED);
+  }
+
+  @Test
+  void acceptedCompletionEnqueuesOneCheckJobAndWrongAnswerEnqueuesNone() {
+    UUID accepted = job(2);
+    UUID rejected = job(1);
+    var first = queue.claim(LEASE).orElseThrow();
+    var second = queue.claim(LEASE).orElseThrow();
+
+    assertThat(queue.complete(first, AC)).isTrue();
+    assertThat(queue.complete(first, AC)).isFalse();
+    assertThat(queue.complete(second, WA)).isTrue();
+    assertThat(jdbc.sql("select submission_id from check_jobs").query(UUID.class).list())
+        .containsExactly(accepted);
+    assertThat(
+            jdbc.sql(
+                    """
+                    select c.enqueued_at = j.finished_at
+                    from check_jobs c join judge_jobs j using (submission_id)
+                    """)
+                .query(Boolean.class)
+                .single())
+        .isTrue();
+    assertThat(json.readValue(readResult(rejected), Result.class)).isEqualTo(WA);
+  }
+
+  @Test
+  void failedCheckEnqueueRollsBackTheAcceptedVerdict() {
+    UUID id = job(1);
+    var claim = queue.claim(LEASE).orElseThrow();
+    jdbc.sql("insert into check_jobs (submission_id, enqueued_at) values (?, now())")
+        .param(id)
+        .update();
+
+    assertThatThrownBy(() -> queue.complete(claim, AC)).isInstanceOf(DuplicateKeyException.class);
+    assertThat(
+            jdbc.sql("select result is null from judge_jobs where submission_id = ?")
+                .param(id)
+                .query(Boolean.class)
+                .single())
+        .isTrue();
+    assertThat(queue.complete(claim, WA)).isTrue();
   }
 
   private UUID job(int ageSeconds) {

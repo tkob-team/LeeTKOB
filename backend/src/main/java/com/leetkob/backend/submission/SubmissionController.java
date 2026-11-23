@@ -10,12 +10,15 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,15 +45,7 @@ class SubmissionController {
   ResponseEntity<byte[]> submit(
       @PathVariable String labId, HttpServletRequest request, @AuthenticationPrincipal Jwt jwt)
       throws IOException {
-    // Step 1 is the security filter; the token has a valid sub and role by now.
-    UUID studentId = UUID.fromString(jwt.getSubject());
-    if (!repository.userExists(studentId)) {
-      throw new ApiException(ProblemType.UNAUTHENTICATED, "The token's user does not exist.");
-    }
-    // Step 2
-    if (!"STUDENT".equals(jwt.getClaimAsString("role"))) {
-      throw new ApiException(ProblemType.FORBIDDEN_ROLE, "Only students can submit.");
-    }
+    UUID studentId = requireStudent(jwt); // steps 1 and 2
     parser.checkContentType(request); // step 3
     String key = parser.idempotencyKey(request); // step 4
     UUID lab = parser.labId(labId); // step 5
@@ -87,6 +82,51 @@ class SubmissionController {
     }
     // A concurrent request with the same key won; answer like a retry.
     return replayOrReject(repository.find(studentId, key).orElseThrow(), lab, code);
+  }
+
+  @GetMapping("/student/labs")
+  ResponseEntity<List<SubmissionRepository.StudentLab>> labs(@AuthenticationPrincipal Jwt jwt) {
+    var labs = repository.labsForStudent(requireStudent(jwt));
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(labs);
+  }
+
+  @GetMapping("/labs/{labId}/submissions/{submissionId}")
+  ResponseEntity<SubmissionRepository.Status> status(
+      @PathVariable String labId,
+      @PathVariable String submissionId,
+      @AuthenticationPrincipal Jwt jwt) {
+    UUID studentId = requireStudent(jwt);
+    UUID lab = parser.labId(labId);
+    UUID submission = parseSubmissionId(submissionId);
+    var result =
+        repository
+            .status(lab, submission, studentId)
+            .orElseThrow(
+                () -> new ApiException(ProblemType.SUBMISSION_NOT_FOUND, "Submission not found."));
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(result);
+  }
+
+  private UUID requireStudent(Jwt jwt) {
+    UUID studentId = UUID.fromString(jwt.getSubject());
+    if (!repository.userExists(studentId)) {
+      throw new ApiException(ProblemType.UNAUTHENTICATED, "The token's user does not exist.");
+    }
+    if (!"STUDENT".equals(jwt.getClaimAsString("role"))) {
+      throw new ApiException(ProblemType.FORBIDDEN_ROLE, "Only students can submit.");
+    }
+    return studentId;
+  }
+
+  private static UUID parseSubmissionId(String value) {
+    try {
+      UUID parsed = UUID.fromString(value);
+      if (parsed.toString().equalsIgnoreCase(value)) {
+        return parsed;
+      }
+    } catch (IllegalArgumentException ignored) {
+      // A malformed identifier gets the same problem response as a shortened UUID.
+    }
+    throw new ApiException(ProblemType.INVALID_REQUEST, "submissionId must be a UUID.");
   }
 
   private ResponseEntity<byte[]> replayOrReject(
