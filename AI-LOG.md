@@ -255,7 +255,7 @@
 - Validation: commit 1 alone and commit 2 each passed `make lint`, `make format-check`, `make typecheck`, `make test` in WSL (checker 57 then 79 tests). The 19 new limit tests failed before the commit 2 code.
 - Known limits: masking 8-digit numbers also hides 8-digit constants in code; a timed-out worker thread keeps running in the background until the SDK timeout ends it.
 
-## 2026-11-23 - PA3 submission and judge (A, Hoa, T88)
+## 2026-11-23 - T88: PA3 submission and judge (B, Hoa)
 
 - Tool: OpenAI Codex.
 - Asked for: complete Hoa's PA3 submission and judging tasks on a dedicated branch. Keep tests in the same or an earlier commit and one part per commit.
@@ -297,6 +297,14 @@
 - Changed: new `backend/.../review/` controller and repository. `reviewStatus` is `reviewing` until every constraint of an AC submission has a finding, `not_checked` for non-AC verdicts (the checker only runs on AC), `checked` otherwise. `ReviewQueueTable` gained an optional `unsureCause` and the `guardrail` source (existing tests unchanged; design-system README updated). The screen shows pseudonymous submission ids only, following the design system, although the API returns the student. `/ta/review-queue` keeps its empty state. Layout classes went into `components/ui/ui-extra.css` because lint forbids feature stylesheets.
 - Rejected: 403 for a TA of another class (would reveal that the lab exists and differ from the existing contracts); showing student names in the queue; a feature-level CSS file.
 - Validation: the 7 contract tests failed with 404 before the controller existed, then passed. 6 new page tests (rows with verdict, evidence, deduction and unsure cause; panel with evidence and reason; reviewing and not-checked groups; polling refresh with fake timers; 404 stops polling; paging; empty page without a lab). In WSL `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0 (backend 87 tests, checker 103, frontend 39).
+
+## 2026-11-23 - T78: sandbox rubric follow-up (B, Hoa)
+
+- Tool: OpenAI Codex.
+- Kept: the sandbox runtime, existing job and release-tag trigger.
+- Changed: the memory submission reads each touched block into a volatile checksum and prints its first checksum before the expected memory kill. The network submission requires a failed TCP connection and DNS lookup. Two submissions check readable application and configuration locations for key markers and ask the compiler whether common secret paths are includable.
+- Rejected: expecting exactly 14 threads. The probe checks that a creation attempt is denied and fewer than 16 threads started. The file probe reads at most 64 KiB per inspected file and reports no contents.
+- Validation: the local Docker run passed 11 sandbox tests and the independent worker restart test. The network and file checks run inside the submission container.
 
 ## 2026-11-23 — T81: email/password login (C, Hoang)
 
