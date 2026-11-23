@@ -215,3 +215,13 @@
 - Changed: check the lease and read the completion clock after acquiring the job row lock. Require the overall verdict to match the first failed test in order, with AC for a passing run and CE for a compile failure. Added PostgreSQL contention coverage and verdict aggregation tests.
 - Rejected: using the time at the start of the UPDATE as the completion time. The old SQL returned UPDATE 1 when it began before expiry and waited on the row until after expiry. The old Result constructor also accepted WA for a run whose only test was TLE.
 - Validation: the seven focused judge tests passed, including the lock-wait regression and both verdict aggregation tests. All four make commands exited 0 in Linux Bash on Docker Desktop. Backend passed 59 tests, checker passed 1 and frontend passed 32.
+
+## 2026-11-23 — PA#3 data boundaries, V4 migration (A, Hiep)
+
+- Tool: Claude Code (Claude Opus 5.5).
+- Asked for: one V4 migration that fixes the PA#3 tables so three flows can work in parallel (user credentials, lab statement and limits, `lab_tests`, `lab_constraints`, `check_jobs`, `findings`, `model_calls`), `spring.flyway.out-of-order=true`, a short ownership contract `docs/contract/pa3-boundaries.md`, and a Testcontainers test for the check constraints.
+- Kept: every column, type, range and enum from the request; `check_jobs` copies the `judge_jobs` lease checks and pending index without `result`; wall time is not stored (FAQ-05).
+- Changed: `users.email`, `users.password_hash` and `labs.title` are nullable, because existing tests insert `users (id)` and labs without a title and editing those tests is not allowed; email stays unique. Added checks not in the request: `ordinal >= 1` on `lab_constraints`, `evidence` must be a JSON array, non-negative tokens, latency and cost. `model_calls.submission_id` uses `on delete set null`; `findings.model_call_id` references `model_calls`; `findings.reason` is `not null default ''`.
+- Rejected: a `not null` email/password/title that would break the existing fixtures; a composite FK from `findings` to `lab_constraints` (would need `lab_id` in `findings`, not in the request).
+- Validation: in WSL (JDK 25.0.5, Node 22.23.4, uv 0.13.7, Docker 29.9.3) `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0; backend 65 tests (6 new), checker 1, frontend 32. The first lint and format-check runs failed (one Checkstyle `VariableDeclarationUsageDistance`, Spotless layout) and were fixed before commit.
+- By hand: started Docker Desktop for `make test`.
