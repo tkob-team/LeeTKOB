@@ -254,3 +254,13 @@
 - Rejected: the first sanitizer left the spaces of a removed comment at the end of the line and the first prompt wording missed the "data, not instructions" phrase; both were caught by the tests written first and fixed in code. Comparing evidence with the original line (a model quoting a comment would then pass) was rejected: evidence must match the comment-free line, and the prediction file then shows the original line. A judge-level timeout without passing the timeout to the SDK was rejected, since the worker thread would keep the request open.
 - Validation: commit 1 alone and commit 2 each passed `make lint`, `make format-check`, `make typecheck`, `make test` in WSL (checker 57 then 79 tests). The 19 new limit tests failed before the commit 2 code.
 - Known limits: masking 8-digit numbers also hides 8-digit constants in code; a timed-out worker thread keeps running in the background until the SDK timeout ends it.
+
+## 2026-11-23 - PA3 submission and judge (A, Hoa, T88)
+
+- Tool: OpenAI Codex.
+- Asked for: complete Hoa's PA3 submission and judging tasks on a dedicated branch. Keep tests in the same or an earlier commit and one part per commit.
+- Kept: the V4 table ownership, submission POST and replay contract, and existing PostgreSQL lease and recovery rules.
+- Changed: T52 runs the judge as a separate process. T78 builds the sandbox and adds a CI job with one submission per minimum. T79 reads V4 lab tests and limits and verifies recovery with a stopped and restarted worker process. T80 saves AC and enqueues checker work atomically. T54 uses real polling and identifies the last on-time attempt regardless of verdict.
+- Rejected: a Docker command that waited for input EOF. One local compile stalled on that handoff, so the supervisor now reads the declared byte count. Rejected returning the Docker client exit alone as proof of cleanup. The wall-time test checks that the named container is gone. Rejected using the last AC as the counted attempt after reading FAQ-02.
+- Validation: the two enqueue tests failed on the missing AC handoff before the fix. The backend suite passed 80 tests locally with Docker enabled, including nine sandbox checks, the restart test, and three polling contract tests. The focused frontend submission suite passed all three tests. Tests use fixture users and labs.
+- By hand: Hoa authorized sandbox CI changes, Docker, committing, pushing the branch and opening a PR. Teammate review is pending.
