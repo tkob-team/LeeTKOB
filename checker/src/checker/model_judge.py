@@ -122,6 +122,10 @@ class RateLimited(Exception):
         self.daily = daily
 
 
+class ServerUnavailable(Exception):
+    """HTTP 5xx from the provider (overloaded or internal error): worth retrying."""
+
+
 class ModelClient(Protocol):
     def generate(self, model: str, prompt: str, timeout_s: float) -> ModelReply: ...
 
@@ -223,6 +227,14 @@ class GeminiJudge:
                         continue
                     return self._unsure(
                         call, "rate_limited", "rate limited after 3 retries", "model"
+                    )
+                except ServerUnavailable:
+                    if retries < len(BACKOFF_S):
+                        self._sleep(BACKOFF_S[retries])
+                        retries += 1
+                        continue
+                    return self._unsure(
+                        call, "server_error", "provider server error after 3 retries", "model"
                     )
                 except Exception as error:
                     reason = f"model call failed: {type(error).__name__}"
@@ -328,6 +340,8 @@ class GeminiClient:
                 detail = f"{error.message} {getattr(error, 'details', '')}"
                 daily = "PerDay" in detail or "per day" in detail.lower()
                 raise RateLimited(str(error.message), daily=daily) from error
+            if isinstance(error.code, int) and 500 <= error.code < 600:
+                raise ServerUnavailable(f"{error.code} {error.message}") from error
             raise
         except Exception as error:
             # httpx raises its own timeout classes; report them as a plain timeout.

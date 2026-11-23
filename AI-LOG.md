@@ -258,3 +258,4 @@
 ## 2026-11-23 — T76: real dev-set run with gemini-3.5-flash-lite (A, Hiep)
 
 - Prompt change 1 (judge only this constraint, read literally; a constraint that says some programs pass is followed; violation only when clearly broken, otherwise unsure): dev run 1 → run 2 went from wrongful 1, recall 97.3% (36/37), unsure 1.0% to wrongful 0, recall 100% (37/37), unsure 0.0%. The run 1 wrongful deduction applied a different constraint's container ban to a "free what you allocate" constraint that passes programs which allocate nothing; the run 1 unsure was one failed call (`outcome=error`, reason not logged yet, so the call log now records the reason).
+- Retry fix (code, not prompt): dev run 3 with the unchanged prompt gave wrongful 0, recall 91.9% (34/37), unsure 3.9%; all 4 unsure pairs (and 2 on eval/own) were `ServerError` 5xx answers from the provider, not model judgements. 5xx answers are now retried with the same 2/4/8 s backoff as 429 before becoming unsure.
