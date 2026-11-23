@@ -5,6 +5,7 @@ public enum ProblemType {
   IDEMPOTENCY_KEY_REQUIRED("idempotency-key-required", 400, "Idempotency-Key header is required"),
   INVALID_REQUEST("invalid-request", 400, "Invalid request"),
   UNAUTHENTICATED("unauthenticated", 401, "Authentication is required"),
+  INVALID_CREDENTIALS("invalid-credentials", 401, "Email or password is incorrect"),
   FORBIDDEN_ROLE("forbidden-role", 403, "Role is not allowed to submit"),
   LAB_NOT_FOUND("lab-not-found", 404, "Lab not found"),
   SUBMISSION_NOT_FOUND("submission-not-found", 404, "Submission not found"),
@@ -17,6 +18,7 @@ public enum ProblemType {
   UNSUPPORTED_MEDIA_TYPE("unsupported-media-type", 415, "Unsupported media type"),
   IDEMPOTENCY_KEY_REUSED(
       "idempotency-key-reused", 422, "Idempotency-Key was used for another request"),
+  TOO_MANY_ATTEMPTS("too-many-attempts", 429, "Too many sign-in attempts"),
   INTERNAL_ERROR("internal-error", 500, "Internal error");
 
   private final String urn;
