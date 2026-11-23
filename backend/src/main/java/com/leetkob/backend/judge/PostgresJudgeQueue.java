@@ -58,27 +58,34 @@ class PostgresJudgeQueue implements JudgeQueue {
   @Override
   public boolean complete(Claim claim, Result result) {
     return jdbc.sql(
-                """
-                with locked_job as materialized (
-                  select submission_id, lease_expires_at
-                  from judge_jobs
-                  where submission_id = :submissionId and lease_token = :token
-                    and finished_at is null
-                  for update
-                ), completion as materialized (
-                  select submission_id, lease_expires_at, clock_timestamp() as completed_at
-                  from locked_job
-                )
-                update judge_jobs j
-                set result = cast(:result as jsonb), finished_at = c.completed_at,
-                    lease_token = null, lease_expires_at = null
-                from completion c
-                where j.submission_id = c.submission_id and c.lease_expires_at > c.completed_at
-                """)
-            .param("result", json.writeValueAsString(result))
-            .param("submissionId", claim.submissionId())
-            .param("token", claim.leaseToken())
-            .update()
-        == 1;
+            """
+            with locked_job as materialized (
+              select submission_id, lease_expires_at
+              from judge_jobs
+              where submission_id = :submissionId and lease_token = :token
+                and finished_at is null
+              for update
+            ), completion as materialized (
+              select submission_id, lease_expires_at, clock_timestamp() as completed_at
+              from locked_job
+            ), finished as (
+              update judge_jobs j
+              set result = cast(:result as jsonb), finished_at = c.completed_at,
+                  lease_token = null, lease_expires_at = null
+              from completion c
+              where j.submission_id = c.submission_id and c.lease_expires_at > c.completed_at
+              returning j.submission_id, j.finished_at
+            ), queued as (
+              insert into check_jobs (submission_id, enqueued_at)
+              select submission_id, finished_at from finished where :accepted
+            )
+            select exists (select 1 from finished)
+            """)
+        .param("result", json.writeValueAsString(result))
+        .param("submissionId", claim.submissionId())
+        .param("token", claim.leaseToken())
+        .param("accepted", result.verdict() == Verdict.AC)
+        .query(Boolean.class)
+        .single();
   }
 }

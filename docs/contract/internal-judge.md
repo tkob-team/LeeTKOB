@@ -24,7 +24,7 @@ Test bundles and runtime limits come from the lab configuration in T46. Their st
 3. A result write succeeds only while the caller holds the current, unexpired lease. The database checks the lease and samples the completion time after locking the job row. The worker stores the overall verdict and ordered per-test verdicts atomically with job completion. Repeated writes, stale tokens and finishes after expiry return false. Completed jobs cannot be reclaimed.
 4. If the worker dies or the judge fails before completing the write, the record becomes eligible when its lease expires. Another worker can claim it under a new token. Set the lease longer than the grading execution deadline plus the result write budget when connecting the real judge.
 
-The existing submission POST returns a receipt with status `queued` for both creation and replay. Student polling and SSE are separate contracts. An AC result can trigger the checker after T44 defines its input and idempotency rules.
+The submission POST returns a receipt with status `queued` for both creation and replay. A successful AC completion also inserts one `check_jobs` row in the same database statement as the verdict. A non-AC result leaves `check_jobs` untouched. If the enqueue fails, neither change is committed. See [PA3 data boundaries](pa3-boundaries.md) for ownership.
 
 ## Observability handoff
 
