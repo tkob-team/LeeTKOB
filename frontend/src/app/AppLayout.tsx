@@ -58,7 +58,7 @@ export function TaLayout() {
       roleLabel="Trợ giảng"
       nav={[
         { to: '/ta/classes', label: 'Lớp và chấm điểm' },
-        { to: '/ta/review-queue', label: 'Hàng chờ duyệt' },
+        { to: '/ta/labs', label: 'Hàng chờ duyệt' },
       ]}
     />
   );
@@ -69,7 +69,10 @@ export function StudentLayout() {
     <AppLayout
       width="narrow"
       roleLabel="Sinh viên"
-      nav={[{ to: '/student/submit', label: 'Nộp bài' }]}
+      nav={[
+        { to: '/student/labs', label: 'Đề bài' },
+        { to: '/student/submit', label: 'Nộp bài' },
+      ]}
     />
   );
 }
