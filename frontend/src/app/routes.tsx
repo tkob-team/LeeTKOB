@@ -1,6 +1,5 @@
-import type { RouteObject } from 'react-router';
+import { Navigate, type RouteObject } from 'react-router';
 import { LoginPage } from '../features/auth/LoginPage';
-import { ClassesGradingPage } from '../features/classes-grading/ClassesGradingPage';
 import { CreateLabPage } from '../features/lab-authoring/CreateLabPage';
 import { TaLabsPage } from '../features/lab-authoring/TaLabsPage';
 import { StudentLabPage, StudentLabsPage } from '../features/lab-view/StudentLabPage';
@@ -22,7 +21,8 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <HomeRedirect /> },
-      { path: 'classes', element: <ClassesGradingPage /> },
+      // Old TA home; kept so bookmarks and links still work.
+      { path: 'classes', element: <Navigate to="/ta/labs" replace /> },
       { path: 'review-queue', element: <ReviewQueuePage /> },
       { path: 'labs', element: <TaLabsPage /> },
       { path: 'classes/:classId/labs/new', element: <CreateLabPage /> },

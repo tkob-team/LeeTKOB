@@ -353,3 +353,13 @@
 - Edited existing tests from PR #34, following the requested change from button to switch: in `ThemeToggle.test.tsx` the toggle test now finds `switch` "Giao diện tối" and also checks its checked state, and the header test looks for the switch instead of the button. Every earlier assertion (theme applied and saved both ways, toggle present in both headers) is kept.
 - Rejected: the View Transitions API (not in every browser the class targets; the CSS class needs none); a transition on every element at all times (would slow hover effects and every repaint).
 - Validation: 2 new tests (cross-fade class added and removed after 250 ms with fake timers; none under reduced motion); the theme test file has 8 tests. In WSL (`bash -lic`) the four `make` targets exited 0 (counts in the PR).
+
+## 2026-11-24 — TA home is the lab list (C, Hoang)
+
+- Tool: Claude Code (Claude Opus 5.5). `.env` was not read; no model call was made; no API change.
+- Asked for: make `/ta/labs` the TA home (after sign-in, and as the target of the TA's LeeTKOB link), redirect `/ta/classes` to `/ta/labs` so old links keep working; tests in the same commit for the TA landing on `/ta/labs`, the `/ta/classes` redirect, and students unaffected.
+- Kept: the student home `/student/submit`; `RequireRole` and `HomeRedirect` (they read `homePath`, so one change covers sign-in, `/`, `/ta` and wrong-role redirects); the `/ta/classes/:classId/labs/new` route.
+- Changed: `homePath('ta')` is `/ta/labs`; `/ta/classes` is a `<Navigate replace>` to `/ta/labs`. The TA navigation lost its "Lớp và chấm điểm" link, because it would only redirect to the page of the "Hàng chờ duyệt" link next to it. `features/classes-grading/ClassesGradingPage.tsx` was deleted: it was an empty-state placeholder that called no API and showed "Chưa có lớp nào" to TAs who had classes (seen on the VM).
+- Edited existing tests because the requested behaviour changed: in `routes.test.tsx` the TA who opens a student page now lands on the lab list (heading "Lab và hàng chờ duyệt" and path `/ta/labs`) instead of the old placeholder heading; in `ThemeToggle.test.tsx` the TA brand link expects `/ta/labs`. No assertion was removed.
+- Rejected: keeping `/ta/classes` as a second page or deleting the route (old links would break).
+- Validation: 3 new route tests (TA sign-in lands on `/ta/labs` with the brand pointing there; `/ta/classes` redirects to `/ta/labs`; a student at `/` or `/ta/classes` stays on `/student/submit`). In WSL (`bash -lic`) the four `make` targets exited 0 (counts in the PR).
