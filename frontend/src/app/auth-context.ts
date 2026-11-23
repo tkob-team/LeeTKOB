@@ -12,7 +12,6 @@ export interface Session {
 export interface Credentials {
   email: string;
   password: string;
-  role: Role;
 }
 
 export interface AuthState {

@@ -58,6 +58,8 @@ export interface ApiClientOptions {
   /** Bearer token for the Authorization header, or null when signed out. */
   getToken?: () => string | null;
   fetch?: typeof fetch;
+  /** Called when a request that carried a token gets 401 (expired or revoked token). */
+  onUnauthorized?: () => void;
 }
 
 export interface ApiClient {
@@ -67,7 +69,9 @@ export interface ApiClient {
 export function createApiClient({
   baseUrl,
   getToken,
-  fetch: fetchImpl = globalThis.fetch.bind(globalThis),
+  // Looked up on each call, so a fetch replaced after start-up (tests, polyfills) is used.
+  fetch: fetchImpl = (input, init) => globalThis.fetch(input, init),
+  onUnauthorized,
 }: ApiClientOptions): ApiClient {
   return {
     async request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -90,6 +94,7 @@ export function createApiClient({
           detail: 'Kiểm tra kết nối mạng rồi thử lại.',
         });
       }
+      if (response.status === 401 && token) onUnauthorized?.();
       if (!response.ok) throw new ApiProblemError(await parseProblem(response));
       if (response.status === 204) return undefined as T;
       return (await response.json()) as T;
@@ -97,7 +102,22 @@ export function createApiClient({
   };
 }
 
+const unauthorizedListeners = new Set<() => void>();
+
+/** Subscribes to 401 answers of `api` for signed-in requests; returns the unsubscribe function. */
+export function onUnauthorized(listener: () => void): () => void {
+  unauthorizedListeners.add(listener);
+  return () => {
+    unauthorizedListeners.delete(listener);
+  };
+}
+
 export const api = createApiClient({
   baseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
   getToken: () => sessionStorage.getItem('leetkob.token'),
+  onUnauthorized: () => {
+    unauthorizedListeners.forEach((listener) => {
+      listener();
+    });
+  },
 });
