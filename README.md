@@ -113,6 +113,9 @@ checks and the worker restart test after building the image.
   -Dtest=DockerSandboxTest,JudgeWorkerRestartTest test)
 ```
 
+Students select a lab from their class and see the latest submission in the
+[student polling contract](docs/contract/get-student-judge-status.md). The frontend
+needs the authenticated API routes on its origin or through the configured API base URL.
 For the original trusted-sample baseline, see the
 [Docker prototype timings](docs/decisions/0002-docker-judge-prototype.md).
 
