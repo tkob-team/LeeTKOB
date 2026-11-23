@@ -265,3 +265,4 @@
 - Validation: the two enqueue tests failed on the missing AC handoff before the fix. The backend suite passed 80 tests locally with Docker enabled, including nine sandbox checks, the restart test, and three polling contract tests. The focused frontend submission suite passed all three tests. Tests use fixture users and labs.
 - By hand: Hoa authorized sandbox CI changes, Docker, committing, pushing the branch and opening a PR. Teammate review is pending.
 - Follow-up: a read-only process check found that the sandbox supervisor still used Python's default interrupt handling. The supervisor now ignores that signal and the non-root check verifies the updated disposition.
+- T56 timing: the local restart fixture logged `gradingMillis=1532` for one submission with two tests. This measures the Docker adapter after claim, including compilation and both runs. The existing receipt-load script measures HTTP intake separately.
