@@ -97,6 +97,39 @@ queue, worker and recovery rules.
 node scripts/submission-load.mjs --url http://127.0.0.1:8080 --lab "$LEETKOB_LAB_ID" --count 8 --concurrency 4
 ```
 
+## Checker command
+
+One command reads a dataset folder (layout in [eval/dev/README.md](eval/dev/README.md)) and
+writes one prediction line per (solution, constraint). It reads only each problem's
+`statement.md` and `constraints.json`; there is no per-problem configuration. Ban-list
+constraints ("Do not use" / "Do not call") go to the syntax-tree hard rules; semantic
+constraints go to the model judge, which answers `unsure` until the model is added.
+
+```sh
+cd checker && uv run leetkob-check --data ../eval/dev --out ../out/predictions.jsonl
+```
+
+`MODEL_OFF=1` runs the hard rules only: semantic constraints are `unsure` and no network
+client is imported or created. Docker image (dependencies are installed at build time, so
+the run needs no network):
+
+```sh
+docker build -t leetkob-checker checker
+docker run --rm --network none --memory 1g --pids-limit 256 -e MODEL_OFF=1 \
+  -v "$PWD/eval/dev:/data:ro" -v "$PWD/out:/out" \
+  leetkob-checker --data /data --out /out/predictions.jsonl
+```
+
+Score the file with the lecturer's scorer. Exit 0 means every threshold is met, 1 means a
+threshold failed, 2 means the file is invalid:
+
+```sh
+node eval/dev/eval.mjs --data eval/dev --predictions out/predictions.jsonl
+```
+
+Our own cases live in `eval/own/` (same layout, new problems); score them with
+`--data eval/own`. Never edit `eval/dev/`: it is a byte-for-byte copy of the lecturer's set.
+
 ## Model and cost
 
 The checker reviews accepted submissions against a lab's constraints with a Google
