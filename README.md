@@ -265,6 +265,15 @@ Ubuntu 24.04 LTS, at least 2 vCPU and 4 GB RAM, ports 22 and 80 open. Install Do
 with the Compose plugin ([docs.docker.com/engine/install/ubuntu](https://docs.docker.com/engine/install/ubuntu/)),
 then add your user to the `docker` group and log in again.
 
+Choose the cloud region first: the Gemini API refuses calls from some locations. A VM in
+Azure East Asia (Hong Kong) got `400 FAILED_PRECONDITION: User location is not supported for
+the API use`, so every semantic constraint became `unsure`. The deployment now runs on AWS
+EC2 in Singapore (`ap-southeast-1`), where the call succeeds. Whatever the provider, make the
+model reachability check of step 3 before opening the site. Give the VM a fixed public address
+(an AWS Elastic IP, for example): a dynamic address changes when the VM is stopped and
+started, and the DNS name would then point nowhere. Ubuntu images on AWS use the user
+`ubuntu` instead of `azureuser`.
+
 The sandbox needs cgroup v2 with memory, CPU, PID **and swap** accounting. If
 `memory.swap.max` is missing, `sandbox/supervise.py` returns an infrastructure error for every
 submission, so no student gets a verdict.
@@ -302,6 +311,23 @@ Skipped: 0`.
 docker compose -f deploy/docker-compose.yml --profile check run --rm --build sandbox-check
 ```
 
+Also check that the VM can reach the model. This runs one call with the `checker-worker`
+variables and prints only the reply or Google's error, never the key. The image's
+entrypoint removes `GEMINI_API_KEY` for every argument except `worker`, so the command
+replaces the entrypoint. Expect `OK: ok`; a `User location is not supported` error means the
+region cannot be used.
+
+```sh
+docker compose -f deploy/docker-compose.yml run --rm --no-deps \
+  --entrypoint /app/.venv/bin/python checker-worker -c '
+import os
+from google import genai
+c = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+r = c.models.generate_content(model=os.environ["GEMINI_MODEL"], contents="Reply with the single word: ok")
+print("OK:", r.text)
+'
+```
+
 ### 4. Start and seed
 
 ```sh
@@ -312,6 +338,11 @@ export SEED_ADMIN_PASSWORD SEED_TA_PASSWORD SEED_STUDENT_PASSWORD
 docker compose -f deploy/docker-compose.yml --profile seed run --rm seed
 unset SEED_ADMIN_PASSWORD SEED_TA_PASSWORD SEED_STUDENT_PASSWORD
 ```
+
+On the first `up -d`, `checker-worker` can start before the API has applied the Flyway
+migrations and restart a few times with `relation "check_jobs" does not exist` in its log
+(seen on both VMs, three restarts). It stays up once the API has finished; wait a minute and
+check `docker compose -f deploy/docker-compose.yml ps` before testing.
 
 The seed creates `admin@leetkob.test`, `ta1@leetkob.test`, `ta2@leetkob.test`,
 `sv1@leetkob.test`, `sv2@leetkob.test`, the classes "Lớp thử nghiệm 1" (ta1, sv1, sv2) and
