@@ -363,3 +363,12 @@
 - Edited existing tests because the requested behaviour changed: in `routes.test.tsx` the TA who opens a student page now lands on the lab list (heading "Lab và hàng chờ duyệt" and path `/ta/labs`) instead of the old placeholder heading; in `ThemeToggle.test.tsx` the TA brand link expects `/ta/labs`. No assertion was removed.
 - Rejected: keeping `/ta/classes` as a second page or deleting the route (old links would break).
 - Validation: 3 new route tests (TA sign-in lands on `/ta/labs` with the brand pointing there; `/ta/classes` redirects to `/ta/labs`; a student at `/` or `/ta/classes` stays on `/student/submit`). In WSL (`bash -lic`) the four `make` targets exited 0 (counts in the PR).
+
+## 2026-11-25 — Fix a flaky sign-in test (C, Hoang)
+
+- Tool: Claude Code (Claude Sonnet 5.5). No `.env` was read; no model call was made.
+- Asked for: look at the failing `test` check of a docs-only PR, rerun it, and fix the unstable test.
+- Kept: every assertion of the test (the student lands on `/student/submit`, the welcome text shows, the stored token equals the token the login returned); the `fakeToken` helper and its default expiry; the other tests of the file.
+- Changed: in `routes.test.tsx`, "sends a student to the student home after sign-in" now builds the token once and uses it both in the login stub and in the last assertion. Cause: `fakeToken` computes `exp` from `Date.now()` in whole seconds on every call; the stub and the final assertion each called it, so when the clock crossed a second boundary between them the two tokens differed (CI run 45570743514, `expected '***' to be '***'`, the values were masked by GitHub). The test came from T81 (`cce8a4a`); `main` was green because the failure needs that boundary. This is an edit of an existing test, made with the requester's approval, and no assertion was weakened.
+- Rejected: only rerunning the check (the test would keep failing at random on any later PR); freezing the clock with fake timers (hides the cause and is more code than building the token once); comparing only the token claims in the assertion (weaker than comparing the whole token); changing the default of `fakeToken` for all tests (no other test compares tokens).
+- Validation: the 76 frontend tests, `format:check`, `lint` and `typecheck` pass locally, and the fixed test passed 20 of 20 repeated runs. Local Node was v26.13.1 while `frontend/.nvmrc` says 22, so the Node 22 CI run is the check that counts. Backend and checker were not run locally (unchanged); CI runs them.
