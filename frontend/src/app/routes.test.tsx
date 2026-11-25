@@ -136,7 +136,10 @@ describe('app shell routes', () => {
   });
 
   it('sends a student to the student home after sign-in', async () => {
-    stubFetch(() => json({ token: fakeToken('STUDENT'), role: 'STUDENT', displayName: null }));
+    // Build the token once: its `exp` comes from the clock, so a second call at assertion time
+    // can land in the next second and differ from the token the login stub returned.
+    const token = fakeToken('STUDENT');
+    stubFetch(() => json({ token, role: 'STUDENT', displayName: null }));
     const router = renderAt('/login');
     fireEvent.change(await screen.findByLabelText('Email'), {
       target: { value: 'sv01@truong.edu.vn' },
@@ -146,7 +149,7 @@ describe('app shell routes', () => {
 
     expect(await screen.findByText(/sv01 · Sinh viên/)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/student/submit');
-    expect(sessionStorage.getItem('leetkob.token')).toBe(fakeToken('STUDENT'));
+    expect(sessionStorage.getItem('leetkob.token')).toBe(token);
   });
 
   it('shows one message for a wrong email or password and stays signed out', async () => {
