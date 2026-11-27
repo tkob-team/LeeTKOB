@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { api, ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
+import { uuidV4 } from '../../api/uuid';
 import { Button, FormField, JudgeResult, ProblemAlert, type JudgeCode } from '../../components/ui';
 
 const MAX_CODE_BYTES = 65_536;
@@ -102,7 +103,7 @@ export function SubmitJudgePage() {
       return;
     }
     const prior = retry.current;
-    const key = prior?.labId === labId && prior.code === code ? prior.key : crypto.randomUUID();
+    const key = prior?.labId === labId && prior.code === code ? prior.key : uuidV4();
     retry.current = { labId, code, key };
     postingRef.current = true;
     setPosting(true);
