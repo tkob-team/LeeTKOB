@@ -30,6 +30,7 @@ jobs:
         uses: ./.github/actions/setup-maven
         with:
           save: 'true'
+          show-download-progress: 'true'
       - name: Download dependencies and plugins
         if: steps.maven.outputs.cache-hit != 'true'
         working-directory: backend

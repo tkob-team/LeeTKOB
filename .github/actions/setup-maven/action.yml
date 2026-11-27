@@ -7,6 +7,9 @@ inputs:
   save:
     description: "'true' to save the cache at the end of the job when the key missed."
     default: 'false'
+  show-download-progress:
+    description: "'true' to keep Maven's \"Downloading from\" lines (setup-java adds -ntp otherwise)."
+    default: 'false'
 
 outputs:
   cache-hit:
@@ -21,14 +24,16 @@ runs:
       with:
         distribution: temurin
         java-version: '25'
+        show-download-progress: ${{ inputs.show-download-progress }}
 
     # Bump the -vN suffix to force a fresh cache without changing the POM or wrapper.
+    # v2 was saved by the first run of PR #44; v3 re-warms it with the download count fixed.
     - name: Compute Maven cache key
       id: key
       shell: bash
       run: >-
         echo "key=maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml',
-        'backend/.mvn/wrapper/maven-wrapper.properties') }}-v2" >> "$GITHUB_OUTPUT"
+        'backend/.mvn/wrapper/maven-wrapper.properties') }}-v3" >> "$GITHUB_OUTPUT"
 
     - name: Restore Maven cache (saved at job end)
       id: save
@@ -50,7 +55,11 @@ runs:
           ~/.m2/wrapper
         key: ${{ steps.key.outputs.key }}
 
-    # Files newer than this marker were downloaded during the job (see count-maven-downloads).
-    - name: Mark cache restore time
+    # count-maven-downloads compares file lists: a timestamp marker counted 0 files on the
+    # cold first run of PR #44, so file times cannot tell downloaded files apart.
+    - name: List restored Maven files
       shell: bash
-      run: touch "$RUNNER_TEMP/maven-cache-restored"
+      run: |
+        find ~/.m2/repository -type f \( -name '*.pom' -o -name '*.jar' \) 2>/dev/null \
+          | sort > "$RUNNER_TEMP/maven-cache-restored.lst"
+        echo "Maven files after cache restore: $(wc -l < "$RUNNER_TEMP/maven-cache-restored.lst")"
