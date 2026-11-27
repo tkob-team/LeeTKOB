@@ -15,8 +15,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Warms the Maven cache once per POM/wrapper change so the Maven jobs below do
+  # not each download plugins and dependencies from Maven Central. Not a required check.
+  maven-deps:
+    name: maven-deps
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up JDK 25 and the Maven cache (saved on a miss)
+        id: maven
+        uses: ./.github/actions/setup-maven
+        with:
+          save: 'true'
+          show-download-progress: 'true'
+      - name: Download dependencies and plugins
+        if: steps.maven.outputs.cache-hit != 'true'
+        working-directory: backend
+        run: |
+          # The wrapper fetches the Maven distribution with wget and no retry; Resolver's retry
+          # does not cover it. Try four times with a 30 s, 60 s, 120 s backoff; MVNW_VERBOSE
+          # makes wget print the HTTP status on failure.
+          for attempt in 1 2 3 4; do
+            MVNW_VERBOSE=true sh ./mvnw -B --version && break
+            [ "$attempt" = 4 ] && exit 1
+            sleep $((30 * (1 << (attempt - 1))))
+          done
+          # lint, format-check, typecheck (resolves every build plugin, including spring-boot-maven-plugin).
+          sh ./mvnw -B checkstyle:check spotless:check test-compile
+          # test and sandbox: Surefire and its JUnit Platform provider are resolved only when tests
+          # are launched. The method filter matches no test, so no test runs.
+          sh ./mvnw -B test -Dtest='*Test#mavenDepsWarmupMatchesNoTest' -Dsurefire.failIfNoSpecifiedTests=false
+      - uses: ./.github/actions/count-maven-downloads
+        if: always()
+
   lint:
     name: lint
+    needs: maven-deps
+    # Run even if maven-deps failed: a skipped required check would count as passing.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -25,9 +64,14 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-checks
       - run: make lint
+      - uses: ./.github/actions/count-maven-downloads
+        if: always()
 
   format-check:
     name: format-check
+    needs: maven-deps
+    # Run even if maven-deps failed: a skipped required check would count as passing.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -36,9 +80,14 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-checks
       - run: make format-check
+      - uses: ./.github/actions/count-maven-downloads
+        if: always()
 
   typecheck:
     name: typecheck
+    needs: maven-deps
+    # Run even if maven-deps failed: a skipped required check would count as passing.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -47,9 +96,14 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-checks
       - run: make typecheck
+      - uses: ./.github/actions/count-maven-downloads
+        if: always()
 
   test:
     name: test
+    needs: maven-deps
+    # Run even if maven-deps failed: a skipped required check would count as passing.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -60,27 +114,29 @@ jobs:
       - name: Verify Docker for Testcontainers
         run: docker info
       - run: make test
+      - uses: ./.github/actions/count-maven-downloads
+        if: always()
 
   sandbox:
     name: sandbox
+    needs: maven-deps
+    # Run even if maven-deps failed: a skipped required check would count as passing.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
-        with:
-          distribution: temurin
-          java-version: '25'
-          cache: maven
-          cache-dependency-path: backend/pom.xml
+      - uses: ./.github/actions/setup-maven
       - run: docker build -t leetkob-sandbox:pa3 sandbox
       - name: Run sandbox and worker restart checks
         working-directory: backend
         env:
           JUDGE_SANDBOX_TESTS: '1'
         run: sh ./mvnw -B -ntp -Dtest=DockerSandboxTest,JudgeWorkerRestartTest test
+      - uses: ./.github/actions/count-maven-downloads
+        if: always()
 
   secrets:
     name: secrets

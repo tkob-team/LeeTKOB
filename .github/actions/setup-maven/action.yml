@@ -1,0 +1,67 @@
+name: Set up JDK and Maven cache
+description: >-
+  Install JDK 25 and restore the Maven repository and wrapper cache. Only the
+  maven-deps job passes save: 'true'; every other job restores and never saves.
+
+inputs:
+  save:
+    description: "'true' to save the cache at the end of the job when the key missed."
+    default: 'false'
+  show-download-progress:
+    description: "'true' to keep Maven's \"Downloading from\" lines (setup-java adds -ntp otherwise)."
+    default: 'false'
+
+outputs:
+  cache-hit:
+    description: "'true' when the exact key was restored."
+    value: ${{ steps.save.outputs.cache-hit || steps.restore.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK 25
+      uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      with:
+        distribution: temurin
+        java-version: '25'
+        show-download-progress: ${{ inputs.show-download-progress }}
+
+    # Bump the -vN suffix to force a fresh cache without changing the POM or wrapper.
+    # v2 was saved by the first run of PR #44; v3 re-warms it with the download count fixed.
+    - name: Compute Maven cache key
+      id: key
+      shell: bash
+      run: >-
+        echo "key=maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml',
+        'backend/.mvn/wrapper/maven-wrapper.properties') }}-v3" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Maven cache (saved at job end)
+      id: save
+      if: inputs.save == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.m2/repository
+          ~/.m2/wrapper
+        key: ${{ steps.key.outputs.key }}
+
+    - name: Restore Maven cache (restore only)
+      id: restore
+      if: inputs.save != 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.m2/repository
+          ~/.m2/wrapper
+        key: ${{ steps.key.outputs.key }}
+
+    # count-maven-downloads compares file lists: a timestamp marker counted 0 files on the
+    # cold first run of PR #44, so file times cannot tell downloaded files apart.
+    - name: List restored Maven files
+      shell: bash
+      run: |
+        # A cold cache has no repository yet; find would fail under pipefail.
+        mkdir -p ~/.m2/repository
+        find ~/.m2/repository -type f \( -name '*.pom' -o -name '*.jar' \) \
+          | sort > "$RUNNER_TEMP/maven-cache-restored.lst"
+        echo "Maven files after cache restore: $(wc -l < "$RUNNER_TEMP/maven-cache-restored.lst")"

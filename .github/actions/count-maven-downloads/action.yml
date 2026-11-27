@@ -1,0 +1,24 @@
+name: Count Maven downloads
+description: >-
+  Print how many POM and JAR files the job added to ~/.m2/repository after the cache
+  was restored. The Makefile runs Maven with -ntp, which hides "Downloading from" lines.
+
+runs:
+  using: composite
+  steps:
+    - name: Count Maven downloads
+      shell: bash
+      run: |
+        before="$RUNNER_TEMP/maven-cache-restored.lst"
+        if [ ! -f "$before" ]; then
+          echo "No restored file list; nothing to count."
+          exit 0
+        fi
+        after="$RUNNER_TEMP/maven-files-now.lst"
+        mkdir -p ~/.m2/repository
+        find ~/.m2/repository -type f \( -name '*.pom' -o -name '*.jar' \) | sort > "$after"
+        comm -13 "$before" "$after" > "$RUNNER_TEMP/maven-downloaded.lst"
+        echo "Maven files downloaded after cache restore: $(wc -l < "$RUNNER_TEMP/maven-downloaded.lst")"
+        echo "Maven files now in ~/.m2/repository: $(wc -l < "$after")"
+        # head reads the file itself: "sed | head" fails under pipefail when head exits early.
+        head -n 50 "$RUNNER_TEMP/maven-downloaded.lst" | sed "s|^$HOME/.m2/repository/||"
