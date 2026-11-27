@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -71,6 +74,35 @@ class SeedApplicationTest {
         "--spring.datasource.url=" + POSTGRES.getJdbcUrl(),
         "--spring.datasource.username=" + POSTGRES.getUsername(),
         "--spring.datasource.password=" + POSTGRES.getPassword());
+  }
+
+  @Test
+  void loadSeedUsesDistinctScopedStudentsAndIsIdempotent() {
+    seed(env());
+    var dataSource =
+        new DriverManagerDataSource(
+            POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+    var seeder =
+        new LoadAccountSeeder(
+            JdbcClient.create(dataSource),
+            new TransactionTemplate(new DataSourceTransactionManager(dataSource)));
+    UUID classId = TestAccountSeeder.CLASSES.get(1).id();
+    String fixtureSecret = "synthetic seed secret for repository tests";
+    assertThat(seeder.seed(classId, fixtureSecret)).isEqualTo(80);
+    assertThat(seeder.seed(classId, fixtureSecret)).isZero();
+    assertThat(
+            jdbc.sql("select count(*) from class_members where class_id = ?")
+                .param(classId)
+                .query(Integer.class)
+                .single())
+        .isEqualTo(80);
+    assertThat(
+            jdbc.sql(
+                    "select count(distinct password_hash) from users "
+                        + "where email like 'load-%@leetkob.test' and role = 'STUDENT'")
+                .query(Integer.class)
+                .single())
+        .isEqualTo(80);
   }
 
   @Test

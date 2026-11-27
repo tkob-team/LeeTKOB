@@ -126,6 +126,19 @@ services:
     networks:
       - edge
 
+  seed-load:
+    image: leetkob-api:latest
+    profiles: ['load']
+    command: ['seed-load']
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *database
+      LOAD_SEED_CLASS_ID: ${LOAD_SEED_CLASS_ID:-}
+      LOAD_SEED_SECRET: ${LOAD_SEED_SECRET:-}
+
   # One-shot jobs and build-only images; not started by `up`.
   seed:
     image: leetkob-api:latest
