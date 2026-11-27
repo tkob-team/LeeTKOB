@@ -36,11 +36,12 @@ jobs:
         working-directory: backend
         run: |
           # The wrapper fetches the Maven distribution with wget and no retry; Resolver's retry
-          # does not cover it. Try three times with a 10 s, 20 s backoff.
-          for attempt in 1 2 3; do
-            sh ./mvnw -B --version && break
-            [ "$attempt" = 3 ] && exit 1
-            sleep $((attempt * 10))
+          # does not cover it. Try four times with a 30 s, 60 s, 120 s backoff; MVNW_VERBOSE
+          # makes wget print the HTTP status on failure.
+          for attempt in 1 2 3 4; do
+            MVNW_VERBOSE=true sh ./mvnw -B --version && break
+            [ "$attempt" = 4 ] && exit 1
+            sleep $((30 * (1 << (attempt - 1))))
           done
           # lint, format-check, typecheck (resolves every build plugin, including spring-boot-maven-plugin).
           sh ./mvnw -B checkstyle:check spotless:check test-compile
