@@ -3,6 +3,8 @@
   /* Layout widths from docs/design-system/README.md (TA max 1280px, student max 760px). */
   --lk-width-wide: 1280px;
   --lk-width-narrow: 760px;
+  /* Signed-out forms: the width of one form field (docs/design-system FormField, 420px). */
+  --lk-width-form: 420px;
 }
 
 .lk-shell {
@@ -220,4 +222,34 @@
   .lk-theme-switch__thumb {
     transition: none;
   }
+}
+
+/* Signed-out pages (login, 404): one centred column; the login form and its messages share
+ * one width. */
+.lk-auth {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-6);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  max-width: var(--lk-width-narrow);
+}
+.lk-auth > * {
+  width: 100%;
+}
+.lk-auth__form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--lk-width-form);
+}
+.lk-auth__form .lk-field {
+  max-width: none;
+}
+.lk-auth__form .lk-field input {
+  width: 100%;
+}
+.lk-auth__form > .lk-page__note {
+  margin: 0;
 }

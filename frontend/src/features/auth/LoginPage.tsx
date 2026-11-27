@@ -39,15 +39,24 @@ export function LoginPage() {
   }
 
   return (
-    <main className="lk-page lk-page--narrow">
+    <main className="lk-auth">
       <Cover tagline="Bằng chứng trước, điểm sau." />
-      <form className="lk-stack" noValidate onSubmit={(e) => void submit(e)}>
-        <h1 className="lk-page__title">Đăng nhập</h1>
+      <form
+        className="lk-auth__form"
+        noValidate
+        aria-labelledby="login-title"
+        onSubmit={(e) => void submit(e)}
+      >
+        <h1 id="login-title" className="lk-page__title">
+          Đăng nhập
+        </h1>
         {problem ? <ProblemAlert problem={problem} /> : null}
         <FormField label="Email" error={fieldError(problem, 'email')}>
           <input
             type="email"
             autoComplete="username"
+            required
+            aria-required="true"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -58,6 +67,8 @@ export function LoginPage() {
           <input
             type="password"
             autoComplete="current-password"
+            required
+            aria-required="true"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -74,6 +85,7 @@ export function LoginPage() {
             Đăng nhập
           </Button>
         </div>
+        <p className="lk-page__note">Quên mật khẩu? Liên hệ trợ giảng hoặc quản trị viên.</p>
       </form>
     </main>
   );
