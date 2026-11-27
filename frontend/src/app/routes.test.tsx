@@ -59,8 +59,9 @@ describe('app shell routes', () => {
   it('shows field errors before sending a request', async () => {
     renderAt('/login');
     fireEvent.click(await screen.findByRole('button', { name: 'Đăng nhập' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa đăng nhập được');
-    expect(screen.getByLabelText('Mật khẩu')).toHaveAccessibleDescription('Nhập mật khẩu.');
+    expect(await screen.findByLabelText('Mật khẩu')).toHaveAccessibleDescription('Nhập mật khẩu.');
+    expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Nhập email.');
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('signs a TA in, returns to the requested page, and keeps students out', async () => {

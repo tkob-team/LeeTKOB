@@ -1,19 +1,52 @@
-import { useState, type SubmitEvent } from 'react';
+import { useRef, useState, type SubmitEvent } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
-import { homePath, useAuth } from '../../app/auth-context';
+import { credentialErrors } from '../../app/auth-api';
+import { homePath, useAuth, type Credentials } from '../../app/auth-context';
 import { Button, Cover, FormField, ProblemAlert } from '../../components/ui';
 
-function fieldError(problem: ProblemDetails | null, field: string): string | undefined {
-  return problem?.errors?.find((e) => e.field === field)?.detail;
+type Field = 'email' | 'password';
+type FieldErrors = Partial<Record<Field, string>>;
+
+function toFieldErrors(credentials: Credentials): FieldErrors {
+  const errors: FieldErrors = {};
+  for (const error of credentialErrors(credentials)) {
+    if (error.field === 'email' || error.field === 'password') errors[error.field] = error.detail;
+  }
+  return errors;
+}
+
+/** The message shown above the button for a failed sign-in, by cause. */
+function formProblem(problem: ProblemDetails): ProblemDetails {
+  if (problem.status === 0) {
+    return {
+      ...problem,
+      title: 'Không kết nối được máy chủ',
+      detail: 'Kiểm tra kết nối mạng rồi thử lại.',
+    };
+  }
+  if (problem.status >= 500) {
+    return {
+      ...problem,
+      title: 'Máy chủ đang gặp sự cố',
+      detail: 'Chưa đăng nhập được do lỗi phía máy chủ. Thử lại sau ít phút.',
+    };
+  }
+  return problem;
 }
 
 export function LoginPage() {
   const { session, login } = useAuth();
   const location = useLocation();
+  const emailInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
+  const sending = useRef(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  // After the first attempt, field errors follow the input as the user corrects it.
+  const [attempted, setAttempted] = useState(false);
   const [problem, setProblem] = useState<ProblemDetails | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -24,16 +57,52 @@ export function LoginPage() {
     return <Navigate to={target} replace />;
   }
 
+  function revalidate(next: Credentials) {
+    if (attempted) setFieldErrors(toFieldErrors(next));
+  }
+
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPending(true);
+    if (sending.current) return;
+    setAttempted(true);
     setProblem(null);
+    const errors = toFieldErrors({ email, password });
+    setFieldErrors(errors);
+    if (errors.email) {
+      emailInput.current?.focus();
+      return;
+    }
+    if (errors.password) {
+      passwordInput.current?.focus();
+      return;
+    }
+
+    sending.current = true;
+    setPending(true);
     try {
       await login({ email, password });
     } catch (error) {
-      if (error instanceof ApiProblemError) setProblem(error.problem);
-      else throw error;
+      if (!(error instanceof ApiProblemError)) throw error;
+      const failed = error.problem;
+      const serverErrors: FieldErrors = {};
+      for (const fieldError of failed.errors ?? []) {
+        if (fieldError.field === 'email' || fieldError.field === 'password') {
+          serverErrors[fieldError.field] = fieldError.detail;
+        }
+      }
+      if (serverErrors.email || serverErrors.password) {
+        setFieldErrors(serverErrors);
+        (serverErrors.email ? emailInput : passwordInput).current?.focus();
+      } else {
+        setProblem(formProblem(failed));
+      }
+      if (failed.status === 401) {
+        // Wrong email or password: keep the email, ask for the password again.
+        setPassword('');
+        passwordInput.current?.focus();
+      }
     } finally {
+      sending.current = false;
       setPending(false);
     }
   }
@@ -50,9 +119,9 @@ export function LoginPage() {
         <h1 id="login-title" className="lk-page__title">
           Đăng nhập
         </h1>
-        {problem ? <ProblemAlert problem={problem} /> : null}
-        <FormField label="Email" error={fieldError(problem, 'email')}>
+        <FormField label="Email" error={fieldErrors.email}>
           <input
+            ref={emailInput}
             type="email"
             autoComplete="username"
             required
@@ -60,11 +129,13 @@ export function LoginPage() {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
+              revalidate({ email: e.target.value, password });
             }}
           />
         </FormField>
-        <FormField label="Mật khẩu" error={fieldError(problem, 'password')}>
+        <FormField label="Mật khẩu" error={fieldErrors.password}>
           <input
+            ref={passwordInput}
             type="password"
             autoComplete="current-password"
             required
@@ -72,17 +143,14 @@ export function LoginPage() {
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
+              revalidate({ email, password: e.target.value });
             }}
           />
         </FormField>
+        {problem ? <ProblemAlert problem={problem} /> : null}
         <div>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={pending}
-            disabledReason="Đang đăng nhập…"
-          >
-            Đăng nhập
+          <Button type="submit" variant="primary" disabled={pending} aria-busy={pending}>
+            {pending ? 'Đang đăng nhập…' : 'Đăng nhập'}
           </Button>
         </div>
         <p className="lk-page__note">Quên mật khẩu? Liên hệ trợ giảng hoặc quản trị viên.</p>

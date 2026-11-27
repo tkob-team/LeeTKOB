@@ -21,19 +21,28 @@ function invalid(errors: ProblemFieldError[]): ApiProblemError {
   });
 }
 
+/** Input mistakes the login form reports under each field before sending anything. */
+export function credentialErrors({ email, password }: Credentials): ProblemFieldError[] {
+  const trimmed = email.trim();
+  const errors: ProblemFieldError[] = [];
+  if (trimmed.length === 0) {
+    errors.push({ field: 'email', detail: 'Nhập email.' });
+  } else if (!/^[^\s@]+@[^\s@]+$/.test(trimmed)) {
+    errors.push({ field: 'email', detail: 'Nhập email có dạng ten@truong.edu.vn.' });
+  }
+  if (password.length === 0) {
+    errors.push({ field: 'password', detail: 'Nhập mật khẩu.' });
+  }
+  return errors;
+}
+
 /** Signs in with POST /auth/login. Obvious input mistakes are reported before any request. */
 export async function apiLogin(
   { email, password }: Credentials,
   client: ApiClient = api,
 ): Promise<Session> {
   const trimmed = email.trim();
-  const errors: ProblemFieldError[] = [];
-  if (!/^[^\s@]+@[^\s@]+$/.test(trimmed)) {
-    errors.push({ field: 'email', detail: 'Nhập email có dạng ten@truong.edu.vn.' });
-  }
-  if (password.length === 0) {
-    errors.push({ field: 'password', detail: 'Nhập mật khẩu.' });
-  }
+  const errors = credentialErrors({ email, password });
   if (errors.length > 0) throw invalid(errors);
 
   let response: LoginResponse;
