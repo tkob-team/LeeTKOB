@@ -383,6 +383,23 @@
 - Rejected: only rerunning the check (the test would keep failing at random on any later PR); freezing the clock with fake timers (hides the cause and is more code than building the token once); comparing only the token claims in the assertion (weaker than comparing the whole token); changing the default of `fakeToken` for all tests (no other test compares tokens).
 - Validation: the 76 frontend tests, `format:check`, `lint` and `typecheck` pass locally, and the fixed test passed 20 of 20 repeated runs. Local Node was v26.13.1 while `frontend/.nvmrc` says 22, so the Node 22 CI run is the check that counts. Backend and checker were not run locally (unchanged); CI runs them.
 
+## 2026-11-27 — Submit key on the HTTP deployment (A, Hiep)
+
+- Tool: Claude Code (Claude Opus 5.5), during the PA#3 UI walkthrough on http://tkob-leetkob.duckdns.org.
+- Asked for: fix the student "Nộp bài" button, which did nothing on the deployed site; replace every `crypto.randomUUID` in `frontend/src` with one shared UUID v4 helper built on `crypto.getRandomValues`, with tests that run when `crypto.randomUUID` does not exist.
+- Kept: the Idempotency-Key rules of the intake contract (one key per new lab and code pair, the same key on a retry).
+- Changed: the bug only showed on the HTTP deployment. Browsers expose `crypto.randomUUID` only in secure contexts (HTTPS or localhost); the deployed page is plain HTTP, so `onSubmit` threw `TypeError: crypto.randomUUID is not a function` and no request was sent, while the dev server on localhost, CI and jsdom tests all had the function. New `frontend/src/api/uuid.ts` (`uuidV4`, RFC 9562 version and variant bits from `getRandomValues`); `SubmitJudgePage` uses it. `grep` found no other `randomUUID` use in `frontend/src`.
+- Rejected: patching `crypto.randomUUID` in the browser console to finish the walkthrough (not what a real user can do); falling back to `Math.random` (not a cryptographic source).
+- Validation: the new page test (`SubmitJudgePage.http.test.tsx`) stubs `crypto` without `randomUUID`; it failed on the old code and passes now. `uuid.test.ts` checks 200 unique v4 keys without `randomUUID` and the version/variant bits. In WSL `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0.
+
+## 2026-11-27 — PA#3 UI walkthrough script (A, Hiep)
+
+- Tool: Claude Code (Claude Opus 5.5) driving Chrome through Claude in Chrome on http://tkob-leetkob.duckdns.org. No SSH, database edit or seed; every account (`ta1`, `sv1`, `sv2`, `ta2`) was signed in by the user, and no password was typed or read by the agent.
+- Asked for: run rubric criterion 1 through the UI (create a lab from `eval/dev/problems/sort-merge/`, submit s01/s04/s09, read the review queue, check that ta2 gets 404), record PASS/FAIL, keep screenshots in `out/walkthrough/`, and write `docs/pa3/walkthrough.md`.
+- Kept: the expected results given by the user; the queue's counted-submission rule (FAQ-02).
+- Changed: the submission order. All three solutions from sv1 left only s09 in the queue, and the seed has no `sv3` (the agent asked for it before checking the seed, and the user caught it). The script now uses sv2 for s01 and an sv1 resubmission for s04. The walkthrough also found the `crypto.randomUUID` failure on the HTTP deployment, fixed in PR #39 and redeployed by the user before the run continued.
+- Rejected: patching `crypto.randomUUID` in the browser console to finish the run; reading findings through the API instead of the queue screen.
+- Validation: all six expectations PASS. Judge waits were 4–10 s; checker results were in the queue within 50 s to 3 min 5 s (upper bounds). ta2 got HTTP 404 from `review-queue`, seen in the Network panel. Open UI issues: the queue table scrolls horizontally, the panel shows the deduction on `pass` rows, and the 404 message is in English.
 
 ## 2026-11-27 - T101, T98, T99, T100, T102 and T103 (B, Hoa)
 
