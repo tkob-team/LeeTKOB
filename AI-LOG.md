@@ -410,3 +410,12 @@
 - Rejected: pinning the subnet of the existing `default` network (an existing VM network would need to be recreated); trusting all private ranges in nginx (every internal container could then set its address); enabling HSTS now.
 - Incident: while proving the check fails without the `real_ip` lines, the agent restored `deploy/nginx.conf` with `git checkout --`, which reverted its own uncommitted nginx changes. They were restored from a copy taken just before, and the check was rerun.
 - Validation: `sh deploy/check-client-ip.sh` prints PASS: through caddy the API saw the client container's address (not caddy's 172.29.250.3, not the spoofed 203.0.113.66), and directly to web it saw the caller's own address. With the `real_ip` lines removed it failed with the caddy address. `caddy validate` passed for the bare domain and the `http://` rollback, with and without an email. `docker compose config -q` passed and only `caddy` publishes ports (80, 443); a missing `LEETKOB_DOMAIN` stops compose with a clear message. In WSL `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0.
+
+## 2026-11-27 — AGENTS.md rules from PA#3 incidents (A, Hiep)
+
+- Tool: Claude Code (Claude Opus 5.5).
+- Asked for: three short rules in `AGENTS.md` with PR traces: no secure-context-only browser APIs in the frontend (#39), per-IP limits read the client address from a trusted proxy's `X-Forwarded-For` (#33, #42), and ask first before `git checkout --` / `git restore` on files with uncommitted changes (nginx.conf incident in #42).
+- Kept: the user's wording and section placement (two under Conventions, one under Ask first); `CLAUDE.md` unchanged.
+- Changed: nothing beyond the three lines.
+- Rejected: none.
+- Validation: `git diff` shows exactly three added lines in `AGENTS.md`; CI on the PR.
