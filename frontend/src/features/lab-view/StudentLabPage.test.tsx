@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
+import { formatDateTime } from '../lab-authoring/lab-api';
 import { StudentLabPage, StudentLabsPage } from './StudentLabPage';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
@@ -129,5 +130,82 @@ describe('student lab statement', () => {
       'href',
       `/student/labs/${labId}`,
     );
+  });
+
+  it('lists labs as a table: name, deadline and the status of the counted submission', async () => {
+    const lab = (overrides: object) => ({
+      id: labId,
+      title: 'Sorting',
+      opensAt: '2026-11-24T01:00:00.000Z',
+      dueAt: '2026-12-01T16:59:00.000Z',
+      latestSubmissionId: null,
+      latestVerdict: null,
+      ...overrides,
+    });
+    request.mockResolvedValueOnce([
+      lab({
+        id: 'a',
+        title: 'Future lab',
+        opensAt: '2099-01-02T03:04:00.000Z',
+        dueAt: '2099-01-09T03:04:00.000Z',
+      }),
+      lab({ id: 'b', title: 'Not submitted' }),
+      lab({ id: 'c', title: 'Grading', latestSubmissionId: 's1' }),
+      lab({ id: 'd', title: 'Accepted', latestSubmissionId: 's2', latestVerdict: 'AC' }),
+      lab({ id: 'e', title: 'Wrong', latestSubmissionId: 's3', latestVerdict: 'WA' }),
+    ]);
+    renderAt('/student/labs');
+
+    const table = await screen.findByRole('table', { name: 'Danh sách lab' });
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent);
+    expect(headers).toEqual(['Lab', 'Hạn nộp', 'Trạng thái']);
+    const rows = within(table)
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) =>
+        within(row)
+          .getAllByRole('cell')
+          .map((cell) => cell.textContent),
+      );
+    expect(rows).toEqual([
+      [
+        'Future lab',
+        formatDateTime('2099-01-09T03:04:00.000Z'),
+        `Chưa mở (mở lúc ${formatDateTime('2099-01-02T03:04:00.000Z')})`,
+      ],
+      ['Not submitted', formatDateTime('2026-12-01T16:59:00.000Z'), 'Chưa nộp'],
+      ['Grading', formatDateTime('2026-12-01T16:59:00.000Z'), 'Đang chấm'],
+      ['Accepted', formatDateTime('2026-12-01T16:59:00.000Z'), 'Bài được tính: AC'],
+      ['Wrong', formatDateTime('2026-12-01T16:59:00.000Z'), 'Bài được tính: WA'],
+    ]);
+    expect(within(table).getByText('AC')).toHaveClass('lk-judge', 'lk-judge--ac');
+    expect(within(table).getByText('WA')).toHaveClass('lk-judge', 'lk-judge--fail');
+    expect(within(table).getByRole('link', { name: 'Accepted' })).toHaveAttribute(
+      'href',
+      '/student/labs/d',
+    );
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a dash for the deadline when an older backend omits it', async () => {
+    request.mockResolvedValueOnce([{ id: labId, title: 'Sorting', latestSubmissionId: null }]);
+    renderAt('/student/labs');
+    const table = await screen.findByRole('table', { name: 'Danh sách lab' });
+    const [, row] = within(table).getAllByRole('row');
+    if (!row) throw new Error('expected a body row');
+    expect(
+      within(row)
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent),
+    ).toEqual(['Sorting', '—', 'Chưa nộp']);
+  });
+
+  it('keeps the empty state when the student has no lab', async () => {
+    request.mockResolvedValueOnce([]);
+    renderAt('/student/labs');
+    expect(await screen.findByText('Lớp của bạn chưa có lab nào.')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 });
