@@ -218,6 +218,98 @@ class ReviewQueueContractTest {
         .andExpect(status().isBadRequest());
   }
 
+  @Test
+  void includeEarlierAddsEarlierAcSubmissionsAfterCountedOnes() throws Exception {
+    final UUID first = submission(alice, 7200);
+    finish(first, "AC");
+    finding(first, "C1", "violation", "hard_rule", "[{\"line\": 2, \"text\": \"sort\"}]", null);
+    finding(first, "C2", "pass", "model", "[]", null);
+    final UUID wrong = submission(alice, 6000);
+    finish(wrong, "WA"); // not AC: never listed as an earlier submission
+    final UUID second = submission(alice, 5400);
+    finish(second, "AC");
+    final UUID counted = submission(alice, 4000);
+    finish(counted, "AC");
+    finding(counted, "C1", "pass", "hard_rule", "[]", null);
+    finding(counted, "C2", "pass", "model", "[]", null);
+    final UUID late = submission(alice, 1800); // after the deadline
+    finish(late, "AC");
+    final UUID bobs = submission(bob, 3700);
+    finish(bobs, "WA");
+
+    mvc.perform(get(PATH, lab).param("includeEarlier", "true").with(actor(ta, "TA")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalItems").value(4))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.items.length()").value(4))
+        .andExpect(jsonPath("$.items[0].submissionId").value(counted.toString()))
+        .andExpect(jsonPath("$.items[0].counted").value(true))
+        .andExpect(jsonPath("$.items[0].needsReview").value(false))
+        .andExpect(jsonPath("$.items[1].submissionId").value(bobs.toString()))
+        .andExpect(jsonPath("$.items[1].counted").value(true))
+        .andExpect(jsonPath("$.items[1].reviewStatus").value("not_checked"))
+        .andExpect(jsonPath("$.items[2].submissionId").value(first.toString()))
+        .andExpect(jsonPath("$.items[2].counted").value(false))
+        .andExpect(jsonPath("$.items[2].student.id").value(alice.toString()))
+        .andExpect(jsonPath("$.items[2].verdict").value("AC"))
+        .andExpect(jsonPath("$.items[2].reviewStatus").value("checked"))
+        .andExpect(jsonPath("$.items[2].needsReview").value(true))
+        .andExpect(jsonPath("$.items[2].constraints[0].verdict").value("violation"))
+        .andExpect(jsonPath("$.items[2].constraints[0].evidence[0].line").value(2))
+        .andExpect(jsonPath("$.items[2].constraints[1].verdict").value("pass"))
+        .andExpect(jsonPath("$.items[3].submissionId").value(second.toString()))
+        .andExpect(jsonPath("$.items[3].counted").value(false))
+        .andExpect(jsonPath("$.items[3].reviewStatus").value("reviewing"));
+
+    mvc.perform(get(PATH, lab).with(actor(ta, "TA")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalItems").value(2))
+        .andExpect(jsonPath("$.items[0].submissionId").value(counted.toString()))
+        .andExpect(jsonPath("$.items[0].counted").value(true))
+        .andExpect(jsonPath("$.items[1].counted").value(true));
+    mvc.perform(get(PATH, lab).param("includeEarlier", "false").with(actor(ta, "TA")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalItems").value(2));
+  }
+
+  @Test
+  void oneStudentWithThreeAcSubmissionsHasOneCountedAndTwoEarlier() throws Exception {
+    final UUID oldest = submission(alice, 7200);
+    finish(oldest, "AC");
+    final UUID middle = submission(alice, 6000);
+    finish(middle, "AC");
+    final UUID latest = submission(alice, 5000);
+    finish(latest, "AC");
+    for (UUID id : new UUID[] {oldest, middle, latest}) {
+      finding(id, "C1", "pass", "hard_rule", "[]", null);
+      finding(id, "C2", "pass", "model", "[]", null);
+    }
+
+    mvc.perform(get(PATH, lab).param("includeEarlier", "true").with(actor(ta, "TA")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalItems").value(3))
+        .andExpect(jsonPath("$.items[0].submissionId").value(latest.toString()))
+        .andExpect(jsonPath("$.items[0].counted").value(true))
+        .andExpect(jsonPath("$.items[1].submissionId").value(oldest.toString()))
+        .andExpect(jsonPath("$.items[1].counted").value(false))
+        .andExpect(jsonPath("$.items[1].constraints.length()").value(2))
+        .andExpect(jsonPath("$.items[2].submissionId").value(middle.toString()))
+        .andExpect(jsonPath("$.items[2].counted").value(false))
+        .andExpect(jsonPath("$.items[2].constraints[0].verdict").value("pass"));
+    mvc.perform(get(PATH, lab).param("includeEarlier", "true").with(actor(otherTa, "TA")))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.type").value("urn:leetkob:problem:lab-not-found"));
+  }
+
+  @Test
+  void invalidIncludeEarlierIsRejected() throws Exception {
+    for (String value : new String[] {"yes", "1", "TRUE", ""}) {
+      mvc.perform(get(PATH, lab).param("includeEarlier", value).with(actor(ta, "TA")))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.type").value("urn:leetkob:problem:invalid-request"));
+    }
+  }
+
   private UUID user(String role, String displayName) {
     UUID id = UUID.randomUUID();
     jdbc.sql("insert into users (id, role, display_name) values (?, ?, ?)")

@@ -42,17 +42,19 @@ class ReviewQueueController {
       @PathVariable String labId,
       @RequestParam(required = false) String page,
       @RequestParam(required = false) String size,
+      @RequestParam(required = false) String includeEarlier,
       @AuthenticationPrincipal Jwt jwt) {
     UUID ta = requireTa(jwt);
     UUID lab = parseUuid(labId);
     int pageNumber = parseInt(page, 0, 0, Integer.MAX_VALUE, "page must be an integer >= 0.");
     int pageSize = parseInt(size, 20, 1, 100, "size must be an integer from 1 to 100.");
+    boolean earlier = parseBoolean(includeEarlier);
     ReviewQueueRepository.Lab found =
         repository
             .labForTa(lab, ta)
             .orElseThrow(() -> new ApiException(ProblemType.LAB_NOT_FOUND, "Lab not found."));
 
-    long total = repository.count(lab);
+    long total = repository.count(lab, earlier);
     Map<String, Object> body = new LinkedHashMap<>();
     body.put("labId", lab);
     body.put("provisional", found.provisional());
@@ -60,7 +62,7 @@ class ReviewQueueController {
     body.put("size", pageSize);
     body.put("totalItems", total);
     body.put("totalPages", (total + pageSize - 1) / pageSize);
-    body.put("items", items(repository.page(lab, pageNumber, pageSize)));
+    body.put("items", items(repository.page(lab, earlier, pageNumber, pageSize)));
     return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(body);
   }
 
@@ -101,6 +103,7 @@ class ReviewQueueController {
     student.put("displayName", row.displayName());
     Map<String, Object> item = new LinkedHashMap<>();
     item.put("submissionId", row.submissionId());
+    item.put("counted", row.counted());
     item.put("student", student);
     item.put("submittedAt", TIME.format(row.submittedAt()));
     item.put("judgeStatus", row.judgeStatus());
@@ -153,6 +156,16 @@ class ReviewQueueController {
       // A malformed identifier gets the same problem response as a shortened UUID.
     }
     throw new ApiException(ProblemType.INVALID_REQUEST, "labId must be a UUID.");
+  }
+
+  private static boolean parseBoolean(String value) {
+    if (value == null || "false".equals(value)) {
+      return false;
+    }
+    if ("true".equals(value)) {
+      return true;
+    }
+    throw new ApiException(ProblemType.INVALID_REQUEST, "includeEarlier must be true or false.");
   }
 
   private static int parseInt(String value, int fallback, int min, int max, String message) {
