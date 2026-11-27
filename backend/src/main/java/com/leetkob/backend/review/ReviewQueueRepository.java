@@ -15,9 +15,13 @@ class ReviewQueueRepository {
   /** A lab the TA may review. */
   record Lab(UUID id, boolean provisional) {}
 
-  /** One (counted submission, constraint) row; constraint fields are null without constraints. */
+  /**
+   * One (submission, constraint) row; constraint fields are null without constraints. {@code
+   * counted} is false for an earlier AC submission of the same student.
+   */
   record Row(
       UUID submissionId,
+      boolean counted,
       UUID studentId,
       String displayName,
       Instant submittedAt,
@@ -32,16 +36,27 @@ class ReviewQueueRepository {
       String reason,
       String unsureCause) {}
 
-  /** Counted submissions of current class members: the latest one before the deadline. */
+  /**
+   * Counted submissions of current class members: the latest one before the deadline (FAQ-02). With
+   * {@code :earlier}, also every other AC submission of the same student before the deadline,
+   * marked {@code counted = false}.
+   */
   private static final String COUNTED =
       """
-      with counted as (
-        select distinct on (s.student_id) s.id, s.student_id, s.submitted_at
+      with eligible as (
+        select s.id, s.student_id, s.submitted_at,
+          row_number() over (
+            partition by s.student_id order by s.submitted_at desc, s.id desc) = 1 as counted
         from submissions s
         join labs l on l.id = s.lab_id
         join class_members m on m.class_id = l.class_id and m.user_id = s.student_id
         where s.lab_id = :lab and s.submitted_at < l.due_at
-        order by s.student_id, s.submitted_at desc, s.id desc
+      ),
+      counted as (
+        select e.* from eligible e
+        where e.counted or (cast(:earlier as boolean) and exists (
+          select 1 from judge_jobs j
+          where j.submission_id = e.id and j.result ->> 'verdict' = 'AC'))
       ),
       ranked as (
         select c.*, exists (
@@ -53,15 +68,15 @@ class ReviewQueueRepository {
       )
       """;
 
-  /** One page of counted submissions joined with every constraint and its finding. */
+  /** One page of submissions joined with every constraint and its finding. */
   private static final String PAGE =
       """
       , paged as (
         select * from ranked
-        order by needs_review desc, submitted_at, id
+        order by counted desc, needs_review desc, submitted_at, id
         limit :size offset :offset
       )
-      select p.id, p.student_id, u.display_name, p.submitted_at,
+      select p.id, p.counted, p.student_id, u.display_name, p.submitted_at,
         case when j.finished_at is not null then 'completed'
              when j.lease_expires_at > statement_timestamp() then 'grading'
              else 'queued' end as judge_status,
@@ -74,7 +89,7 @@ class ReviewQueueRepository {
       left join judge_jobs j on j.submission_id = p.id
       left join lab_constraints lc on lc.lab_id = :lab
       left join findings f on f.submission_id = p.id and f.constraint_code = lc.code
-      order by p.needs_review desc, p.submitted_at, p.id, lc.ordinal, lc.code
+      order by p.counted desc, p.needs_review desc, p.submitted_at, p.id, lc.ordinal, lc.code
       """;
 
   private final JdbcClient jdbc;
@@ -103,21 +118,24 @@ class ReviewQueueRepository {
         .optional();
   }
 
-  long count(UUID labId) {
+  long count(UUID labId, boolean earlier) {
     return jdbc.sql(COUNTED + "select count(*) from ranked")
         .param("lab", labId)
+        .param("earlier", earlier)
         .query(Long.class)
         .single();
   }
 
-  List<Row> page(UUID labId, int page, int size) {
+  List<Row> page(UUID labId, boolean earlier, int page, int size) {
     return jdbc.sql(COUNTED + PAGE)
         .param("lab", labId)
+        .param("earlier", earlier)
         .param("size", size)
         .param("offset", (long) page * size)
         .query((rs, row) ->
             new Row(
                 rs.getObject("id", UUID.class),
+                rs.getBoolean("counted"),
                 rs.getObject("student_id", UUID.class),
                 rs.getString("display_name"),
                 rs.getTimestamp("submitted_at").toInstant(),

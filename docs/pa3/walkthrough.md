@@ -157,11 +157,16 @@ the checker to report pass did not change the verdict.
    POST returned 201. Serving the site over HTTPS would also remove this class of problem.
 2. **The queue table needs horizontal scrolling.** The full constraint text sits in the
    "Ràng buộc" column, so Khoản trừ, Nguồn, Kết luận and Bằng chứng start outside a
-   1491 px-wide window (`08-…`, `10-…`). Not fixed here.
+   1491 px-wide window (`08-…`, `10-…`). Fixed on branch `fix/review-queue-walkthrough`: the
+   constraint text is clipped (full text in the panel); to be rechecked on the deployment.
 3. **The panel shows "Khoản trừ: −4" for a `pass` row.** It is the constraint's deduction,
-   but it reads as if marks were taken. Not fixed here.
+   but it reads as if marks were taken. Fixed on the same branch: `pass` reads "Không trừ (mức
+   trừ nếu vi phạm: N)"; `−N` only for `violation` and `unsure`.
 4. **The 404 message is the English problem title** ("Lab not found") on an otherwise
-   Vietnamese page. Not fixed here.
+   Vietnamese page. Fixed on the same branch: "Không tìm thấy lab".
 5. **One student cannot show three solutions at once** in the queue (FAQ-02 behaviour, not
-   a bug). The script above works around it with two students and a resubmission.
+   a bug). The script above works around it with two students and a resubmission. Since
+   contract `get-review-queue` 1.1.0 the page asks for `includeEarlier=true` and lists earlier
+   AC submissions under "Bài nộp trước (không được tính)", so one student's three solutions are
+   all visible.
 6. **The checker time is not shown in the UI.** Only upper bounds could be recorded.

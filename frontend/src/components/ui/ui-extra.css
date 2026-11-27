@@ -28,6 +28,14 @@
 .lk-table tbody tr[aria-selected='true'] {
   background: var(--surface-sunken);
 }
+/* ReviewQueueTable: the constraint column takes the remaining width and clips with an ellipsis,
+ * so the other columns always fit without horizontal scrolling. */
+.lk-table td.lk-table__clip {
+  width: 100%;
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* Cover (Cover/preview.html). Sizes are the preview's own. */
 .lk-cover {

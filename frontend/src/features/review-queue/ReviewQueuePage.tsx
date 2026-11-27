@@ -6,6 +6,7 @@ import { EmptyState } from '../../app/EmptyState';
 import { useAuth } from '../../app/auth-context';
 import {
   Button,
+  deductionLabel,
   EvidenceBlock,
   JudgeResult,
   ProblemAlert,
@@ -13,10 +14,12 @@ import {
   VerdictBadge,
 } from '../../components/ui';
 import {
+  isCounted,
   submissionLabel,
   toRows,
   UNSURE_CAUSE,
   type QueueRow,
+  type ReviewItem,
   type ReviewQueuePage as QueueResponse,
 } from './review-queue';
 
@@ -24,8 +27,19 @@ import {
 export const POLL_MS = 15_000;
 const PAGE_SIZE = 20;
 
+/** Vietnamese text for problems this page expects; `type` and `status` stay as sent. */
+const PROBLEM_TEXT: Partial<Record<string, Pick<ProblemDetails, 'title' | 'detail'>>> = {
+  'urn:leetkob:problem:lab-not-found': {
+    title: 'Không tìm thấy lab',
+    detail: 'Lab không tồn tại hoặc bạn không phải TA của lớp có lab này.',
+  },
+};
+
 function requestProblem(cause: unknown): ProblemDetails {
-  if (cause instanceof ApiProblemError) return cause.problem;
+  if (cause instanceof ApiProblemError) {
+    const text = PROBLEM_TEXT[cause.problem.type];
+    return text ? { ...cause.problem, ...text } : cause.problem;
+  }
   return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
 }
 
@@ -51,7 +65,7 @@ function LabReviewQueue({ labId }: { labId: string }) {
 
   useEffect(() => {
     const abort = new AbortController();
-    const path = `/labs/${encodeURIComponent(labId)}/review-queue?page=${String(page)}&size=${String(PAGE_SIZE)}`;
+    const path = `/labs/${encodeURIComponent(labId)}/review-queue?page=${String(page)}&size=${String(PAGE_SIZE)}&includeEarlier=true`;
     let timer: number | undefined;
 
     async function poll() {
@@ -77,10 +91,18 @@ function LabReviewQueue({ labId }: { labId: string }) {
     };
   }, [labId, page, token]);
 
-  const rows = queue ? toRows(queue.items) : [];
-  const selected = rows.find((row) => row.id === selectedId);
-  const reviewing = queue?.items.filter((item) => item.reviewStatus === 'reviewing') ?? [];
-  const notChecked = queue?.items.filter((item) => item.reviewStatus === 'not_checked') ?? [];
+  const items = queue?.items ?? [];
+  const counted = items.filter(isCounted);
+  const earlier = items.filter((item) => !isCounted(item));
+  const rows = toRows(counted);
+  const earlierRows = toRows(earlier);
+  const selected = [...rows, ...earlierRows].find((row) => row.id === selectedId);
+  const reviewing = counted.filter((item) => item.reviewStatus === 'reviewing');
+  const notChecked = counted.filter((item) => item.reviewStatus === 'not_checked');
+  const earlierReviewing = earlier.filter((item) => item.reviewStatus === 'reviewing');
+  const select = (row: { id: string }) => {
+    setSelectedId(row.id);
+  };
 
   return (
     <section className="lk-section" aria-labelledby="review-title">
@@ -105,28 +127,15 @@ function LabReviewQueue({ labId }: { labId: string }) {
 
       {rows.length > 0 ? (
         <div className="lk-section__head">
-          <ReviewQueueTable
-            rows={rows}
-            selectedId={selected?.id}
-            onSelect={(row) => {
-              setSelectedId(row.id);
-            }}
-          />
-          {selected ? <FindingPanel row={selected} /> : null}
+          <ReviewQueueTable rows={rows} selectedId={selected?.id} onSelect={select} />
+          {selected && isCounted(selected.item) ? <FindingPanel row={selected} /> : null}
         </div>
       ) : null}
 
       {reviewing.length > 0 ? (
         <section className="lk-panel" aria-label="Đang soát">
           <h2 className="lk-panel__title">Đang soát</h2>
-          <ul className="lk-list">
-            {reviewing.map((item) => (
-              <li key={item.submissionId}>
-                <span className="lk-mono">{submissionLabel(item.submissionId)}</span>{' '}
-                <JudgeResult code={item.verdict ?? 'pending'} /> đang soát
-              </li>
-            ))}
-          </ul>
+          <ReviewingList items={reviewing} />
         </section>
       ) : null}
 
@@ -141,6 +150,23 @@ function LabReviewQueue({ labId }: { labId: string }) {
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {earlier.length > 0 ? (
+        <section className="lk-section__head" aria-labelledby="earlier-title">
+          <h2 id="earlier-title" className="lk-panel__title">
+            Bài nộp trước (không được tính)
+          </h2>
+          <p className="lk-page__note">
+            Các bài AC nộp trước bài được tính của cùng sinh viên. Chỉ để tham khảo: không dùng để
+            chấm điểm.
+          </p>
+          {earlierRows.length > 0 ? (
+            <ReviewQueueTable rows={earlierRows} selectedId={selected?.id} onSelect={select} />
+          ) : null}
+          {selected && !isCounted(selected.item) ? <FindingPanel row={selected} /> : null}
+          {earlierReviewing.length > 0 ? <ReviewingList items={earlierReviewing} /> : null}
         </section>
       ) : null}
 
@@ -171,6 +197,19 @@ function LabReviewQueue({ labId }: { labId: string }) {
   );
 }
 
+function ReviewingList({ items }: { items: ReviewItem[] }) {
+  return (
+    <ul className="lk-list">
+      {items.map((item) => (
+        <li key={item.submissionId}>
+          <span className="lk-mono">{submissionLabel(item.submissionId)}</span>{' '}
+          <JudgeResult code={item.verdict ?? 'pending'} /> đang soát
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function FindingPanel({ row }: { row: QueueRow }) {
   const { finding } = row;
   const label = submissionLabel(row.item.submissionId);
@@ -178,10 +217,12 @@ function FindingPanel({ row }: { row: QueueRow }) {
     <aside className="lk-panel" aria-label={`Bài nộp ${label}, ràng buộc ${finding.code}`}>
       <h2 className="lk-panel__title">
         {finding.code} · bài nộp <span className="lk-mono">{label}</span>
+        {isCounted(row.item) ? null : ' (không được tính)'}
       </h2>
       <p>{finding.text}</p>
       <p>
-        <VerdictBadge verdict={finding.verdict} /> Khoản trừ: −{finding.deduction}
+        <VerdictBadge verdict={finding.verdict} /> Khoản trừ:{' '}
+        {deductionLabel(finding.verdict, finding.deduction)}
       </p>
       {finding.unsureCause ? <p>Nguyên nhân unsure: {UNSURE_CAUSE[finding.unsureCause]}</p> : null}
       {finding.reason ? <p>Lý do: {finding.reason}</p> : null}
