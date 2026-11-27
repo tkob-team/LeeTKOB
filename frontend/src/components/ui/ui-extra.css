@@ -196,6 +196,30 @@ a.lk-btn {
   padding: 0 var(--space-1);
   font-weight: var(--section-font-weight);
 }
+/* Fields side by side with equal widths (create-lab dates, limits, constraint code and
+ * deduction, test input and expected output); one column on phones. */
+.lk-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+.lk-cols > .lk-field,
+.lk-form-panel > .lk-field,
+.lk-fieldset > .lk-field {
+  max-width: none;
+}
+.lk-cols input,
+.lk-cols textarea,
+.lk-form-panel > .lk-field input,
+.lk-form-panel > .lk-field textarea,
+.lk-fieldset > .lk-field textarea {
+  width: 100%;
+}
+@media (max-width: 760px) {
+  .lk-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .lk-field .lk-code-input {
   font-family: var(--font-mono);
   min-width: min(100%, 36ch);

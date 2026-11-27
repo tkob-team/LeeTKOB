@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -65,7 +67,7 @@ describe('create lab form', () => {
     );
     expect(screen.getByRole('heading', { name: 'Ràng buộc (2)' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Test (2)' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Input 2')).toHaveValue('1\n5\n');
+    expect(screen.getByLabelText('Đầu vào 2')).toHaveValue('1\n5\n');
 
     fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Lab 3: sắp xếp' } });
     const deductions = screen.getAllByLabelText('Khoản trừ');
@@ -132,4 +134,40 @@ describe('create lab form', () => {
     expect(screen.queryByText('NHẬP TỪ FILE')).toBeNull();
   });
 
+  it('explains which files to choose for the import', () => {
+    renderPage();
+    expect(
+      screen.getByText(
+        /^Chọn cùng lúc file đề \(\.md\), file ràng buộc \(\.json\) và các file test \(NN\.in, NN\.out\)\./,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('labels each test "Đầu vào N" and "Đầu ra mong đợi N" in two equal columns', async () => {
+    renderPage();
+    chooseFiles(sortMerge);
+    await screen.findByRole('heading', { name: 'Test (2)' });
+    for (const n of [1, 2]) {
+      const input = screen.getByLabelText(`Đầu vào ${String(n)}`);
+      const output = screen.getByLabelText(`Đầu ra mong đợi ${String(n)}`);
+      const row = input.closest('.lk-cols');
+      expect(row).not.toBeNull();
+      expect(output.closest('.lk-cols')).toBe(row);
+    }
+    expect(screen.queryByLabelText(/^Input \d/)).toBeNull();
+    expect(screen.queryByLabelText(/^Output \d/)).toBeNull();
+    expect(screen.getByLabelText('Mở lúc').closest('.lk-cols')).toBe(
+      screen.getByLabelText('Hạn nộp').closest('.lk-cols'),
+    );
+    expect(screen.getByLabelText('Thời gian CPU (ms)').closest('.lk-cols')).toBe(
+      screen.getByLabelText('Bộ nhớ (MB)').closest('.lk-cols'),
+    );
+  });
+
+  it('gives the columns equal widths in the stylesheet', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/ui/ui-extra.css'), 'utf8');
+    expect(css).toMatch(
+      /\.lk-cols\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
+    );
+  });
 });
