@@ -4,6 +4,7 @@ import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { uuidV4 } from '../../api/uuid';
 import { Button, FormField, JudgeResult, ProblemAlert, type JudgeCode } from '../../components/ui';
+import { verdictCaption } from './verdict-text';
 
 const MAX_CODE_BYTES = 65_536;
 const POLL_MS = 1000;
@@ -50,6 +51,12 @@ export function SubmitJudgePage() {
   const submissionId = labs?.find((lab) => lab.id === labId)?.latestSubmissionId ?? null;
   const view = pollView?.id === submissionId ? pollView : undefined;
   const report = view?.report;
+  // CPU limit of each lab, read from GET /labs/{labId} only when a TLE needs it.
+  const [cpuLimits, setCpuLimits] = useState<Record<string, number>>({});
+  const needsCpuLimit =
+    report?.verdict === 'TLE' || report?.tests.some((test) => test.verdict === 'TLE') === true;
+  const cpuTimeMs = cpuLimits[labId];
+  const waiting = report?.status !== 'completed' && !view?.problem;
 
   useEffect(() => {
     const abort = new AbortController();
@@ -96,6 +103,24 @@ export function SubmitJudgePage() {
       window.clearTimeout(timer);
     };
   }, [labId, submissionId]);
+
+  useEffect(() => {
+    if (!needsCpuLimit || !labId || cpuTimeMs !== undefined) return;
+    const abort = new AbortController();
+    api
+      .request<{ cpuTimeMs: number }>(`/labs/${encodeURIComponent(labId)}`, {
+        signal: abort.signal,
+      })
+      .then((lab) => {
+        if (!abort.signal.aborted) setCpuLimits((known) => ({ ...known, [labId]: lab.cpuTimeMs }));
+      })
+      .catch(() => {
+        // The caption then reads without the number.
+      });
+    return () => {
+      abort.abort();
+    };
+  }, [needsCpuLimit, labId, cpuTimeMs]);
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -194,15 +219,19 @@ export function SubmitJudgePage() {
           {view?.problem ? (
             <ProblemAlert problem={view.problem} />
           ) : (
-            <p role="status" className="lk-result__overall">
-              {report?.verdict ? (
+            <p role="status" className="lk-result__overall" aria-busy={waiting}>
+              {report?.verdict && report.verdict !== 'pending' ? (
                 <>
                   Kết quả chung <JudgeResult code={report.verdict} size="large" />
+                  <span className="lk-result__caption">
+                    {verdictCaption(report.verdict, cpuTimeMs)}
+                  </span>
                 </>
-              ) : report?.status === 'grading' ? (
-                'Đang chấm bài.'
               ) : (
-                'Bài nộp đã vào hàng đợi.'
+                <>
+                  <span className="lk-spinner" aria-hidden="true" />
+                  {report?.status === 'grading' ? 'Đang chấm bài.' : 'Bài nộp đã vào hàng đợi.'}
+                </>
               )}
             </p>
           )}

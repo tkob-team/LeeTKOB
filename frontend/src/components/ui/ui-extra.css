@@ -423,3 +423,28 @@ a.lk-btn {
   font-size: var(--small-font-size);
   line-height: var(--small-line-height);
 }
+
+/* Busy indicator next to "Đang chấm bài." The text says the same, so it is aria-hidden. */
+.lk-spinner {
+  display: inline-block;
+  flex: none;
+  width: var(--space-4);
+  height: var(--space-4);
+  border: 2px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: lk-spin 0.8s linear infinite;
+}
+@keyframes lk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lk-spinner {
+    animation-duration: 2.4s;
+  }
+}
+.lk-result__caption {
+  color: var(--ink-muted);
+}
