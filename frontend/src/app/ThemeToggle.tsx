@@ -1,5 +1,19 @@
-import { useEffect, useState, type KeyboardEvent } from 'react';
-import { chooseTheme, currentTheme, storedTheme, type Theme } from './theme';
+import { useEffect, useSyncExternalStore, type KeyboardEvent } from 'react';
+import { applyStoredTheme, chooseTheme, currentTheme, subscribeTheme, type Theme } from './theme';
+
+/** Theme changes from any tab, plus OS changes (they matter while nothing is saved). */
+function subscribe(onChange: () => void): () => void {
+  const unsubscribe = subscribeTheme(onChange);
+  const query =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null;
+  query?.addEventListener('change', onChange);
+  return () => {
+    unsubscribe();
+    query?.removeEventListener('change', onChange);
+  };
+}
 
 const OPTIONS: { theme: Theme; label: string }[] = [
   { theme: 'light', label: 'Sáng' },
@@ -12,24 +26,18 @@ const OPTIONS: { theme: Theme; label: string }[] = [
  * remembered in localStorage; without one the operating system's theme applies.
  */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(currentTheme);
+  // One source of truth: storage (or the operating system without a saved choice). A choice in
+  // this tab, a choice in another tab and an OS change all re-render every toggle on the page.
+  const theme = useSyncExternalStore(subscribe, currentTheme);
 
-  // Without a saved choice the screen follows the operating system; keep the buttons in step.
+  // <html> follows storage too, in case a change arrived while no toggle was listening (for
+  // example while the page switched layouts on sign-out).
   useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    const query = window.matchMedia('(prefers-color-scheme: dark)');
-    const follow = () => {
-      if (!storedTheme()) setTheme(query.matches ? 'dark' : 'light');
-    };
-    query.addEventListener('change', follow);
-    return () => {
-      query.removeEventListener('change', follow);
-    };
+    applyStoredTheme();
   }, []);
 
   const choose = (next: Theme) => {
     chooseTheme(next);
-    setTheme(next);
   };
 
   // Arrow keys move between the two options, as in any radio group.

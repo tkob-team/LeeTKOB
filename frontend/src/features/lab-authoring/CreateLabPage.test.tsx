@@ -99,10 +99,13 @@ describe('create lab form', () => {
     });
   });
 
-  it('shows field errors from the API next to the field they name', async () => {
+  it('shows field errors from the API next to the field they name, in Vietnamese', async () => {
     renderPage();
     chooseFiles(sortMerge);
     await screen.findByRole('heading', { name: 'Đã nhập từ file' });
+    // UI-3: both dates are required before anything is sent.
+    fireEvent.change(screen.getByLabelText('Mở lúc'), { target: { value: '2026-11-24T08:00' } });
+    fireEvent.change(screen.getByLabelText('Hạn nộp'), { target: { value: '2026-12-01T23:59' } });
     request.mockRejectedValueOnce(
       new ApiProblemError({
         type: 'urn:leetkob:problem:invalid-request',
@@ -114,8 +117,11 @@ describe('create lab form', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Tạo lab' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid request');
-    expect(screen.getAllByLabelText('Mã')[1]).toHaveAccessibleDescription('Duplicate code C1.');
+    // UI-3: the server's English title and field detail are never shown (problem-message.ts).
+    expect(await screen.findByRole('alert')).toHaveTextContent('Dữ liệu chưa hợp lệ');
+    expect(screen.getAllByLabelText('Mã')[1]).toHaveAccessibleDescription(
+      'Mã có dạng C1 đến C99, không trùng nhau.',
+    );
   });
 
   it('can start from an empty form and keeps at least one test', () => {

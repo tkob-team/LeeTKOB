@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { onUnauthorized, TOKEN_KEY } from '../api/client';
 import { apiLogin, tokenExpiry } from './auth-api';
-import { AuthContext, type AuthState, type Credentials, type Session } from './auth-context';
+import {
+  AuthContext,
+  type AuthState,
+  type Credentials,
+  type Session,
+  type SignOutReason,
+} from './auth-context';
 
 /**
  * The session lives in localStorage so a new tab of the same browser is signed in too. Signing
@@ -65,32 +71,45 @@ export interface AuthProviderProps {
 
 export function AuthProvider({ children, login: loginImpl = apiLogin }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(readSession);
+  const [signOutReason, setSignOutReason] = useState<SignOutReason>(null);
 
   const login = useCallback(
     async (credentials: Credentials) => {
       const next = await loginImpl(credentials);
       writeSession(next);
       setSession(next);
+      setSignOutReason(null);
       return next;
     },
     [loginImpl],
   );
 
-  const logout = useCallback(() => {
+  const endSession = useCallback((reason: Exclude<SignOutReason, null>) => {
     writeSession(null);
     setSession(null);
+    setSignOutReason(reason);
   }, []);
 
+  const logout = useCallback(() => {
+    endSession('logout');
+  }, [endSession]);
+
+  const expire = useCallback(() => {
+    endSession('expired');
+  }, [endSession]);
+
   // A 401 on a signed-in request means the token expired or was revoked: sign out, and
-  // RequireRole sends the user to /login.
-  useEffect(() => onUnauthorized(logout), [logout]);
+  // RequireRole sends the user to /login?next=<this page> with the "session expired" note.
+  useEffect(() => onUnauthorized(expire), [expire]);
 
   // Another tab signed in or out (or cleared storage): follow it. A missing or expired session
   // signs this tab out, and RequireRole sends the user to /login.
   useEffect(() => {
     const follow = (event: StorageEvent) => {
       if (event.key !== null && event.key !== SESSION_KEY) return;
-      setSession(readSession());
+      const next = readSession();
+      setSession(next);
+      setSignOutReason(next ? null : 'logout');
     };
     window.addEventListener('storage', follow);
     return () => {
@@ -103,12 +122,15 @@ export function AuthProvider({ children, login: loginImpl = apiLogin }: AuthProv
     if (!session) return;
     const expiry = tokenExpiry(session.token);
     const delay = expiry === null ? 0 : Math.min(expiry - Date.now(), MAX_TIMER_MS);
-    const timer = setTimeout(logout, Math.max(delay, 0));
+    const timer = setTimeout(expire, Math.max(delay, 0));
     return () => {
       clearTimeout(timer);
     };
-  }, [session, logout]);
+  }, [session, expire]);
 
-  const value = useMemo<AuthState>(() => ({ session, login, logout }), [session, login, logout]);
+  const value = useMemo<AuthState>(
+    () => ({ session, signOutReason, login, logout }),
+    [session, signOutReason, login, logout],
+  );
   return <AuthContext value={value}>{children}</AuthContext>;
 }

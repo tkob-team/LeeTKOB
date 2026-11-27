@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link, matchPath, Outlet, useLocation, useNavigate } from 'react-router';
 import { Button } from '../components/ui';
 import { homePath, useAuth } from './auth-context';
@@ -21,9 +22,11 @@ export interface AppLayoutProps {
   width: 'wide' | 'narrow';
   roleLabel: string;
   nav: NavItem[];
+  /** Page content; defaults to the matched child route. */
+  children?: ReactNode;
 }
 
-export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
+export function AppLayout({ width, roleLabel, nav, children }: AppLayoutProps) {
   const { session, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -62,14 +65,12 @@ export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
           </div>
         </div>
       </header>
-      <main className={`lk-page lk-page--${width}`}>
-        <Outlet />
-      </main>
+      <main className={`lk-page lk-page--${width}`}>{children ?? <Outlet />}</main>
     </div>
   );
 }
 
-export function TaLayout() {
+export function TaLayout({ children }: { children?: ReactNode }) {
   return (
     <AppLayout
       width="wide"
@@ -82,11 +83,13 @@ export function TaLayout() {
           activeOn: ['/ta/labs', '/ta/classes/:classId/labs/new', '/ta/review-queue'],
         },
       ]}
-    />
+    >
+      {children}
+    </AppLayout>
   );
 }
 
-export function StudentLayout() {
+export function StudentLayout({ children }: { children?: ReactNode }) {
   return (
     <AppLayout
       width="narrow"
@@ -95,6 +98,8 @@ export function StudentLayout() {
         { to: '/student/labs', label: 'Đề bài' },
         { to: '/student/submit', label: 'Nộp bài' },
       ]}
-    />
+    >
+      {children}
+    </AppLayout>
   );
 }

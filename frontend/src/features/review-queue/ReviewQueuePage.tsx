@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { api, ApiProblemError } from '../../api/client';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
 import { useAuth } from '../../app/auth-context';
@@ -17,6 +18,7 @@ import {
 import {
   formatSubmittedAt,
   isCounted,
+  reasonText,
   studentLabel,
   submissionLabel,
   toRows,
@@ -30,7 +32,7 @@ import {
 export const POLL_MS = 15_000;
 const PAGE_SIZE = 20;
 
-/** Vietnamese text for problems this page expects; `type` and `status` stay as sent. */
+/** Wording this page uses instead of the shared text; `type` and `status` stay as sent. */
 const PROBLEM_TEXT: Partial<Record<string, Pick<ProblemDetails, 'title' | 'detail'>>> = {
   'urn:leetkob:problem:lab-not-found': {
     title: 'Không tìm thấy lab',
@@ -39,11 +41,9 @@ const PROBLEM_TEXT: Partial<Record<string, Pick<ProblemDetails, 'title' | 'detai
 };
 
 function requestProblem(cause: unknown): ProblemDetails {
-  if (cause instanceof ApiProblemError) {
-    const text = PROBLEM_TEXT[cause.problem.type];
-    return text ? { ...cause.problem, ...text } : cause.problem;
-  }
-  return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
+  const problem = problemFrom(cause);
+  const text = PROBLEM_TEXT[problem.type];
+  return text ? { ...problem, ...text } : problem;
 }
 
 export function ReviewQueuePage() {
@@ -266,6 +266,7 @@ function SubmissionBlock({
 function FindingPanel({ row }: { row: QueueRow }) {
   const { finding } = row;
   const label = submissionLabel(row.item.submissionId);
+  const reason = reasonText(finding);
   return (
     <aside className="lk-panel" aria-label={`Bài nộp ${label}, ràng buộc ${finding.code}`}>
       <h2 className="lk-panel__title">
@@ -281,7 +282,10 @@ function FindingPanel({ row }: { row: QueueRow }) {
         {deductionLabel(finding.verdict, finding.deduction)}
       </p>
       {finding.unsureCause ? <p>Nguyên nhân unsure: {UNSURE_CAUSE[finding.unsureCause]}</p> : null}
-      {finding.reason ? <p>Lý do: {finding.reason}</p> : null}
+      {/* `code` in the reason (banned names, identifiers) shows as inline code. */}
+      {reason ? (
+        <p>Lý do: {reason.includes('`') ? <MarkdownInline>{reason}</MarkdownInline> : reason}</p>
+      ) : null}
       {finding.evidence.length > 0 ? (
         finding.evidence.map((line) => (
           <EvidenceBlock

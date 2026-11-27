@@ -500,7 +500,7 @@ describe('ReviewQueuePage', () => {
     expect(screen.queryByRole('link', { name: 'Về danh sách lab' })).toBeNull();
   });
 
-  it('keeps other problems as the server sent them', async () => {
+  it('shows other problems in Vietnamese, never the server title', async () => {
     request.mockRejectedValue(
       new ApiProblemError({
         type: 'urn:leetkob:problem:forbidden-role',
@@ -511,7 +511,11 @@ describe('ReviewQueuePage', () => {
     );
     renderAt(`/ta/labs/${labId}/review`);
 
-    expect(await screen.findByText('Role is not allowed to submit')).toBeInTheDocument();
+    // UI-3: problem-message.ts replaces the English title of every problem.
+    expect(
+      await screen.findByText('Bạn không có quyền thực hiện thao tác này'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Role is not allowed to submit')).toBeNull();
   });
 
   it('keeps the empty queue page when no lab is chosen', () => {

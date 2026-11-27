@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
-import { api, ApiProblemError } from '../../api/client';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { uuidV4 } from '../../api/uuid';
 import { Button, FormField, JudgeResult, ProblemAlert, type JudgeCode } from '../../components/ui';
+import { verdictCaption } from './verdict-text';
 
 const MAX_CODE_BYTES = 65_536;
 const POLL_MS = 1000;
@@ -27,23 +29,23 @@ interface PollView {
 }
 
 /**
- * The lab chosen through `?lab=<id>` (link from the statement page), else the first lab. Read
- * from window.location rather than the router so the page also works outside a router.
+ * The lab chosen through `?lab=<id>` (link from the statement page), else the first lab. An id
+ * that is not in the list chooses nothing (`unknown`), so the student never submits to a lab
+ * they did not pick. Read from window.location rather than the router so the page also works
+ * outside a router.
  */
-function initialLab(available: Lab[]): string {
+function initialLab(available: Lab[]): { id: string; unknown: boolean } {
   const wanted = new URLSearchParams(window.location.search).get('lab');
+  if (wanted === null) return { id: available[0]?.id ?? '', unknown: false };
   const match = available.find((lab) => lab.id === wanted);
-  return match?.id ?? available[0]?.id ?? '';
-}
-
-function requestProblem(cause: unknown): ProblemDetails {
-  if (cause instanceof ApiProblemError) return cause.problem;
-  return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
+  return match ? { id: match.id, unknown: false } : { id: '', unknown: true };
 }
 
 export function SubmitJudgePage() {
   const [labs, setLabs] = useState<Lab[] | null>(null);
   const [labId, setLabId] = useState('');
+  const [unknownLab, setUnknownLab] = useState(false);
+  const [labError, setLabError] = useState<string>();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string>();
   const [problem, setProblem] = useState<ProblemDetails>();
@@ -54,6 +56,12 @@ export function SubmitJudgePage() {
   const submissionId = labs?.find((lab) => lab.id === labId)?.latestSubmissionId ?? null;
   const view = pollView?.id === submissionId ? pollView : undefined;
   const report = view?.report;
+  // CPU limit of each lab, read from GET /labs/{labId} only when a TLE needs it.
+  const [cpuLimits, setCpuLimits] = useState<Record<string, number>>({});
+  const needsCpuLimit =
+    report?.verdict === 'TLE' || report?.tests.some((test) => test.verdict === 'TLE') === true;
+  const cpuTimeMs = cpuLimits[labId];
+  const waiting = report?.status !== 'completed' && !view?.problem;
 
   useEffect(() => {
     const abort = new AbortController();
@@ -62,10 +70,12 @@ export function SubmitJudgePage() {
       .then((available) => {
         if (abort.signal.aborted) return;
         setLabs(available);
-        setLabId(initialLab(available));
+        const initial = initialLab(available);
+        setLabId(initial.id);
+        setUnknownLab(initial.unknown);
       })
       .catch((cause: unknown) => {
-        if (!abort.signal.aborted) setProblem(requestProblem(cause));
+        if (!abort.signal.aborted) setProblem(problemFrom(cause));
       });
     return () => {
       abort.abort();
@@ -87,7 +97,7 @@ export function SubmitJudgePage() {
         if (next.status === 'completed') return;
       } catch (cause) {
         if (abort.signal.aborted) return;
-        const problem = requestProblem(cause);
+        const problem = problemFrom(cause);
         setPollView({ id, problem });
         if (problem.status !== 0 && problem.status < 500) return;
       }
@@ -101,9 +111,31 @@ export function SubmitJudgePage() {
     };
   }, [labId, submissionId]);
 
+  useEffect(() => {
+    if (!needsCpuLimit || !labId || cpuTimeMs !== undefined) return;
+    const abort = new AbortController();
+    api
+      .request<{ cpuTimeMs: number }>(`/labs/${encodeURIComponent(labId)}`, {
+        signal: abort.signal,
+      })
+      .then((lab) => {
+        if (!abort.signal.aborted) setCpuLimits((known) => ({ ...known, [labId]: lab.cpuTimeMs }));
+      })
+      .catch(() => {
+        // The caption then reads without the number.
+      });
+    return () => {
+      abort.abort();
+    };
+  }, [needsCpuLimit, labId, cpuTimeMs]);
+
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (postingRef.current || !labId) return;
+    if (postingRef.current) return;
+    if (!labId) {
+      setLabError('Chọn một lab.');
+      return;
+    }
     if (!code.trim()) {
       setError('Nhập mã nguồn C++17.');
       return;
@@ -132,7 +164,7 @@ export function SubmitJudgePage() {
           null,
       );
     } catch (cause) {
-      setProblem(requestProblem(cause));
+      setProblem(problemFrom(cause));
     } finally {
       postingRef.current = false;
       setPosting(false);
@@ -143,6 +175,14 @@ export function SubmitJudgePage() {
     <div className="lk-stack lk-submit">
       <h1 className="lk-page__title">Nộp bài</h1>
       {problem ? <ProblemAlert problem={problem} /> : null}
+      {unknownLab ? (
+        <div className="lk-problem" role="alert">
+          <p className="lk-problem__title">Không tìm thấy lab này.</p>
+          <p className="lk-problem__detail">
+            Đường dẫn trỏ tới một lab không có trong các lớp của bạn. Chọn lab trong danh sách.
+          </p>
+        </div>
+      ) : null}
       {labs?.length === 0 ? <p>Bạn chưa có lab trong các lớp đã tham gia.</p> : null}
       {labs?.length ? (
         <form
@@ -150,14 +190,21 @@ export function SubmitJudgePage() {
             void submit(event);
           }}
         >
-          <FormField label="Lab">
+          <FormField label="Lab" error={labError}>
             <select
               value={labId}
               disabled={posting}
               onChange={(event) => {
                 setLabId(event.target.value);
+                setUnknownLab(false);
+                setLabError(undefined);
               }}
             >
+              {labId === '' ? (
+                <option value="" disabled>
+                  Chọn lab
+                </option>
+              ) : null}
               {labs.map((lab) => (
                 <option key={lab.id} value={lab.id}>
                   {lab.title ?? lab.id}
@@ -182,7 +229,7 @@ export function SubmitJudgePage() {
           </Button>
         </form>
       ) : null}
-      {labs?.length && !submissionId ? (
+      {labs?.length && labId && !submissionId ? (
         <section className="lk-result" aria-labelledby="judge-result-title">
           <h2 id="judge-result-title">Kết quả chấm</h2>
           <p>Chưa nộp bài nào.</p>
@@ -198,15 +245,19 @@ export function SubmitJudgePage() {
           {view?.problem ? (
             <ProblemAlert problem={view.problem} />
           ) : (
-            <p role="status" className="lk-result__overall">
-              {report?.verdict ? (
+            <p role="status" className="lk-result__overall" aria-busy={waiting}>
+              {report?.verdict && report.verdict !== 'pending' ? (
                 <>
                   Kết quả chung <JudgeResult code={report.verdict} size="large" />
+                  <span className="lk-result__caption">
+                    {verdictCaption(report.verdict, cpuTimeMs)}
+                  </span>
                 </>
-              ) : report?.status === 'grading' ? (
-                'Đang chấm bài.'
               ) : (
-                'Bài nộp đã vào hàng đợi.'
+                <>
+                  <span className="lk-spinner" aria-hidden="true" />
+                  {report?.status === 'grading' ? 'Đang chấm bài.' : 'Bài nộp đã vào hàng đợi.'}
+                </>
               )}
             </p>
           )}

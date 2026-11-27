@@ -117,3 +117,32 @@ export function toRows(items: ReviewItem[]): QueueRow[] {
   }
   return rows;
 }
+
+/**
+ * Reasons written by the checker's hard rules (checker/src/checker/hard_rules.py), in the exact
+ * form it produces, and their Vietnamese text. Only hard-rule reasons are rewritten; a model's
+ * reason is shown as the model wrote it.
+ */
+const HARD_RULE_REASON: { pattern: RegExp; text: (match: RegExpExecArray) => string }[] = [
+  {
+    // "uses banned `std::sort`" or "uses banned `qsort`, `std::sort`"
+    pattern: /^uses banned ((?:`[^`]+`)(?:, `[^`]+`)*)$/,
+    text: (match) => `Dùng hàm bị cấm ${match[1] ?? ''}.`,
+  },
+  { pattern: /^no banned name is used$/, text: () => 'Không dùng hàm bị cấm.' },
+  {
+    pattern: /^the source could not be parsed$/,
+    text: () => 'Không phân tích được mã nguồn, cần trợ giảng xem.',
+  },
+];
+
+/** The reason to show in the panel: Vietnamese for a hard rule, as sent otherwise. */
+export function reasonText(finding: Pick<ConstraintFinding, 'source' | 'reason'>): string | null {
+  const { reason } = finding;
+  if (reason === null || finding.source !== 'hard_rule') return reason;
+  for (const rule of HARD_RULE_REASON) {
+    const match = rule.pattern.exec(reason);
+    if (match) return rule.text(match);
+  }
+  return reason;
+}

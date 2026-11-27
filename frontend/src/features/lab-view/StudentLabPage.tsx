@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { api, ApiProblemError } from '../../api/client';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
 import {
@@ -43,13 +44,11 @@ function LabStatus({ lab, now }: { lab: StudentLab; now: number }) {
 }
 
 function requestProblem(cause: unknown): ProblemDetails {
-  if (cause instanceof ApiProblemError) {
-    if (cause.problem.type === 'urn:leetkob:problem:lab-not-open') {
-      return { ...cause.problem, title: 'Lab chưa mở', detail: 'Đề bài hiện khi lab mở.' };
-    }
-    return cause.problem;
+  const problem = problemFrom(cause);
+  if (problem.type === 'urn:leetkob:problem:lab-not-open') {
+    return { ...problem, title: 'Lab chưa mở', detail: 'Đề bài hiện khi lab mở.' };
   }
-  return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
+  return problem;
 }
 
 /** The labs of the student's classes as a table: name (links to the statement), deadline, status. */

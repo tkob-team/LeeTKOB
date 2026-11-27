@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { api, ApiProblemError } from '../../api/client';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
 import { ProblemAlert } from '../../components/ui';
@@ -9,11 +10,6 @@ import { formatDateTime, labTitle, type Classroom, type LabSummary } from './lab
 interface ClassLabs {
   classroom: Classroom;
   labs: LabSummary[];
-}
-
-function requestProblem(cause: unknown): ProblemDetails {
-  if (cause instanceof ApiProblemError) return cause.problem;
-  return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
 }
 
 /** Every lab of the TA's classes; each row opens that lab's review queue. */
@@ -42,7 +38,7 @@ export function TaLabsPage() {
         if (!abort.signal.aborted) setClasses(loaded);
       })
       .catch((cause: unknown) => {
-        if (!abort.signal.aborted) setProblem(requestProblem(cause));
+        if (!abort.signal.aborted) setProblem(problemFrom(cause));
       });
     return () => {
       abort.abort();
@@ -62,7 +58,7 @@ export function TaLabsPage() {
           Đã tạo lab {created}.
         </p>
       ) : null}
-      {problem ? <ProblemAlert problem={problem} showType /> : null}
+      {problem ? <ProblemAlert problem={problem} /> : null}
       {!classes && !problem ? <p className="lk-page__note">Đang tải danh sách lab…</p> : null}
       {classes?.length === 0 ? (
         <EmptyState title="Chưa có lớp">Bạn chưa được phân công trợ giảng lớp nào.</EmptyState>
