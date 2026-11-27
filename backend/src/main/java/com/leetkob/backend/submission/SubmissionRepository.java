@@ -3,6 +3,8 @@ package com.leetkob.backend.submission;
 import com.leetkob.backend.judge.JudgeQueue;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,7 +23,21 @@ class SubmissionRepository {
   record Stored(
       UUID id, UUID labId, UUID studentId, String code, int sizeBytes, Instant submittedAt) {}
 
-  record StudentLab(UUID id, String title, UUID latestSubmissionId) {}
+  /**
+   * A lab in the student's lab list (get-student-judge-status.md 1.1.0). Times are RFC 3339 UTC
+   * with milliseconds; {@code latestVerdict} is the judge verdict of the latest on-time submission,
+   * null while it is queued or grading or when there is none. The statement is never included.
+   */
+  record StudentLab(
+      UUID id,
+      String title,
+      UUID latestSubmissionId,
+      String opensAt,
+      String dueAt,
+      String latestVerdict) {}
+
+  private static final DateTimeFormatter TIME =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
 
   record Status(
       UUID id,
@@ -85,7 +101,9 @@ class SubmissionRepository {
   List<StudentLab> labsForStudent(UUID studentId) {
     return jdbc.sql(
             """
-            select l.id, l.title, latest.id as latest_submission
+            select l.id, l.title, l.opens_at, l.due_at, latest.id as latest_submission,
+              case when j.finished_at is not null then j.result ->> 'verdict' end
+                as latest_verdict
             from labs l
             join class_members m on m.class_id = l.class_id
             left join lateral (
@@ -94,6 +112,7 @@ class SubmissionRepository {
               order by s.submitted_at desc, s.id desc
               limit 1
             ) latest on true
+            left join judge_jobs j on j.submission_id = latest.id
             where m.user_id = ?
             order by l.opens_at desc, l.id
             """)
@@ -102,7 +121,10 @@ class SubmissionRepository {
             new StudentLab(
                 row.getObject("id", UUID.class),
                 row.getString("title"),
-                row.getObject("latest_submission", UUID.class)))
+                row.getObject("latest_submission", UUID.class),
+                TIME.format(row.getTimestamp("opens_at").toInstant()),
+                TIME.format(row.getTimestamp("due_at").toInstant()),
+                row.getString("latest_verdict")))
         .list();
   }
 
