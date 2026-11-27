@@ -58,12 +58,21 @@ export interface ApiClientOptions {
   /** Bearer token for the Authorization header, or null when signed out. */
   getToken?: () => string | null;
   fetch?: typeof fetch;
-  /** Called when a request that carried a token gets 401 (expired or revoked token). */
+  /**
+   * Called for every 401 except the answer to POST /auth/login (wrong email or password is
+   * shown by the login form). A 401 means there is no usable session, whether the request
+   * carried an expired or revoked token or none at all.
+   */
   onUnauthorized?: () => void;
 }
 
 export interface ApiClient {
   request<T>(path: string, init?: RequestInit): Promise<T>;
+}
+
+/** POST /auth/login: its 401 is a wrong password, not an ended session. */
+function isLoginRequest(path: string, method: string | undefined): boolean {
+  return (method ?? 'GET').toUpperCase() === 'POST' && path.split('?')[0] === '/auth/login';
 }
 
 export function createApiClient({
@@ -94,7 +103,7 @@ export function createApiClient({
           detail: 'Kiểm tra kết nối mạng rồi thử lại.',
         });
       }
-      if (response.status === 401 && token) onUnauthorized?.();
+      if (response.status === 401 && !isLoginRequest(path, init.method)) onUnauthorized?.();
       if (!response.ok) throw new ApiProblemError(await parseProblem(response));
       if (response.status === 204) return undefined as T;
       return (await response.json()) as T;
@@ -102,12 +111,22 @@ export function createApiClient({
   };
 }
 
-/** localStorage key of the bearer token; app/AuthProvider.tsx writes it with the session. */
-export const TOKEN_KEY = 'leetkob.token';
+/**
+ * localStorage key of the session (app/AuthProvider.tsx). The bearer token is stored only
+ * inside it, so the token and the session cannot disagree.
+ */
+export const SESSION_KEY = 'leetkob.session';
 
-function storedToken(): string | null {
+/** Key where older builds kept a second copy of the token; read once on start, then removed. */
+export const LEGACY_TOKEN_KEY = 'leetkob.token';
+
+/** The token of the stored session, or null when there is none (or it cannot be read). */
+export function storedToken(): string | null {
   try {
-    return localStorage.getItem(TOKEN_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw === null) return null;
+    const session = JSON.parse(raw) as { token?: unknown } | null;
+    return typeof session?.token === 'string' && session.token !== '' ? session.token : null;
   } catch {
     return null;
   }
@@ -115,7 +134,7 @@ function storedToken(): string | null {
 
 const unauthorizedListeners = new Set<() => void>();
 
-/** Subscribes to 401 answers of `api` for signed-in requests; returns the unsubscribe function. */
+/** Subscribes to 401 answers of `api` (except login); returns the unsubscribe function. */
 export function onUnauthorized(listener: () => void): () => void {
   unauthorizedListeners.add(listener);
   return () => {
