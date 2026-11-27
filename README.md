@@ -272,6 +272,11 @@ real caddy, `nginx.conf` and networks with an echo server in place of the API an
 fails if the nginx `real_ip` lines are removed (the API then sees caddy's address). Do not run
 it on the VM while the stack is up: the stack already owns the `edge` subnet.
 
+nginx answers 404 for any path with a segment that starts with a dot (`/.env`, `/.git/config`)
+instead of falling back to `index.html`. `sh deploy/check-dotfiles.sh` runs the real
+`nginx.conf` in the nginx image with a stub page and expects
+`PASS: dot paths get 404; client-side routes still get index.html`.
+
 ### 1. Set up the VM
 
 Ubuntu 24.04 LTS, at least 2 vCPU and 4 GB RAM, inbound TCP 22, 80 and 443 open (on AWS, in
