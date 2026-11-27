@@ -382,3 +382,44 @@
 - Changed: in `routes.test.tsx`, "sends a student to the student home after sign-in" now builds the token once and uses it both in the login stub and in the last assertion. Cause: `fakeToken` computes `exp` from `Date.now()` in whole seconds on every call; the stub and the final assertion each called it, so when the clock crossed a second boundary between them the two tokens differed (CI run 45570743514, `expected '***' to be '***'`, the values were masked by GitHub). The test came from T81 (`cce8a4a`); `main` was green because the failure needs that boundary. This is an edit of an existing test, made with the requester's approval, and no assertion was weakened.
 - Rejected: only rerunning the check (the test would keep failing at random on any later PR); freezing the clock with fake timers (hides the cause and is more code than building the token once); comparing only the token claims in the assertion (weaker than comparing the whole token); changing the default of `fakeToken` for all tests (no other test compares tokens).
 - Validation: the 76 frontend tests, `format:check`, `lint` and `typecheck` pass locally, and the fixed test passed 20 of 20 repeated runs. Local Node was v26.13.1 while `frontend/.nvmrc` says 22, so the Node 22 CI run is the check that counts. Backend and checker were not run locally (unchanged); CI runs them.
+
+
+## 2026-11-27 - T101, T98, T99, T100, T102 and T103 (B, Hoa)
+
+- Tool: OpenAI Codex with the Matt Pocock codebase-design skill.
+- Kept: submission receipt and ownership contract, queue leases, verdict persistence,
+  sandbox limits, checker policy and the local load-test mode.
+- Changed: a restricted sandbox socket proxy, authenticated status SSE, structured
+  submission tracing, private dashboard and judge turnaround alert, 80-student load
+  driver and seed, and the Gemini region incident report.
+- Rejected: passing the rootful socket to the worker, JWTs in SSE URLs, a public
+  dashboard and calls to a real model in automated tests.
+
+- Validation: local JDK 25 backend suite passed 117 tests, including 11 sandbox
+  probes and the worker restart through the restricted proxy. Targeted submission
+  tests passed again after the intake error log was restricted. Checker passed 104
+  tests and frontend passed 77. The overdue-job fixture produced firing and resolved
+  events. Local Compose verified that only the proxy mounts the Docker socket,
+  sandbox-check passed 11 tests through that proxy, and Nginx delivered the initial
+  status and AC verdict in the same stream. The trace included the persisted verdict
+  and a checker constraint decision. The local 80-student run returned 80 receipts
+  and reconciled 80 jobs and verdicts. See load/LOCAL-RESULT.md.
+- VM verification: sandbox-check, deployment smoke and the deployed 80-student run
+  belong to the VM operator. The local run is not the deployment result.
+
+
+## 2026-11-27 - Fix local quality review findings (B, Hoa)
+
+- Tool: OpenAI Codex.
+- Kept: queue lease rules, sandbox isolation, student ownership rules and the existing
+  healthy sample threshold.
+- Changed: proxy readiness and worker backoff, bounded model telemetry writes, alert
+  recovery that requires a valid healthy sample, and a deadline check after each SSE
+  database read. The load driver now writes a receipt manifest for exact reconciliation.
+- Rejected: clearing an active alert on a missing sample, counting old submissions in
+  place of receipt IDs, and reusing the database connection settings for telemetry writes.
+- Local validation: a submission stayed ready and unleased with the proxy down, then
+  reached AC after recovery. The checker suite passed 105 tests, including the
+  locked telemetry table and alert recovery cases. A fresh 80-student Compose load
+  reconciled all receipts. The audit rejected both an unfinished run and a changed
+  receipt ID. See load/LOCAL-RESULT.md.

@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +24,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /** {@code POST /labs/{labId}/submissions}, as specified in docs/contract. */
 @RestController
 class SubmissionController {
 
+  private static final Logger LOG = LoggerFactory.getLogger(SubmissionController.class);
   private static final DateTimeFormatter TIME =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
 
@@ -34,11 +38,17 @@ class SubmissionController {
   private final SubmissionRequestParser parser;
   private final Problems problems;
 
+  private final SubmissionEvents events;
+
   SubmissionController(
-      SubmissionRepository repository, SubmissionRequestParser parser, Problems problems) {
+      SubmissionRepository repository,
+      SubmissionRequestParser parser,
+      Problems problems,
+      SubmissionEvents events) {
     this.repository = repository;
     this.parser = parser;
     this.problems = problems;
+    this.events = events;
   }
 
   @PostMapping("/labs/{labId}/submissions")
@@ -77,8 +87,17 @@ class SubmissionController {
             code,
             sizeOf(code),
             now.truncatedTo(ChronoUnit.MILLIS));
-    if (repository.insertIfAbsent(created, key)) {
-      return json(201, created, false);
+    try {
+      if (repository.insertIfAbsent(created, key)) {
+        return json(201, created, false);
+      }
+    } catch (RuntimeException error) {
+      LOG.atError()
+          .addKeyValue("event", "submission_insert_failed")
+          .addKeyValue("submission_id", created.id())
+          .addKeyValue("error_type", error.getClass().getSimpleName())
+          .log("Submission could not be stored");
+      throw error;
     }
     // A concurrent request with the same key won; answer like a retry.
     return replayOrReject(repository.find(studentId, key).orElseThrow(), lab, code);
@@ -98,12 +117,33 @@ class SubmissionController {
     UUID studentId = requireStudent(jwt);
     UUID lab = parser.labId(labId);
     UUID submission = parseSubmissionId(submissionId);
-    var result =
-        repository
-            .status(lab, submission, studentId)
-            .orElseThrow(
-                () -> new ApiException(ProblemType.SUBMISSION_NOT_FOUND, "Submission not found."));
-    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(result);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(findStatus(lab, submission, studentId));
+  }
+
+  @GetMapping(
+      value = "/labs/{labId}/submissions/{submissionId}/events",
+      produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  ResponseEntity<SseEmitter> events(
+      @PathVariable String labId,
+      @PathVariable String submissionId,
+      @AuthenticationPrincipal Jwt jwt) {
+    UUID studentId = requireStudent(jwt);
+    UUID lab = parser.labId(labId);
+    UUID submission = parseSubmissionId(submissionId);
+    var initial = findStatus(lab, submission, studentId);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .header("X-Accel-Buffering", "no")
+        .body(events.open(lab, submission, studentId, initial, jwt.getExpiresAt()));
+  }
+
+  private SubmissionRepository.Status findStatus(UUID lab, UUID submission, UUID student) {
+    return repository
+        .status(lab, submission, student)
+        .orElseThrow(
+            () -> new ApiException(ProblemType.SUBMISSION_NOT_FOUND, "Submission not found."));
   }
 
   private UUID requireStudent(Jwt jwt) {
@@ -150,6 +190,10 @@ class SubmissionController {
     body.put("sizeBytes", submission.sizeBytes());
     ResponseEntity.BodyBuilder builder =
         ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON);
+    LOG.atInfo()
+        .addKeyValue("event", replay ? "submission_replayed" : "submission_queued")
+        .addKeyValue("submission_id", submission.id())
+        .log("Submission receipt");
     if (replay) {
       builder.header("Idempotency-Replayed", "true");
     }

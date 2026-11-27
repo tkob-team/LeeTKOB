@@ -68,4 +68,12 @@ public interface JudgeQueue {
 
   /** Store a terminal result once. Return false if the claim has expired or was replaced. */
   boolean complete(Claim claim, Result result);
+
+  /** Store a terminal result and measured grading time together when supported. */
+  default boolean complete(Claim claim, Result result, long gradingMillis) {
+    return complete(claim, result);
+  }
+
+  /** Record an infrastructure failure for operational metrics when supported. */
+  default void recordInfrastructureFailure(Claim claim) {}
 }

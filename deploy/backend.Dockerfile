@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Backend images for deploy/docker-compose.yml (build context: backend/).
 #   target api           HTTP API; also runs the one-shot `seed` command
-#   target judge-worker  same jar plus the Docker CLI, started with `judge-worker`
+#   target judge-worker  same jar, started with `judge-worker`
 # Tests are not run here; CI runs them on every pull request.
 
 FROM eclipse-temurin:25-jdk AS build
@@ -21,12 +21,14 @@ USER leetkob
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]
 
 FROM api AS judge-worker
-COPY --from=docker:28-cli /usr/local/bin/docker /usr/local/bin/docker
 
-# Pre-launch check on the VM (README, "Deployment runbook"): DockerSandboxTest against the
-# host daemon through the mounted socket. Not used by any long-running service.
-FROM eclipse-temurin:25-jdk AS sandbox-check
+# Only the proxy image needs a Docker CLI and the daemon socket.
+FROM api AS sandbox-proxy
 COPY --from=docker:28-cli /usr/local/bin/docker /usr/local/bin/docker
+ENV JAVA_TOOL_OPTIONS="-Djdk.httpserver.maxConnections=24 -Dsun.net.httpserver.maxReqTime=35"
+
+# Pre-launch check runs the same sandbox probes through the proxy.
+FROM eclipse-temurin:25-jdk AS sandbox-check
 WORKDIR /src
 COPY .mvn .mvn
 COPY mvnw pom.xml ./

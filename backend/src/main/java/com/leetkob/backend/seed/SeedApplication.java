@@ -1,6 +1,7 @@
 package com.leetkob.backend.seed;
 
 import java.util.Map;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.WebApplicationType;
@@ -23,6 +24,24 @@ public class SeedApplication {
   /** Entry point used by {@code BackendApplication}; passwords come from the environment. */
   public static void start(String... args) {
     run(System.getenv(), args);
+  }
+
+  /** Seed synthetic load accounts for an explicitly selected class. */
+  public static void startLoad() {
+    UUID classId = UUID.fromString(System.getenv("LOAD_SEED_CLASS_ID"));
+    String secret = System.getenv("LOAD_SEED_SECRET");
+    if (secret == null || secret.length() < 32) {
+      throw new IllegalArgumentException("LOAD_SEED_SECRET must contain at least 32 characters.");
+    }
+    try (var context =
+        new SpringApplicationBuilder(SeedApplication.class).web(WebApplicationType.NONE).run()) {
+      var seeder =
+          new LoadAccountSeeder(
+              context.getBean(JdbcClient.class),
+              new TransactionTemplate(context.getBean(PlatformTransactionManager.class)));
+      int created = seeder.seed(classId, secret);
+      LOG.info("Load students ready: 80, created: {}", created);
+    }
   }
 
   static TestAccountSeeder.Result run(Map<String, String> env, String... args) {

@@ -1,11 +1,11 @@
 # Public deployment of LeetKOB on one Linux VM. Runbook: README.md, "Deployment runbook".
 #
-#   docker compose -f deploy/docker-compose.yml --profile build build   # all images + sandbox
+#   docker compose -f deploy/docker-compose.yml build   # Compose images
 #   docker compose -f deploy/docker-compose.yml up -d
 #
 # Values come from deploy/.env (copy deploy/.env.example; never commit it). Every service lists
 # its variables explicitly; no service loads the whole file, so GEMINI_API_KEY reaches only
-# checker-worker and the Docker socket is mounted only in judge-worker.
+# checker-worker. Only sandbox-proxy mounts the Docker socket.
 # Only web publishes a port (80). PostgreSQL, the API and the workers stay on the internal network.
 
 name: leetkob
@@ -47,6 +47,8 @@ services:
       # Trust X-Forwarded-For from web (a private address) so the login attempt limit
       # counts the real client address instead of the proxy's.
       SERVER_FORWARD_HEADERS_STRATEGY: native
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: logstash
+      LOGGING_STRUCTURED_JSON_ADD_SERVICE: api
 
   judge-worker:
     image: leetkob-judge-worker:latest
@@ -59,16 +61,36 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # The socket lets the worker start sandbox containers on the host daemon. It is
-    # root-equivalent on the host: only this service gets it, and the sandbox containers
-    # receive neither the socket nor this environment (see DockerSandbox).
-    group_add:
-      - ${DOCKER_GID:?set DOCKER_GID in deploy/.env (stat -c %g /var/run/docker.sock)}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      sandbox-proxy:
+        condition: service_started
+    networks: [default, sandbox-control]
     environment:
       <<: *database
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: logstash
+      LOGGING_STRUCTURED_JSON_ADD_SERVICE: judge-worker
+      JUDGE_SANDBOX_PROXY: http://sandbox-proxy:8091
+
+  sandbox-proxy:
+    image: leetkob-sandbox-proxy:latest
+    build:
+      context: ../backend
+      dockerfile: ../deploy/backend.Dockerfile
+      target: sandbox-proxy
+    command: ['sandbox-proxy']
+    restart: unless-stopped
+    networks: [sandbox-control]
+    group_add:
+      - ${DOCKER_GID:?set DOCKER_GID to the Docker socket group}
+    volumes:
+      - type: bind
+        source: ${JUDGE_DOCKER_SOCKET:-/var/run/docker.sock}
+        target: /var/run/docker.sock
+        bind:
+          create_host_path: false
+    environment:
       JUDGE_SANDBOX_IMAGE: ${JUDGE_SANDBOX_IMAGE:-leetkob-sandbox:pa3}
+      JUDGE_SANDBOX_PROXY_BIND: 0.0.0.0
+      JUDGE_SANDBOX_SCOPE: ${COMPOSE_PROJECT_NAME:-leetkob}
 
   checker-worker:
     image: leetkob-checker:latest
@@ -88,6 +110,19 @@ services:
       GEMINI_RPM: ${GEMINI_RPM:-}
       MODEL_OFF: ${MODEL_OFF:-}
 
+  observability:
+    image: leetkob-checker:latest
+    profiles: ['observe']
+    entrypoint: ['/app/.venv/bin/python', '-m', 'checker.operations']
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *database
+    ports:
+      - '127.0.0.1:${OPERATIONS_PORT:-9108}:9108'
+
   web:
     image: leetkob-web:latest
     build:
@@ -99,7 +134,7 @@ services:
     depends_on:
       - api
     ports:
-      - '80:80'
+      - '${WEB_BIND:-0.0.0.0}:${WEB_PORT:-80}:80'
 
   # One-shot jobs and build-only images; not started by `up`.
   seed:
@@ -116,15 +151,20 @@ services:
       SEED_TA_PASSWORD: ${SEED_TA_PASSWORD:-}
       SEED_STUDENT_PASSWORD: ${SEED_STUDENT_PASSWORD:-}
 
-  sandbox:
-    image: leetkob-sandbox:pa3
-    profiles: ['build']
-    build:
-      context: ../sandbox
-    network_mode: none
-    entrypoint: ['true']
+  seed-load:
+    image: leetkob-api:latest
+    profiles: ['load']
+    command: ['seed-load']
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *database
+      LOAD_SEED_CLASS_ID: ${LOAD_SEED_CLASS_ID:-}
+      LOAD_SEED_SECRET: ${LOAD_SEED_SECRET:-}
 
-  # Pre-launch check: the nine sandbox probes against this VM's Docker daemon.
+  # Pre-launch check: sandbox probes through the same proxy used by judge-worker.
   sandbox-check:
     image: leetkob-sandbox-check:latest
     profiles: ['check']
@@ -133,9 +173,17 @@ services:
       dockerfile: ../deploy/backend.Dockerfile
       target: sandbox-check
     restart: 'no'
+    depends_on:
+      - sandbox-proxy
+    networks: [default, sandbox-control]
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - m2:/root/.m2
+    environment:
+      JUDGE_SANDBOX_PROXY: http://sandbox-proxy:8091
+
+networks:
+  sandbox-control:
+    internal: true
 
 volumes:
   pgdata:

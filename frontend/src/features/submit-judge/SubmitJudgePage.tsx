@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { api, ApiProblemError } from '../../api/client';
+import { readVerdictEvents, type VerdictReport } from './verdict-events';
 import type { ProblemDetails } from '../../api/problem';
-import { Button, FormField, JudgeResult, ProblemAlert, type JudgeCode } from '../../components/ui';
+import { Button, FormField, JudgeResult, ProblemAlert } from '../../components/ui';
 
 const MAX_CODE_BYTES = 65_536;
-const POLL_MS = 1000;
+const RETRY_MS = 1000;
 
 interface Lab {
   id: string;
@@ -12,16 +13,9 @@ interface Lab {
   latestSubmissionId: string | null;
 }
 
-interface Report {
-  status: 'queued' | 'grading' | 'completed';
-  counted: boolean;
-  verdict: JudgeCode | null;
-  tests: { number: number; verdict: JudgeCode }[];
-}
-
 interface PollView {
   id: string;
-  report?: Report;
+  report?: VerdictReport;
   problem?: ProblemDetails;
 }
 
@@ -67,23 +61,39 @@ export function SubmitJudgePage() {
     const abort = new AbortController();
     const path = `/labs/${labId}/submissions/${id}`;
     let timer: number | undefined;
+    const isAborted = () => abort.signal.aborted;
 
-    async function poll() {
+    function applyReport(next: VerdictReport) {
+      if (isAborted()) return true;
+      setPollView({ id, report: next });
+      return next.status === 'completed';
+    }
+
+    async function follow() {
       try {
-        const next = await api.request<Report>(path, { signal: abort.signal });
-        if (abort.signal.aborted) return;
-        setPollView({ id, report: next });
-        if (next.status === 'completed') return;
+        const response = await api.openEventStream(path + '/events', abort.signal);
+        if (await readVerdictEvents(response, applyReport)) return;
       } catch (cause) {
-        if (abort.signal.aborted) return;
+        if (isAborted()) return;
+        if (cause instanceof ApiProblemError && [401, 403].includes(cause.problem.status)) {
+          setPollView({ id, problem: cause.problem });
+          return;
+        }
+        // A status read handles stream failures and older deployments.
+      }
+      if (isAborted()) return;
+      try {
+        if (applyReport(await api.request<VerdictReport>(path, { signal: abort.signal }))) return;
+      } catch (cause) {
+        if (isAborted()) return;
         const problem = requestProblem(cause);
         setPollView({ id, problem });
         if (problem.status !== 0 && problem.status < 500) return;
       }
-      timer = window.setTimeout(() => void poll(), POLL_MS);
+      timer = window.setTimeout(() => void follow(), RETRY_MS);
     }
 
-    void poll();
+    void follow();
     return () => {
       abort.abort();
       window.clearTimeout(timer);

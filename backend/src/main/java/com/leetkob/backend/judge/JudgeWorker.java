@@ -1,8 +1,10 @@
 package com.leetkob.backend.judge;
 
 import java.time.Duration;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /** Worker loop step. The injected judge owns compilation and execution. */
 public final class JudgeWorker {
@@ -42,15 +44,50 @@ public final class JudgeWorker {
     }
     var claim = next.get();
     long start = System.nanoTime();
+    try (var attempt = MDC.putCloseable("attempt_id", UUID.randomUUID().toString())) {
+      return runClaim(claim, start);
+    }
+  }
+
+  private Outcome runClaim(JudgeQueue.Claim claim, long start) {
+    LOG.atInfo()
+        .addKeyValue("event", "judge_claimed")
+        .addKeyValue("submission_id", claim.submissionId())
+        .log("Judge claimed submission");
+    try {
+      return gradeClaim(claim, start);
+    } catch (RuntimeException error) {
+      try {
+        queue.recordInfrastructureFailure(claim);
+      } catch (RuntimeException telemetryError) {
+        error.addSuppressed(telemetryError);
+      }
+      LOG.atWarn()
+          .addKeyValue("event", "judge_retry_pending")
+          .addKeyValue("submission_id", claim.submissionId())
+          .addKeyValue("error_type", error.getClass().getSimpleName())
+          .log("Judge left submission for lease recovery");
+      throw error;
+    }
+  }
+
+  private Outcome gradeClaim(JudgeQueue.Claim claim, long start) {
     var result = judge.grade(claim);
     long gradingMillis = Duration.ofNanos(System.nanoTime() - start).toMillis();
-    boolean saved = queue.complete(claim, result);
+    boolean saved = queue.complete(claim, result, gradingMillis);
     Outcome outcome = saved ? Outcome.COMPLETED : Outcome.CLAIM_LOST;
     LOG.info(
         "event=judge_worker_finished submissionId={} outcome={} gradingMillis={}",
         claim.submissionId(),
         outcome,
         gradingMillis);
+    LOG.atInfo()
+        .addKeyValue("event", saved ? "judge_verdict_saved" : "judge_claim_lost")
+        .addKeyValue("submission_id", claim.submissionId())
+        .addKeyValue("verdict", result.verdict())
+        .addKeyValue("grading_ms", gradingMillis)
+        .addKeyValue("checker_queued", saved && result.verdict() == JudgeQueue.Verdict.AC)
+        .log("Judge finished submission");
     return outcome;
   }
 }

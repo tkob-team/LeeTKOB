@@ -241,7 +241,7 @@ the existing JWT verifier and persisted account roles.
 ## Deployment runbook
 
 One Linux VM runs everything with [deploy/docker-compose.yml](deploy/docker-compose.yml).
-Only `web` (nginx) publishes a port, 80; it serves the frontend build and proxies `/api/` to
+Only `web` (nginx) publishes a public port, 80; it serves the frontend build and proxies `/api/` to
 the API on the same origin. PostgreSQL (persistent volume `pgdata`), `api`, `judge-worker`
 and `checker-worker` have no published port.
 
@@ -249,12 +249,13 @@ and `checker-worker` have no published port.
 | --- | --- | --- |
 | `postgres` | `postgres:17-alpine` | `DB_USER`, `DB_PASSWORD` |
 | `api` | `leetkob-api` (backend jar) | database, `JWT_SECRET` |
-| `judge-worker` | `leetkob-judge-worker` (same jar + Docker CLI), `judge-worker` | database, `/var/run/docker.sock`; no `GEMINI_API_KEY` |
+| `judge-worker` | `leetkob-judge-worker` (same backend jar), `judge-worker` | database and internal sandbox proxy |
 | `checker-worker` | `leetkob-checker`, `worker` | database, Gemini variables; the only service with `GEMINI_API_KEY` |
 | `web` | `leetkob-web` (nginx + `frontend/dist`) | nothing |
 | `seed` (profile `seed`) | `leetkob-api`, `seed` | database, `SEED_*_PASSWORD` |
-| `sandbox` (profile `build`) | `leetkob-sandbox:pa3` from `sandbox/` | build only |
-| `sandbox-check` (profile `check`) | JDK + Docker CLI + backend sources | Docker socket |
+| Sandbox image | `leetkob-sandbox:pa3` from `sandbox/` | built on the deployment daemon |
+| `sandbox-proxy` | backend jar and Docker CLI | host Docker socket |
+| `sandbox-check` (profile `check`) | JDK + backend sources | internal sandbox proxy |
 
 Each service lists its variables explicitly; none loads the whole `deploy/.env`.
 The site is plain HTTP on port 80; put TLS in front before real passwords are used widely.
@@ -289,22 +290,31 @@ If one of them fails, add `systemd.unified_cgroup_hierarchy=1 swapaccount=1` to
 
 ### 2. Configure and build
 
+Only the sandbox proxy mounts the existing daemon socket. The worker and the sandbox check
+connect over a private Compose network. The proxy exposes fixed compile and run operations,
+with an operator-selected local image and fixed security options. It fails closed when
+unavailable. Keep a single proxy instance per Compose project so startup cleanup only
+removes abandoned containers labeled for that deployment.
+
 ```sh
 git clone https://github.com/tkob-team/LeeTKOB.git leetkob && cd leetkob
 cp deploy/.env.example deploy/.env && chmod 600 deploy/.env
-stat -c %g /var/run/docker.sock               # DOCKER_GID
+export JUDGE_DOCKER_SOCKET=/var/run/docker.sock
+stat -c %g "$JUDGE_DOCKER_SOCKET"             # DOCKER_GID
+docker --host "unix://$JUDGE_DOCKER_SOCKET" info
 openssl rand -base64 48                       # a JWT_SECRET
-nano deploy/.env                              # DB_USER, DB_PASSWORD, JWT_SECRET, DOCKER_GID, GEMINI_*
-docker compose -f deploy/docker-compose.yml --profile build build
+nano deploy/.env                              # DB_USER, DB_PASSWORD, JWT_SECRET, JUDGE_DOCKER_SOCKET, DOCKER_GID, GEMINI_*
+docker compose -f deploy/docker-compose.yml build
+docker --host "unix://$JUDGE_DOCKER_SOCKET" build -t leetkob-sandbox:pa3 sandbox
 ```
 
-`--profile build` also builds `leetkob-sandbox:pa3` from `sandbox/` on the VM's daemon, which
-is where `judge-worker` starts sandbox containers.
+The sandbox image and Compose services use the existing deployment daemon. Set the same
+trusted image tag in the build command and `JUDGE_SANDBOX_IMAGE`. The proxy returns only
+sandbox outcomes and bounded program output. Its host socket is private to the proxy.
 
 ### 3. Mandatory check before opening the site
 
-Run the sandbox probes (`DockerSandboxTest` with `JUDGE_SANDBOX_TESTS=1`) against this VM's
-daemon. Do not give the URL to anyone until it reports `Tests run: 11, Failures: 0, Errors: 0,
+Run the sandbox probes (`DockerSandboxTest` with `JUDGE_SANDBOX_TESTS=1`) through the sandbox proxy on this VM. Do not give the URL to anyone until it reports `Tests run: 11, Failures: 0, Errors: 0,
 Skipped: 0`.
 
 ```sh
@@ -353,7 +363,9 @@ run creates nothing and keeps existing passwords (`accountsCreated=0 classesCrea
 
 ```sh
 git pull --ff-only
-docker compose -f deploy/docker-compose.yml --profile build build
+docker compose -f deploy/docker-compose.yml build
+docker --host "unix://$JUDGE_DOCKER_SOCKET" build -t leetkob-sandbox:pa3 sandbox
+docker compose -f deploy/docker-compose.yml --profile check run --rm --build sandbox-check
 docker compose -f deploy/docker-compose.yml up -d
 ```
 
@@ -370,3 +382,8 @@ docker compose -f deploy/docker-compose.yml exec -T postgres sh -c 'pg_dump -U "
 
 A restarted worker leaves its job leased; another claim takes it after the lease expires
 (60 s for the judge, `--lease-seconds 600` for the checker).
+
+
+Use `submission_id` to follow a receipt through the judge, sandbox and checker logs.
+See the [local and VM verification guide](deploy/VERIFY.md), [operations dashboard](deploy/OPERATIONS.md), [load runbook](load/README.md)
+and [Gemini region incident report](docs/incidents/2026-11-24-gemini-region.md).

@@ -29,3 +29,16 @@ and deductions. A later on-time WA is counted even if an earlier attempt was AC.
 The judge hands off successful AC results as specified in
 [PA3 data boundaries](pa3-boundaries.md). The submission POST and its replay
 behavior remain defined in [the intake contract](post-labs-submissions.md).
+
+
+## Live updates
+
+`GET /labs/{labId}/submissions/{submissionId}/events` uses the same Bearer authentication,
+student role and ownership checks as the JSON endpoint. It returns `text/event-stream`,
+`Cache-Control: no-store` and `X-Accel-Buffering: no`. Each `status` event contains a JSON
+status snapshot. The opening event contains the current state, and later events carry
+changes until the verdict is complete. Comment frames keep the connection alive.
+
+A stream ends on completion, token expiry, lost access or after 20 seconds. The client
+may fetch the existing JSON status and reconnect. The API returns 503 when all stream
+slots are occupied.
