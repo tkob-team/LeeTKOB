@@ -9,11 +9,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 /** Reads the lab configuration and grades one claimed job with the Docker sandbox. */
 final class DockerJudge implements JudgeWorker.Judge {
 
+  private static final Logger LOG = LoggerFactory.getLogger(DockerJudge.class);
   private static final Pattern SEPARATOR = Pattern.compile("\\s+");
 
   private record LabTest(String input, String expected, int cpuMs, int memoryMb) {}
@@ -54,6 +57,7 @@ final class DockerJudge implements JudgeWorker.Judge {
 
     requireLease(claim);
     var compiled = sandbox.compile(claim.code());
+    sandboxEvent(claim, 0, compiled.outcome());
     if (compiled.outcome() != DockerSandbox.Outcome.OK) {
       return new Result(Verdict.CE, List.of());
     }
@@ -63,6 +67,7 @@ final class DockerJudge implements JudgeWorker.Judge {
     for (var test : tests) {
       requireLease(claim);
       var execution = sandbox.run(compiled.stdout(), test.input(), test.cpuMs(), test.memoryMb());
+      sandboxEvent(claim, results.size() + 1, execution.outcome());
       Verdict verdict =
           switch (execution.outcome()) {
             case OK -> compareOutput(execution.stdout(), test.expected()) ? Verdict.AC : Verdict.WA;
@@ -76,6 +81,15 @@ final class DockerJudge implements JudgeWorker.Judge {
       }
     }
     return new Result(overall, results);
+  }
+
+  private static void sandboxEvent(Claim claim, int test, DockerSandbox.Outcome outcome) {
+    LOG.atInfo()
+        .addKeyValue("event", test == 0 ? "sandbox_compile" : "sandbox_run")
+        .addKeyValue("submission_id", claim.submissionId())
+        .addKeyValue("test_number", test)
+        .addKeyValue("outcome", outcome)
+        .log("Sandbox phase finished");
   }
 
   private void requireLease(Claim claim) {

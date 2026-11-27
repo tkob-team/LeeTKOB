@@ -89,6 +89,19 @@ services:
       GEMINI_RPM: ${GEMINI_RPM:-}
       MODEL_OFF: ${MODEL_OFF:-}
 
+  observability:
+    image: leetkob-checker:latest
+    profiles: ['observe']
+    entrypoint: ['/app/.venv/bin/python', '-m', 'checker.operations']
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *database
+    ports:
+      - '127.0.0.1:${OPERATIONS_PORT:-9108}:9108'
+
   web:
     image: leetkob-web:latest
     build:

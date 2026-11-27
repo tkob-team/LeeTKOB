@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class SubmissionController {
 
+  private static final Logger LOG = LoggerFactory.getLogger(SubmissionController.class);
   private static final DateTimeFormatter TIME =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
 
@@ -77,8 +80,17 @@ class SubmissionController {
             code,
             sizeOf(code),
             now.truncatedTo(ChronoUnit.MILLIS));
-    if (repository.insertIfAbsent(created, key)) {
-      return json(201, created, false);
+    try {
+      if (repository.insertIfAbsent(created, key)) {
+        return json(201, created, false);
+      }
+    } catch (RuntimeException error) {
+      LOG.atError()
+          .addKeyValue("event", "submission_insert_failed")
+          .addKeyValue("submission_id", created.id())
+          .addKeyValue("error_type", error.getClass().getSimpleName())
+          .log("Submission could not be stored");
+      throw error;
     }
     // A concurrent request with the same key won; answer like a retry.
     return replayOrReject(repository.find(studentId, key).orElseThrow(), lab, code);
@@ -150,6 +162,10 @@ class SubmissionController {
     body.put("sizeBytes", submission.sizeBytes());
     ResponseEntity.BodyBuilder builder =
         ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON);
+    LOG.atInfo()
+        .addKeyValue("event", replay ? "submission_replayed" : "submission_queued")
+        .addKeyValue("submission_id", submission.id())
+        .log("Submission receipt");
     if (replay) {
       builder.header("Idempotency-Replayed", "true");
     }

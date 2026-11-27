@@ -18,6 +18,7 @@ RUN useradd --system --uid 10002 --home-dir /app leetkob
 WORKDIR /app
 COPY --from=build /app.jar /app/app.jar
 USER leetkob
+ENV LOGGING_STRUCTURED_FORMAT_CONSOLE=logstash
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]
 
 FROM api AS judge-worker

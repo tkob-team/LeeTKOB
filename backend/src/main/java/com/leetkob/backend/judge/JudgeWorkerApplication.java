@@ -28,6 +28,7 @@ public class JudgeWorkerApplication {
   public static void start(String... args) {
     new SpringApplicationBuilder(JudgeWorkerApplication.class)
         .web(WebApplicationType.NONE)
+        .properties("logging.structured.json.add.service=judge-worker")
         .run(args);
   }
 

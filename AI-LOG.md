@@ -420,6 +420,15 @@
 - Rejected: none.
 - Validation: `git diff` shows exactly three added lines in `AGENTS.md`; CI on the PR.
 
+## 2026-11-28 - PA4 observability and Gemini incident follow-up (B, Hoa)
+
+- Tool: OpenAI Codex.
+- Kept: judgment and checker behavior and lease invariants.
+- Changed: correlated JSON traces, additive V5 metrics and a private SLO dashboard.
+  The incident report records the earlier Gemini region failure and recovery.
+- Rejected: resolving an alert without a valid healthy sample or retaining sensitive
+  submission and provider inputs in traces.
+
 ## 2026-11-27 — CI: warm and share the Maven cache, retry 429 (A, Hiep)
 
 - Tool: Claude Code (Claude Opus 5.5).
