@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -252,6 +254,44 @@ describe('ReviewQueuePage', () => {
     const panel = screen.getByRole('complementary', { name: 'Bài nộp dddddddd, ràng buộc C1' });
     expect(within(panel).getByRole('heading')).toHaveTextContent(
       'C1 · bài nộp dddddddd (không được tính)',
+    );
+  });
+
+  it('gives every submission block a badge: counted, or a neutral "Không tính điểm"', async () => {
+    request.mockResolvedValue(
+      queue([
+        item({ counted: true }),
+        item({ submissionId: 'dddddddd-0000-4000-8000-000000000004', counted: false }),
+        item({
+          submissionId: 'eeeeeeee-0000-4000-8000-000000000005',
+          counted: false,
+          reviewStatus: 'reviewing',
+          needsReview: false,
+        }),
+      ]),
+    );
+    renderAt(`/ta/labs/${labId}/review`);
+
+    const counted = await screen.findByRole('region', { name: 'Bài nộp aaaaaaaa' });
+    expect(within(counted).getByText('Được tính điểm')).toHaveClass('lk-tag');
+    expect(within(counted).getByText('Được tính điểm')).not.toHaveClass('lk-tag--muted');
+    expect(within(counted).queryByText('Không tính điểm')).toBeNull();
+    expect(counted).not.toHaveClass('lk-submission--earlier');
+
+    for (const name of ['Bài nộp dddddddd', 'Bài nộp eeeeeeee']) {
+      const block = screen.getByRole('region', { name });
+      const badge = within(block).getByText('Không tính điểm');
+      expect(badge).toHaveClass('lk-tag', 'lk-tag--muted');
+      expect(within(block).queryByText('Được tính điểm')).toBeNull();
+      expect(block).toHaveClass('lk-panel', 'lk-submission', 'lk-submission--earlier');
+    }
+
+    const css = readFileSync(join(process.cwd(), 'src/components/ui/ui-extra.css'), 'utf8');
+    expect(css).toMatch(
+      /\.lk-tag\.lk-tag--muted \{[^}]*background: var\(--surface-sunken\);[^}]*color: var\(--ink-muted\);/,
+    );
+    expect(css).toMatch(
+      /\.lk-submission\.lk-submission--earlier \{[^}]*background: var\(--surface\);[^}]*border-style: dashed;/,
     );
   });
 

@@ -347,12 +347,24 @@ a.lk-btn {
 .lk-tag {
   display: inline-flex;
   padding: 0 var(--space-2);
+  border: 1px solid var(--brand);
   border-radius: var(--radius-sm);
   background: var(--brand);
   color: var(--on-brand);
   font-size: var(--small-font-size);
   line-height: var(--small-line-height);
   font-weight: var(--label-font-weight);
+}
+/* Earlier submissions (not counted): neutral badge, paler ground and a dashed outline, so a
+ * single block is recognisable without its section heading. */
+.lk-tag.lk-tag--muted {
+  border-color: var(--border);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+}
+.lk-submission.lk-submission--earlier {
+  background: var(--surface);
+  border-style: dashed;
 }
 @media (max-width: 960px) {
   .lk-review {

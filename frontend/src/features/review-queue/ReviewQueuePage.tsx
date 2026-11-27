@@ -204,7 +204,8 @@ function LabReviewQueue({ labId }: { labId: string }) {
   );
 }
 
-/** One submission: anonymous student, counted tag, time with seconds, test result, findings. */
+/** One submission: anonymous student, counted or not-counted badge, time with seconds, test
+ * result, findings. */
 function SubmissionBlock({
   item,
   selectedId,
@@ -216,11 +217,22 @@ function SubmissionBlock({
 }) {
   const label = submissionLabel(item.submissionId);
   const rows = toRows([item]);
+  const counted = isCounted(item);
+  // Every block carries its own badge, so one block alone tells whether it counts.
   return (
-    <section className="lk-panel lk-submission" aria-label={`Bài nộp ${label}`}>
+    <section
+      className={
+        counted ? 'lk-panel lk-submission' : 'lk-panel lk-submission lk-submission--earlier'
+      }
+      aria-label={`Bài nộp ${label}`}
+    >
       <header className="lk-submission__head">
         <h3 className="lk-submission__student">{studentLabel(item.student.id)}</h3>
-        {isCounted(item) ? <span className="lk-tag">Được tính điểm</span> : null}
+        {counted ? (
+          <span className="lk-tag">Được tính điểm</span>
+        ) : (
+          <span className="lk-tag lk-tag--muted">Không tính điểm</span>
+        )}
         <span>
           Nộp lúc <time dateTime={item.submittedAt}>{formatSubmittedAt(item.submittedAt)}</time>
         </span>
