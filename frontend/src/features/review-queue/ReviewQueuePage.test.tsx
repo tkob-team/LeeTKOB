@@ -233,10 +233,16 @@ describe('ReviewQueuePage', () => {
     );
     renderAt(`/ta/labs/${labId}/review`);
 
-    const earlier = await screen.findByRole('region', { name: 'Các lần nộp trước của sinh viên' });
+    const earlier = await screen.findByRole('region', {
+      name: 'Các lần nộp cũ hơn (không tính điểm)',
+    });
     expect(
-      within(earlier).getByText('Không tính điểm, chỉ để đối chiếu với lần nộp được tính.'),
+      within(earlier).getByText('Bài AC sinh viên nộp trước lần được tính, chỉ để tham khảo.'),
     ).toBeInTheDocument();
+    expect(within(earlier).getByRole('heading', { level: 2 }).textContent).toBe(
+      'Các lần nộp cũ hơn (không tính điểm)',
+    );
+    expect(screen.queryByText('Các lần nộp trước của sinh viên')).toBeNull();
     const counted = screen.getByRole('region', { name: 'Bài nộp aaaaaaaa' });
     const earlierBlock = within(earlier).getByRole('region', { name: 'Bài nộp dddddddd' });
     const reviewingBlock = within(earlier).getByRole('region', { name: 'Bài nộp eeeeeeee' });
@@ -302,7 +308,7 @@ describe('ReviewQueuePage', () => {
     await screen.findByRole('table');
     expect(screen.getAllByRole('table')).toHaveLength(1);
     expect(
-      screen.queryByRole('region', { name: 'Các lần nộp trước của sinh viên' }),
+      screen.queryByRole('region', { name: 'Các lần nộp cũ hơn (không tính điểm)' }),
     ).not.toBeInTheDocument();
   });
 

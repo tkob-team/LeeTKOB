@@ -149,10 +149,10 @@ function LabReviewQueue({ labId }: { labId: string }) {
             {earlier.length > 0 ? (
               <section className="lk-section__head" aria-labelledby="earlier-title">
                 <h2 id="earlier-title" className="lk-panel__title">
-                  Các lần nộp trước của sinh viên
+                  Các lần nộp cũ hơn (không tính điểm)
                 </h2>
                 <p className="lk-page__note">
-                  Không tính điểm, chỉ để đối chiếu với lần nộp được tính.
+                  Bài AC sinh viên nộp trước lần được tính, chỉ để tham khảo.
                 </p>
                 {earlier.map((item) => (
                   <SubmissionBlock
