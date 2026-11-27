@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -231,10 +233,16 @@ describe('ReviewQueuePage', () => {
     );
     renderAt(`/ta/labs/${labId}/review`);
 
-    const earlier = await screen.findByRole('region', { name: 'Các lần nộp trước của sinh viên' });
+    const earlier = await screen.findByRole('region', {
+      name: 'Các lần nộp cũ hơn (không tính điểm)',
+    });
     expect(
-      within(earlier).getByText('Không tính điểm, chỉ để đối chiếu với lần nộp được tính.'),
+      within(earlier).getByText('Bài AC sinh viên nộp trước lần được tính, chỉ để tham khảo.'),
     ).toBeInTheDocument();
+    expect(within(earlier).getByRole('heading', { level: 2 }).textContent).toBe(
+      'Các lần nộp cũ hơn (không tính điểm)',
+    );
+    expect(screen.queryByText('Các lần nộp trước của sinh viên')).toBeNull();
     const counted = screen.getByRole('region', { name: 'Bài nộp aaaaaaaa' });
     const earlierBlock = within(earlier).getByRole('region', { name: 'Bài nộp dddddddd' });
     const reviewingBlock = within(earlier).getByRole('region', { name: 'Bài nộp eeeeeeee' });
@@ -255,6 +263,44 @@ describe('ReviewQueuePage', () => {
     );
   });
 
+  it('gives every submission block a badge: counted, or a neutral "Không tính điểm"', async () => {
+    request.mockResolvedValue(
+      queue([
+        item({ counted: true }),
+        item({ submissionId: 'dddddddd-0000-4000-8000-000000000004', counted: false }),
+        item({
+          submissionId: 'eeeeeeee-0000-4000-8000-000000000005',
+          counted: false,
+          reviewStatus: 'reviewing',
+          needsReview: false,
+        }),
+      ]),
+    );
+    renderAt(`/ta/labs/${labId}/review`);
+
+    const counted = await screen.findByRole('region', { name: 'Bài nộp aaaaaaaa' });
+    expect(within(counted).getByText('Được tính điểm')).toHaveClass('lk-tag');
+    expect(within(counted).getByText('Được tính điểm')).not.toHaveClass('lk-tag--muted');
+    expect(within(counted).queryByText('Không tính điểm')).toBeNull();
+    expect(counted).not.toHaveClass('lk-submission--earlier');
+
+    for (const name of ['Bài nộp dddddddd', 'Bài nộp eeeeeeee']) {
+      const block = screen.getByRole('region', { name });
+      const badge = within(block).getByText('Không tính điểm');
+      expect(badge).toHaveClass('lk-tag', 'lk-tag--muted');
+      expect(within(block).queryByText('Được tính điểm')).toBeNull();
+      expect(block).toHaveClass('lk-panel', 'lk-submission', 'lk-submission--earlier');
+    }
+
+    const css = readFileSync(join(process.cwd(), 'src/components/ui/ui-extra.css'), 'utf8');
+    expect(css).toMatch(
+      /\.lk-tag\.lk-tag--muted \{[^}]*background: var\(--surface-sunken\);[^}]*color: var\(--ink-muted\);/,
+    );
+    expect(css).toMatch(
+      /\.lk-submission\.lk-submission--earlier \{[^}]*background: var\(--surface\);[^}]*border-style: dashed;/,
+    );
+  });
+
   it('shows no earlier section when every item is counted', async () => {
     request.mockResolvedValue(queue([item({ counted: true })]));
     renderAt(`/ta/labs/${labId}/review`);
@@ -262,7 +308,7 @@ describe('ReviewQueuePage', () => {
     await screen.findByRole('table');
     expect(screen.getAllByRole('table')).toHaveLength(1);
     expect(
-      screen.queryByRole('region', { name: 'Các lần nộp trước của sinh viên' }),
+      screen.queryByRole('region', { name: 'Các lần nộp cũ hơn (không tính điểm)' }),
     ).not.toBeInTheDocument();
   });
 
@@ -426,6 +472,32 @@ describe('ReviewQueuePage', () => {
       within(alert).getByText('Lab không tồn tại hoặc bạn không phải TA của lớp có lab này.'),
     ).toBeInTheDocument();
     expect(within(alert).queryByText(/Lab not found/)).not.toBeInTheDocument();
+  });
+
+  it('on 404 drops the auto-refresh note and links back to the lab list', async () => {
+    request.mockRejectedValue(
+      new ApiProblemError({
+        type: 'urn:leetkob:problem:lab-not-found',
+        title: 'Lab not found',
+        status: 404,
+      }),
+    );
+    renderAt(`/ta/labs/${labId}/review`);
+
+    await screen.findByRole('alert');
+    expect(screen.queryByText(/Tự làm mới/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Về danh sách lab' })).toHaveAttribute(
+      'href',
+      '/ta/labs',
+    );
+  });
+
+  it('keeps the auto-refresh note while the queue loads normally', async () => {
+    request.mockResolvedValue(queue([item({})]));
+    renderAt(`/ta/labs/${labId}/review`);
+
+    expect(await screen.findByText(/Tự làm mới mỗi 15 giây/)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Về danh sách lab' })).toBeNull();
   });
 
   it('keeps other problems as the server sent them', async () => {

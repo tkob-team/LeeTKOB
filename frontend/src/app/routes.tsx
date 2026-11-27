@@ -6,12 +6,20 @@ import { StudentLabPage, StudentLabsPage } from '../features/lab-view/StudentLab
 import { ReviewQueuePage } from '../features/review-queue/ReviewQueuePage';
 import { SubmitJudgePage } from '../features/submit-judge/SubmitJudgePage';
 import { StudentLayout, TaLayout } from './AppLayout';
-import { EmptyState } from './EmptyState';
+import { NotFoundPage } from './NotFoundPage';
+import { PublicLayout } from './PublicLayout';
 import { HomeRedirect, RequireRole } from './RequireRole';
 
 export const routes: RouteObject[] = [
   { path: '/', element: <HomeRedirect /> },
-  { path: '/login', element: <LoginPage /> },
+  {
+    path: '/login',
+    element: (
+      <PublicLayout>
+        <LoginPage />
+      </PublicLayout>
+    ),
+  },
   {
     path: '/ta',
     element: (
@@ -46,9 +54,9 @@ export const routes: RouteObject[] = [
   {
     path: '*',
     element: (
-      <main className="lk-page lk-page--narrow">
-        <EmptyState title="Không tìm thấy trang">Đường dẫn này không tồn tại.</EmptyState>
-      </main>
+      <PublicLayout>
+        <NotFoundPage />
+      </PublicLayout>
     ),
   },
 ];

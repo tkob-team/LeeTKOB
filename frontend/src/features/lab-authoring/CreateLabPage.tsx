@@ -106,8 +106,8 @@ export function CreateLabPage() {
           Tạo lab
         </h1>
         <p className="lk-page__note">
-          Nhập từ file theo bố cục eval/dev/problems/&lt;id&gt;/: chọn cùng lúc statement.md,
-          constraints.json và các file tests/NN.in, NN.out. Sau khi nhập vẫn sửa tay được.
+          Chọn cùng lúc file đề (.md), file ràng buộc (.json) và các file test (NN.in, NN.out). Sau
+          khi nhập vẫn sửa tay được.
         </p>
         <div className="lk-row">
           <Button
@@ -115,7 +115,7 @@ export function CreateLabPage() {
               fileInput.current?.click();
             }}
           >
-            NHẬP TỪ FILE
+            Nhập từ file
           </Button>
           <input
             ref={fileInput}
@@ -149,7 +149,7 @@ export function CreateLabPage() {
 
       {problem ? <ProblemAlert problem={problem} showType /> : null}
 
-      <section className="lk-panel" aria-label="Thông tin chung">
+      <section className="lk-panel lk-form-panel" aria-label="Thông tin chung">
         <FormField label="Tiêu đề" error={errors.title}>
           <input
             value={title}
@@ -172,7 +172,7 @@ export function CreateLabPage() {
             }}
           />
         </FormField>
-        <div className="lk-row">
+        <div className="lk-cols">
           <FormField label="Mở lúc" error={errors.opensAt}>
             <input
               type="datetime-local"
@@ -192,7 +192,7 @@ export function CreateLabPage() {
             />
           </FormField>
         </div>
-        <div className="lk-row">
+        <div className="lk-cols">
           <FormField
             label="Thời gian CPU (ms)"
             error={errors.cpuTimeMs}
@@ -233,7 +233,7 @@ export function CreateLabPage() {
           return (
             <fieldset key={index} className="lk-fieldset">
               <legend>Ràng buộc {index + 1}</legend>
-              <div className="lk-row">
+              <div className="lk-cols">
                 <FormField label="Mã" error={errors[`${path}.code`]}>
                   <input
                     value={constraint.code}
@@ -255,14 +255,6 @@ export function CreateLabPage() {
                     }}
                   />
                 </FormField>
-                <Button
-                  variant="danger"
-                  onClick={() => {
-                    setConstraints(constraints.filter((_, i) => i !== index));
-                  }}
-                >
-                  Xoá ràng buộc {index + 1}
-                </Button>
               </div>
               <FormField label="Nội dung" error={errors[`${path}.text`]}>
                 <textarea
@@ -273,6 +265,16 @@ export function CreateLabPage() {
                   }}
                 />
               </FormField>
+              <div>
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setConstraints(constraints.filter((_, i) => i !== index));
+                  }}
+                >
+                  Xoá ràng buộc {index + 1}
+                </Button>
+              </div>
             </fieldset>
           );
         })}
@@ -304,8 +306,8 @@ export function CreateLabPage() {
           return (
             <fieldset key={index} className="lk-fieldset">
               <legend>Test {index + 1}</legend>
-              <div className="lk-row">
-                <FormField label={`Input ${String(index + 1)}`} error={errors[`${path}.input`]}>
+              <div className="lk-cols">
+                <FormField label={`Đầu vào ${String(index + 1)}`} error={errors[`${path}.input`]}>
                   <textarea
                     className="lk-code-input"
                     rows={4}
@@ -316,7 +318,7 @@ export function CreateLabPage() {
                   />
                 </FormField>
                 <FormField
-                  label={`Output ${String(index + 1)}`}
+                  label={`Đầu ra mong đợi ${String(index + 1)}`}
                   error={errors[`${path}.expectedOutput`]}
                 >
                   <textarea
@@ -328,6 +330,8 @@ export function CreateLabPage() {
                     }}
                   />
                 </FormField>
+              </div>
+              <div>
                 <Button
                   variant="danger"
                   disabled={tests.length === 1}

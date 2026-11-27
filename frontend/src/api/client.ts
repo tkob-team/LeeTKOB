@@ -102,6 +102,17 @@ export function createApiClient({
   };
 }
 
+/** localStorage key of the bearer token; app/AuthProvider.tsx writes it with the session. */
+export const TOKEN_KEY = 'leetkob.token';
+
+function storedToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
 const unauthorizedListeners = new Set<() => void>();
 
 /** Subscribes to 401 answers of `api` for signed-in requests; returns the unsubscribe function. */
@@ -114,7 +125,7 @@ export function onUnauthorized(listener: () => void): () => void {
 
 export const api = createApiClient({
   baseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
-  getToken: () => sessionStorage.getItem('leetkob.token'),
+  getToken: storedToken,
   onUnauthorized: () => {
     unauthorizedListeners.forEach((listener) => {
       listener();

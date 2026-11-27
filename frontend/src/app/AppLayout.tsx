@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router';
+import { Link, matchPath, Outlet, useLocation, useNavigate } from 'react-router';
 import { Button } from '../components/ui';
 import { homePath, useAuth } from './auth-context';
 import { ThemeToggle } from './ThemeToggle';
@@ -6,6 +6,14 @@ import { ThemeToggle } from './ThemeToggle';
 export interface NavItem {
   to: string;
   label: string;
+  /** Route patterns where this item is the current page; defaults to `to` and its sub-paths. */
+  activeOn?: string[];
+}
+
+function isActive(item: NavItem, pathname: string): boolean {
+  return (item.activeOn ?? [item.to]).some(
+    (pattern) => matchPath({ path: pattern, end: false }, pathname) !== null,
+  );
 }
 
 export interface AppLayoutProps {
@@ -18,6 +26,7 @@ export interface AppLayoutProps {
 export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
   const { session, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   return (
     <div className="lk-shell">
       <header className="lk-shell__header">
@@ -27,9 +36,14 @@ export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
           </Link>
           <nav className="lk-shell__nav" aria-label="Điều hướng chính">
             {nav.map((item) => (
-              <NavLink key={item.to} to={item.to} className="lk-shell__link">
+              <Link
+                key={item.to}
+                to={item.to}
+                className="lk-shell__link"
+                aria-current={isActive(item, pathname) ? 'page' : undefined}
+              >
                 {item.label}
-              </NavLink>
+              </Link>
             ))}
           </nav>
           <div className="lk-shell__user">
@@ -60,7 +74,14 @@ export function TaLayout() {
     <AppLayout
       width="wide"
       roleLabel="Trợ giảng"
-      nav={[{ to: '/ta/labs', label: 'Hàng chờ duyệt' }]}
+      nav={[
+        {
+          to: '/ta/labs',
+          label: 'Lab',
+          // The lab list, creating a lab and each lab's review queue belong to one menu item.
+          activeOn: ['/ta/labs', '/ta/classes/:classId/labs/new', '/ta/review-queue'],
+        },
+      ]}
     />
   );
 }

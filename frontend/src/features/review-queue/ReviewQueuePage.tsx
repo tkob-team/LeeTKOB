@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { api, ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
@@ -94,6 +94,8 @@ function LabReviewQueue({ labId }: { labId: string }) {
     };
   }, [labId, page, token]);
 
+  // A 4xx answer (no such lab, no access) stops the polling, so the page no longer refreshes.
+  const stopped = problem !== undefined && problem.status >= 400 && problem.status < 500;
   const items = queue?.items ?? [];
   const counted = items.filter(isCounted);
   const earlier = items.filter((item) => !isCounted(item));
@@ -109,15 +111,24 @@ function LabReviewQueue({ labId }: { labId: string }) {
           Hàng chờ duyệt
         </h1>
         <p>Kết quả soát ràng buộc của từng bài, chờ trợ giảng xác nhận trước khi công bố điểm.</p>
-        <p className="lk-page__note">
-          {queue?.provisional
-            ? 'Tạm tính: lab chưa hết hạn, hàng chờ đổi khi sinh viên nộp lại.'
-            : 'Bài được tính là bài nộp cuối cùng trước hạn của mỗi sinh viên.'}{' '}
-          Tự làm mới mỗi 15 giây. Bài cần duyệt (violation, unsure) xếp trước.
-        </p>
+        {stopped ? null : (
+          <p className="lk-page__note">
+            {queue?.provisional
+              ? 'Tạm tính: lab chưa hết hạn, hàng chờ đổi khi sinh viên nộp lại.'
+              : 'Bài được tính là bài nộp cuối cùng trước hạn của mỗi sinh viên.'}{' '}
+            Tự làm mới mỗi 15 giây. Bài cần duyệt (violation, unsure) xếp trước.
+          </p>
+        )}
       </header>
 
       {problem ? <ProblemAlert problem={problem} /> : null}
+      {stopped ? (
+        <p>
+          <Link className="lk-btn lk-btn--secondary" to="/ta/labs">
+            Về danh sách lab
+          </Link>
+        </p>
+      ) : null}
       {!queue && !problem ? <p className="lk-page__note">Đang tải hàng chờ…</p> : null}
 
       {queue && queue.items.length === 0 ? (
@@ -138,10 +149,10 @@ function LabReviewQueue({ labId }: { labId: string }) {
             {earlier.length > 0 ? (
               <section className="lk-section__head" aria-labelledby="earlier-title">
                 <h2 id="earlier-title" className="lk-panel__title">
-                  Các lần nộp trước của sinh viên
+                  Các lần nộp cũ hơn (không tính điểm)
                 </h2>
                 <p className="lk-page__note">
-                  Không tính điểm, chỉ để đối chiếu với lần nộp được tính.
+                  Bài AC sinh viên nộp trước lần được tính, chỉ để tham khảo.
                 </p>
                 {earlier.map((item) => (
                   <SubmissionBlock
@@ -193,7 +204,8 @@ function LabReviewQueue({ labId }: { labId: string }) {
   );
 }
 
-/** One submission: anonymous student, counted tag, time with seconds, test result, findings. */
+/** One submission: anonymous student, counted or not-counted badge, time with seconds, test
+ * result, findings. */
 function SubmissionBlock({
   item,
   selectedId,
@@ -205,11 +217,22 @@ function SubmissionBlock({
 }) {
   const label = submissionLabel(item.submissionId);
   const rows = toRows([item]);
+  const counted = isCounted(item);
+  // Every block carries its own badge, so one block alone tells whether it counts.
   return (
-    <section className="lk-panel lk-submission" aria-label={`Bài nộp ${label}`}>
+    <section
+      className={
+        counted ? 'lk-panel lk-submission' : 'lk-panel lk-submission lk-submission--earlier'
+      }
+      aria-label={`Bài nộp ${label}`}
+    >
       <header className="lk-submission__head">
         <h3 className="lk-submission__student">{studentLabel(item.student.id)}</h3>
-        {isCounted(item) ? <span className="lk-tag">Được tính điểm</span> : null}
+        {counted ? (
+          <span className="lk-tag">Được tính điểm</span>
+        ) : (
+          <span className="lk-tag lk-tag--muted">Không tính điểm</span>
+        )}
         <span>
           Nộp lúc <time dateTime={item.submittedAt}>{formatSubmittedAt(item.submittedAt)}</time>
         </span>

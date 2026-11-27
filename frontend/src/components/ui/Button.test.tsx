@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from './Button';
@@ -26,5 +28,10 @@ describe('Button', () => {
     expect(button).toBeDisabled();
     expect(button).not.toHaveClass('lk-btn--primary');
     expect(button).toHaveAccessibleDescription('Còn 3 mục trong hàng chờ duyệt');
+  });
+
+  it('draws a link with the button classes without an underline', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/ui/ui-extra.css'), 'utf8');
+    expect(css).toMatch(/a\.lk-btn\s*\{\s*text-decoration:\s*none;\s*\}/);
   });
 });

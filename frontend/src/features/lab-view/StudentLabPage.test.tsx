@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -207,5 +209,17 @@ describe('student lab statement', () => {
     renderAt('/student/labs');
     expect(await screen.findByText('Lớp của bạn chưa có lab nào.')).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('wraps a long lab title (~120 characters) in the list and on the statement page', async () => {
+    const title =
+      'Lab 7: sắp xếp trộn có đếm số lần đổi chỗ, đọc dữ liệu lớn từ bàn phím và in kết quả theo đúng định dạng đề yêu cầu';
+    request.mockResolvedValueOnce([{ id: labId, title, latestSubmissionId: null }]);
+    renderAt('/student/labs');
+    const link = await screen.findByRole('link', { name: title });
+    expect(link.closest('td')).toHaveClass('lk-wrap');
+
+    const css = readFileSync(join(process.cwd(), 'src/app/shell.css'), 'utf8');
+    expect(css).toMatch(/\.lk-page__title \{[^}]*overflow-wrap: anywhere;/);
   });
 });

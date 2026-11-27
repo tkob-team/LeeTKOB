@@ -99,7 +99,7 @@ export function TaLabsPage() {
                 <tbody>
                   {labs.map((lab) => (
                     <tr key={lab.id}>
-                      <td>{labTitle(lab.title)}</td>
+                      <td className="lk-wrap">{labTitle(lab.title)}</td>
                       <td>{formatDateTime(lab.opensAt)}</td>
                       <td>{formatDateTime(lab.dueAt)}</td>
                       <td>{lab.testCount}</td>
@@ -107,13 +107,12 @@ export function TaLabsPage() {
                       <td>
                         {lab.submissionCount} bài · {lab.studentsSubmitted} sinh viên
                       </td>
-                      <td>
+                      <td className="lk-wrap">
                         <Link
                           className="lk-btn lk-btn--secondary"
                           to={`/ta/labs/${encodeURIComponent(lab.id)}/review`}
-                          aria-label={`Hàng chờ duyệt: ${labTitle(lab.title)}`}
                         >
-                          Hàng chờ duyệt
+                          Hàng chờ duyệt: {labTitle(lab.title)}
                         </Link>
                       </td>
                     </tr>

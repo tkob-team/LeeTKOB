@@ -37,11 +37,11 @@ function stubFetch(login: () => Response, other: () => Response = () => json([])
 }
 
 function storeSession(role: 'ta' | 'student', token: string) {
-  sessionStorage.setItem(
+  localStorage.setItem(
     'leetkob.session',
     JSON.stringify({ token, role, email: 'sv01@truong.edu.vn', displayName: 'SV' }),
   );
-  sessionStorage.setItem('leetkob.token', token);
+  localStorage.setItem('leetkob.token', token);
 }
 
 afterEach(() => {
@@ -59,8 +59,9 @@ describe('app shell routes', () => {
   it('shows field errors before sending a request', async () => {
     renderAt('/login');
     fireEvent.click(await screen.findByRole('button', { name: 'Đăng nhập' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa đăng nhập được');
-    expect(screen.getByLabelText('Mật khẩu')).toHaveAccessibleDescription('Nhập mật khẩu.');
+    expect(await screen.findByLabelText('Mật khẩu')).toHaveAccessibleDescription('Nhập mật khẩu.');
+    expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Nhập email.');
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('signs a TA in, returns to the requested page, and keeps students out', async () => {
@@ -149,7 +150,7 @@ describe('app shell routes', () => {
 
     expect(await screen.findByText(/sv01 · Sinh viên/)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/student/submit');
-    expect(sessionStorage.getItem('leetkob.token')).toBe(token);
+    expect(localStorage.getItem('leetkob.token')).toBe(token);
   });
 
   it('shows one message for a wrong email or password and stays signed out', async () => {
@@ -174,7 +175,7 @@ describe('app shell routes', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Sai email hoặc mật khẩu');
     expect(router.state.location.pathname).toBe('/login');
-    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
   });
 
   it('drops a stored session whose token has expired', async () => {
@@ -182,7 +183,7 @@ describe('app shell routes', () => {
     const router = renderAt('/student/submit');
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/login');
-    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
   });
 
   it('signs out when the token expires while the page is open', async () => {
@@ -216,6 +217,89 @@ describe('app shell routes', () => {
     const router = renderAt('/student/submit');
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/login');
+    expect(localStorage.getItem('leetkob.session')).toBeNull();
+  });
+
+  it.each([
+    [null, '/'],
+    ['ta' as const, '/ta/labs'],
+    ['student' as const, '/student/labs'],
+  ])('the 404 page (signed in as %s) links back to the lab list at %s', async (role, href) => {
+    stubFetch(() => json({}));
+    if (role) storeSession(role, fakeToken(role === 'ta' ? 'TA' : 'STUDENT'));
+    renderAt('/no/such/page');
+    expect(await screen.findByRole('heading', { name: 'Không tìm thấy trang' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Về danh sách lab' })).toHaveAttribute('href', href);
+    expect(screen.queryByText(/Tự làm mới/)).toBeNull();
+  });
+
+  it('keeps the session in localStorage, so a new tab is signed in too', async () => {
+    const token = fakeToken('TA');
+    stubFetch(() => json({ token, role: 'TA', displayName: 'Thay Ta' }));
+    renderAt('/login');
+    fireEvent.change(await screen.findByLabelText('Email'), {
+      target: { value: 'ta01@truong.edu.vn' },
+    });
+    fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'x' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
+    await screen.findByText(/Thay Ta/);
+
+    expect(localStorage.getItem('leetkob.token')).toBe(token);
+    expect(JSON.parse(localStorage.getItem('leetkob.session') ?? 'null')).toMatchObject({
+      token,
+      role: 'ta',
+    });
     expect(sessionStorage.getItem('leetkob.session')).toBeNull();
+    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+  });
+
+  it('moves a session saved in sessionStorage by an older build to localStorage once', async () => {
+    stubFetch(() => json({}));
+    const token = fakeToken('STUDENT');
+    sessionStorage.setItem(
+      'leetkob.session',
+      JSON.stringify({ token, role: 'student', email: 'sv01@truong.edu.vn', displayName: 'SV' }),
+    );
+    sessionStorage.setItem('leetkob.token', token);
+    const router = renderAt('/student/submit');
+
+    expect(await screen.findByText(/SV · Sinh viên/)).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/student/submit');
+    expect(localStorage.getItem('leetkob.token')).toBe(token);
+    expect(localStorage.getItem('leetkob.session')).not.toBeNull();
+    expect(sessionStorage.getItem('leetkob.session')).toBeNull();
+    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+  });
+
+  it('signs out and returns to /login when another tab signs out (storage event)', async () => {
+    stubFetch(() => json({}));
+    storeSession('student', fakeToken('STUDENT'));
+    const router = renderAt('/student/submit');
+    await screen.findByText(/SV · Sinh viên/);
+
+    // What the browser does in this tab when another tab removes the session.
+    localStorage.removeItem('leetkob.session');
+    localStorage.removeItem('leetkob.token');
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: 'leetkob.session', oldValue: 'x', newValue: null }),
+      );
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/login');
+  });
+
+  it('ignores storage events for other keys', async () => {
+    stubFetch(() => json({}));
+    storeSession('student', fakeToken('STUDENT'));
+    const router = renderAt('/student/submit');
+    await screen.findByText(/SV · Sinh viên/);
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'leetkob.theme', newValue: 'dark' }));
+    });
+    expect(screen.getByText(/SV · Sinh viên/)).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/student/submit');
   });
 });
