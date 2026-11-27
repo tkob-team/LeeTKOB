@@ -35,6 +35,8 @@ make test
 - Configuration comes from environment variables listed in `.env.example` (names only, no values).
 - Verify the exact `make` entry points in the documented shell before claiming success: manual Git Bash commands passed while the WSL make run failed on missing uv/JDK 17 ([T01 incident record, b76ccd5](https://github.com/tkob-team/LeeTKOB/blob/b76ccd5/AI-LOG.md)).
 - Pass permission-probe arguments as arrays, not an unquoted zsh string: word splitting produced incorrect results in T07 ([incident record, d4b4efd](https://github.com/tkob-team/LeeTKOB/blob/d4b4efde27f06ba091fdf43d3ccf4f3999532af5/AI-LOG.md#2026-11-10--t07-codex-permissions-and-trust-step-hoa)).
+- Frontend code must not rely on secure-context-only APIs such as `crypto.randomUUID`: the deployment may run over plain HTTP ([PR #39](https://github.com/tkob-team/LeeTKOB/pull/39)).
+- Behind a proxy, per-IP limits take the client address from `X-Forwarded-For` set by a trusted proxy only ([PR #33](https://github.com/tkob-team/LeeTKOB/pull/33), [#42](https://github.com/tkob-team/LeeTKOB/pull/42)).
 
 ## Never
 
@@ -59,6 +61,7 @@ What is runtime-enforced and what remains an instruction: see `docs/pa2/agent-pe
 - Edit `Makefile`, `.github/`, or database migrations.
 - `git commit`, `git push`, creating or merging a pull request, Docker commands.
 - Any command that needs network access or writes outside the repository.
+- `git checkout --` or `git restore` on a file with uncommitted changes: it reverted the agent's own nginx.conf edits ([PR #42](https://github.com/tkob-team/LeeTKOB/pull/42)).
 
 **Never (policy; matching shell commands are blocked)**
 - Read or edit `.env` or any file holding real secrets.
