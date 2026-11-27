@@ -37,6 +37,17 @@ function formProblem(problem: ProblemDetails): ProblemDetails {
   return localizeProblem(problem);
 }
 
+/** Failed sign-ins after which both fields keep their values: 401, 429 and no connection (0). */
+const RETRY_STATUSES = new Set([0, 401, 429]);
+
+/** Focuses the field with the caret after the last character, without selecting the text. */
+function focusAtEnd(input: HTMLInputElement | null) {
+  if (!input) return;
+  input.focus();
+  const end = input.value.length;
+  input.setSelectionRange(end, end);
+}
+
 export function LoginPage() {
   const { session, signOutReason, login } = useAuth();
   const [searchParams] = useSearchParams();
@@ -96,10 +107,10 @@ export function LoginPage() {
       } else {
         setProblem(formProblem(failed));
       }
-      if (failed.status === 401) {
-        // Wrong email or password: keep the email, ask for the password again.
-        setPassword('');
-        passwordInput.current?.focus();
+      if (RETRY_STATUSES.has(failed.status) && !serverErrors.email && !serverErrors.password) {
+        // Wrong password, too many attempts or no network: nothing typed is lost; the user can
+        // fix the password where they left it.
+        focusAtEnd(passwordInput.current);
       }
     } finally {
       sending.current = false;

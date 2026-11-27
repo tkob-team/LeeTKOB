@@ -89,7 +89,7 @@ describe('login form errors', () => {
     expect(login).not.toHaveBeenCalled();
   });
 
-  it('on a wrong email or password (401) alerts above the button, keeps the email, clears and focuses the password', async () => {
+  it('on a wrong email or password (401) alerts above the button, keeps both fields, focuses the password', async () => {
     renderLogin(
       rejectWith({
         type: 'urn:leetkob:problem:invalid-credentials',
@@ -107,7 +107,8 @@ describe('login form errors', () => {
     expect(alert.nextElementSibling).toBe(button.parentElement);
     expect(screen.getByRole('heading', { name: 'Đăng nhập' }).nextElementSibling).not.toBe(alert);
     expect(screen.getByLabelText('Email')).toHaveValue('sv01@truong.edu.vn');
-    expect(screen.getByLabelText('Mật khẩu')).toHaveValue('');
+    // fix/login-password-field: the password is kept (was cleared), so a typo can be fixed.
+    expect(screen.getByLabelText('Mật khẩu')).toHaveValue('wrong');
     expect(screen.getByLabelText('Mật khẩu')).toHaveFocus();
   });
 
