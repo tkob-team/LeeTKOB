@@ -428,6 +428,32 @@ describe('ReviewQueuePage', () => {
     expect(within(alert).queryByText(/Lab not found/)).not.toBeInTheDocument();
   });
 
+  it('on 404 drops the auto-refresh note and links back to the lab list', async () => {
+    request.mockRejectedValue(
+      new ApiProblemError({
+        type: 'urn:leetkob:problem:lab-not-found',
+        title: 'Lab not found',
+        status: 404,
+      }),
+    );
+    renderAt(`/ta/labs/${labId}/review`);
+
+    await screen.findByRole('alert');
+    expect(screen.queryByText(/Tự làm mới/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Về danh sách lab' })).toHaveAttribute(
+      'href',
+      '/ta/labs',
+    );
+  });
+
+  it('keeps the auto-refresh note while the queue loads normally', async () => {
+    request.mockResolvedValue(queue([item({})]));
+    renderAt(`/ta/labs/${labId}/review`);
+
+    expect(await screen.findByText(/Tự làm mới mỗi 15 giây/)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Về danh sách lab' })).toBeNull();
+  });
+
   it('keeps other problems as the server sent them', async () => {
     request.mockRejectedValue(
       new ApiProblemError({

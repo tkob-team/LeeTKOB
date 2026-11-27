@@ -218,4 +218,17 @@ describe('app shell routes', () => {
     expect(router.state.location.pathname).toBe('/login');
     expect(sessionStorage.getItem('leetkob.session')).toBeNull();
   });
+
+  it.each([
+    [null, '/'],
+    ['ta' as const, '/ta/labs'],
+    ['student' as const, '/student/labs'],
+  ])('the 404 page (signed in as %s) links back to the lab list at %s', async (role, href) => {
+    stubFetch(() => json({}));
+    if (role) storeSession(role, fakeToken(role === 'ta' ? 'TA' : 'STUDENT'));
+    renderAt('/no/such/page');
+    expect(await screen.findByRole('heading', { name: 'Không tìm thấy trang' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Về danh sách lab' })).toHaveAttribute('href', href);
+    expect(screen.queryByText(/Tự làm mới/)).toBeNull();
+  });
 });
