@@ -226,6 +226,20 @@ a.lk-btn {
 }
 .lk-table td.lk-wrap {
   white-space: normal;
+  overflow-wrap: anywhere;
+  /* Keeps a long lab title readable instead of squeezing it to a few letters per line. */
+  min-width: 16ch;
+}
+/* A button in a wrapping cell (the queue button with the lab title) wraps with it. */
+.lk-table td.lk-wrap .lk-btn {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* Headings and the lab picker that carry a lab name never run past the page edge. */
+.lk-panel__title,
+.lk-field select {
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 /* Markdown: rendered lab statements and inline constraint text. */

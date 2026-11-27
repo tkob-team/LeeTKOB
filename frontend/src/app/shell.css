@@ -96,6 +96,8 @@
 
 .lk-page__title {
   margin: 0;
+  /* A lab title can be one long line (~120 characters): wrap it, never overflow. */
+  overflow-wrap: anywhere;
   font-size: var(--title-font-size);
   line-height: var(--title-line-height);
   font-weight: var(--title-font-weight);
@@ -103,6 +105,7 @@
 
 .lk-page__note {
   margin: 0;
+  overflow-wrap: anywhere;
   font-size: var(--small-font-size);
   line-height: var(--small-line-height);
   color: var(--ink-muted);

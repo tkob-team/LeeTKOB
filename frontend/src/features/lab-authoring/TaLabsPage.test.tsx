@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -94,5 +96,32 @@ describe('TA lab list', () => {
     });
     expect(link).toHaveTextContent('Hàng chờ duyệt: Sorting with merge sort');
     expect(link).not.toHaveAttribute('aria-label');
+  });
+
+  it('wraps a long lab title (~120 characters) in its cell and in the queue button', async () => {
+    const title =
+      'Lab 7: sắp xếp trộn có đếm số lần đổi chỗ, đọc dữ liệu lớn từ bàn phím và in kết quả theo đúng định dạng đề yêu cầu';
+    expect(title.length).toBeGreaterThanOrEqual(110);
+    request
+      .mockResolvedValueOnce([{ id: classId, name: 'CTT1' }])
+      .mockResolvedValueOnce([{ ...lab, title }]);
+    render(
+      <MemoryRouter>
+        <TaLabsPage />
+      </MemoryRouter>,
+    );
+    const link = await screen.findByRole('link', { name: `Hàng chờ duyệt: ${title}` });
+    const row = link.closest('tr');
+    if (!row) throw new Error('expected a table row');
+    const [titleCell] = within(row).getAllByRole('cell');
+    expect(titleCell).toHaveTextContent(title);
+    expect(titleCell).toHaveClass('lk-wrap');
+    expect(link.closest('td')).toHaveClass('lk-wrap');
+
+    const css = readFileSync(join(process.cwd(), 'src/components/ui/ui-extra.css'), 'utf8');
+    expect(css).toMatch(
+      /\.lk-table td\.lk-wrap \{[^}]*white-space: normal;[^}]*overflow-wrap: anywhere;/,
+    );
+    expect(css).toMatch(/\.lk-table td\.lk-wrap \.lk-btn \{[^}]*white-space: normal;/);
   });
 });
