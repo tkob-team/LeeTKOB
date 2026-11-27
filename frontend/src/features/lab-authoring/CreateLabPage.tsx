@@ -5,6 +5,7 @@ import { localizedFieldErrors, problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { Button, FormField, ProblemAlert } from '../../components/ui';
 import type { LabDetail, NewLab } from './lab-api';
+import { dateErrors, toIso, type DateErrors } from './lab-dates';
 import {
   importLabFiles,
   type DraftConstraint,
@@ -14,11 +15,14 @@ import {
 
 const EMPTY_TEST: DraftTest = { input: '', expectedOutput: '' };
 
-/** `datetime-local` value (viewer's time zone) to RFC 3339 UTC, or '' when empty/invalid. */
-function toIso(local: string): string {
-  if (!local) return '';
-  const date = new Date(local);
-  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+/** Moves the viewer to a field with an error: focus, and scroll it to the middle of the screen. */
+function reveal(input: HTMLInputElement | null) {
+  if (!input) return;
+  input.focus();
+  // Not every environment implements scrollIntoView (jsdom).
+  if (typeof input.scrollIntoView === 'function') {
+    input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
 }
 
 function replaceAt<T>(items: T[], index: number, next: T): T[] {
@@ -29,6 +33,9 @@ export function CreateLabPage() {
   const { classId = '' } = useParams();
   const navigate = useNavigate();
   const fileInput = useRef<HTMLInputElement>(null);
+  const opensAtInput = useRef<HTMLInputElement>(null);
+  const dueAtInput = useRef<HTMLInputElement>(null);
+  const [dateProblems, setDateProblems] = useState<DateErrors>({});
   const [title, setTitle] = useState('');
   const [statementMd, setStatementMd] = useState('');
   const [opensAt, setOpensAt] = useState('');
@@ -40,7 +47,20 @@ export function CreateLabPage() {
   const [imported, setImported] = useState<ImportResult>();
   const [problem, setProblem] = useState<ProblemDetails>();
   const [pending, setPending] = useState(false);
-  const errors = localizedFieldErrors(problem);
+  const errors: Record<string, string> = { ...localizedFieldErrors(problem), ...dateProblems };
+
+  /** A changed date drops the errors shown for both dates (client check and server answer). */
+  function clearDateErrors() {
+    setDateProblems({});
+    setProblem((current) =>
+      current?.errors
+        ? {
+            ...current,
+            errors: current.errors.filter((e) => e.field !== 'opensAt' && e.field !== 'dueAt'),
+          }
+        : current,
+    );
+  }
 
   async function importFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -56,6 +76,14 @@ export function CreateLabPage() {
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    const invalidDates = dateErrors(opensAt, dueAt);
+    setDateProblems(invalidDates);
+    if (invalidDates.opensAt || invalidDates.dueAt) {
+      setProblem(undefined);
+      reveal(invalidDates.opensAt ? opensAtInput.current : dueAtInput.current);
+      return;
+    }
+    // toIso always ends in `Z`, so the server never has to guess the time zone.
     const body: NewLab = {
       title,
       statementMd,
@@ -166,19 +194,27 @@ export function CreateLabPage() {
         <div className="lk-cols">
           <FormField label="Mở lúc" error={errors.opensAt}>
             <input
+              ref={opensAtInput}
               type="datetime-local"
+              required
+              aria-required="true"
               value={opensAt}
               onChange={(e) => {
                 setOpensAt(e.target.value);
+                clearDateErrors();
               }}
             />
           </FormField>
           <FormField label="Hạn nộp" error={errors.dueAt}>
             <input
+              ref={dueAtInput}
               type="datetime-local"
+              required
+              aria-required="true"
               value={dueAt}
               onChange={(e) => {
                 setDueAt(e.target.value);
+                clearDateErrors();
               }}
             />
           </FormField>

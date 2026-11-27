@@ -103,6 +103,9 @@ describe('create lab form', () => {
     renderPage();
     chooseFiles(sortMerge);
     await screen.findByRole('heading', { name: 'Đã nhập từ file' });
+    // UI-3: both dates are required before anything is sent.
+    fireEvent.change(screen.getByLabelText('Mở lúc'), { target: { value: '2026-11-24T08:00' } });
+    fireEvent.change(screen.getByLabelText('Hạn nộp'), { target: { value: '2026-12-01T23:59' } });
     request.mockRejectedValueOnce(
       new ApiProblemError({
         type: 'urn:leetkob:problem:invalid-request',
