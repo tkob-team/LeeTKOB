@@ -72,22 +72,56 @@ describe('theme', () => {
     expect(currentTheme()).toBe('light');
   });
 
-  it('the switch shows the theme, and switching applies and saves it', () => {
+  it('shows "Sáng | Tối" as a radio group; the theme in use is checked', () => {
     systemPrefersDark(true);
     render(<ThemeToggle />);
-    const toggle = screen.getByRole('switch', { name: 'Giao diện tối' });
-    expect(toggle).toBeChecked();
+    const group = screen.getByRole('radiogroup', { name: 'Giao diện' });
+    const radios = within(group).getAllByRole('radio');
+    expect(radios.map((radio) => radio.textContent)).toEqual(['Sáng', 'Tối']);
+    const light = within(group).getByRole('radio', { name: 'Sáng' });
+    const dark = within(group).getByRole('radio', { name: 'Tối' });
+    expect(dark).toHaveAttribute('aria-checked', 'true');
+    expect(light).toHaveAttribute('aria-checked', 'false');
+    expect(dark).toHaveAttribute('tabindex', '0');
+    expect(light).toHaveAttribute('tabindex', '-1');
+    expect(screen.queryByRole('switch')).toBeNull();
+  });
 
-    fireEvent.click(toggle);
-    expect(toggle).not.toBeChecked();
-    expect(toggle).toHaveAccessibleName('Giao diện tối');
+  it('clicking "Sáng" switches the theme and saves it; "Tối" switches back', () => {
+    systemPrefersDark(true);
+    render(<ThemeToggle />);
+    const light = screen.getByRole('radio', { name: 'Sáng' });
+    const dark = screen.getByRole('radio', { name: 'Tối' });
+
+    fireEvent.click(light);
+    expect(light).toHaveAttribute('aria-checked', 'true');
+    expect(dark).toHaveAttribute('aria-checked', 'false');
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(localStorage.getItem(THEME_KEY)).toBe('light');
 
-    fireEvent.click(toggle);
-    expect(toggle).toBeChecked();
+    fireEvent.click(dark);
+    expect(dark).toHaveAttribute('aria-checked', 'true');
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(localStorage.getItem(THEME_KEY)).toBe('dark');
+  });
+
+  it('arrow keys move the choice and the focus to the other option', () => {
+    systemPrefersDark(false);
+    render(<ThemeToggle />);
+    const light = screen.getByRole('radio', { name: 'Sáng' });
+    light.focus();
+    fireEvent.keyDown(light, { key: 'ArrowRight' });
+    const dark = screen.getByRole('radio', { name: 'Tối' });
+    expect(dark).toHaveAttribute('aria-checked', 'true');
+    expect(dark).toHaveFocus();
+    expect(localStorage.getItem(THEME_KEY)).toBe('dark');
+  });
+
+  it('fills the option in use with the brand token', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/shell.css'), 'utf8');
+    expect(css).toMatch(
+      /\.lk-theme-choice__option\[aria-checked='true'\] \{\s*background: var\(--brand\);\s*color: var\(--on-brand\);\s*\}/,
+    );
   });
 
   it('cross-fades colours briefly after a switch', () => {
@@ -95,7 +129,7 @@ describe('theme', () => {
     try {
       systemPrefersDark(false);
       render(<ThemeToggle />);
-      fireEvent.click(screen.getByRole('switch', { name: 'Giao diện tối' }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Tối' }));
       expect(document.documentElement).toHaveClass(THEME_CHANGING_CLASS);
       vi.advanceTimersByTime(THEME_TRANSITION_MS);
       expect(document.documentElement).not.toHaveClass(THEME_CHANGING_CLASS);
@@ -107,7 +141,7 @@ describe('theme', () => {
   it('switches without a cross-fade when the viewer prefers reduced motion', () => {
     systemPrefersDark(false, true);
     render(<ThemeToggle />);
-    fireEvent.click(screen.getByRole('switch', { name: 'Giao diện tối' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Tối' }));
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(document.documentElement).not.toHaveClass(THEME_CHANGING_CLASS);
   });
@@ -125,7 +159,10 @@ describe('app header', () => {
     );
     const header = screen.getByRole('banner');
     expect(within(header).getByRole('link', { name: 'LeeTKOB' })).toHaveAttribute('href', home);
-    expect(within(header).getByRole('switch', { name: 'Giao diện tối' })).toBeVisible();
+    const group = within(header).getByRole('radiogroup', { name: 'Giao diện' });
+    expect(group).toHaveClass('lk-theme-choice');
+    expect(within(group).getByRole('radio', { name: 'Sáng' })).toBeVisible();
+    expect(within(group).getByRole('radio', { name: 'Tối' })).toBeVisible();
   });
 });
 
@@ -149,18 +186,21 @@ describe('theme before sign-in', () => {
   it.each([
     ['/login', 'Đăng nhập'],
     ['/no/such/page', 'Không tìm thấy trang'],
-  ])('shows the same theme switch at the top of %s', async (path, heading) => {
+  ])('shows the same theme buttons at the top of %s', async (path, heading) => {
     systemPrefersDark(true);
     renderAt(path);
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
     const bar = screen.getByRole('banner');
     expect(bar).toHaveClass('lk-public__bar');
-    const toggle = within(bar).getByRole('switch', { name: 'Giao diện tối' });
-    expect(toggle).toHaveClass('lk-theme-switch');
-    // No saved choice yet: the switch follows prefers-color-scheme.
-    expect(toggle).toBeChecked();
+    const group = within(bar).getByRole('radiogroup', { name: 'Giao diện' });
+    expect(group).toHaveClass('lk-theme-choice');
+    // No saved choice yet: the buttons follow prefers-color-scheme.
+    expect(within(group).getByRole('radio', { name: 'Tối' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
 
-    fireEvent.click(toggle);
+    fireEvent.click(within(group).getByRole('radio', { name: 'Sáng' }));
     expect(localStorage.getItem(THEME_KEY)).toBe('light');
     expect(document.documentElement.dataset.theme).toBe('light');
   });

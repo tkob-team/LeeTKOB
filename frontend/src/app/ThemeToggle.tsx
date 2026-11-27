@@ -1,31 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { chooseTheme, currentTheme, storedTheme, type Theme } from './theme';
 
-function SunIcon() {
-  return (
-    <svg className="lk-theme-switch__icon" viewBox="0 0 16 16" aria-hidden="true">
-      <circle cx="8" cy="8" r="3" />
-      <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg className="lk-theme-switch__icon" viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" />
-    </svg>
-  );
-}
+const OPTIONS: { theme: Theme; label: string }[] = [
+  { theme: 'light', label: 'Sáng' },
+  { theme: 'dark', label: 'Tối' },
+];
 
 /**
- * Light/dark switch: on = dark. The label never changes, so the width stays fixed and the state
- * is read from the switch itself. The choice is remembered in localStorage.
+ * Light/dark choice as two buttons "Sáng | Tối" (radiogroup): the theme in use is the checked,
+ * filled one. Used in the signed-in header and on the login and 404 pages. The choice is
+ * remembered in localStorage; without one the operating system's theme applies.
  */
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(currentTheme);
 
-  // Without a saved choice the screen follows the operating system; keep the switch in step.
+  // Without a saved choice the screen follows the operating system; keep the buttons in step.
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return;
     const query = window.matchMedia('(prefers-color-scheme: dark)');
@@ -38,23 +27,41 @@ export function ThemeToggle() {
     };
   }, []);
 
-  const dark = theme === 'dark';
+  const choose = (next: Theme) => {
+    chooseTheme(next);
+    setTheme(next);
+  };
+
+  // Arrow keys move between the two options, as in any radio group.
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const next: Theme = theme === 'dark' ? 'light' : 'dark';
+    choose(next);
+    event.currentTarget.querySelector<HTMLButtonElement>(`[data-theme-option="${next}"]`)?.focus();
+  };
+
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={dark}
-      className="lk-theme-switch"
-      onClick={() => {
-        const next: Theme = dark ? 'light' : 'dark';
-        chooseTheme(next);
-        setTheme(next);
-      }}
-    >
-      <span className="lk-theme-switch__label">Giao diện tối</span>
-      <span className="lk-theme-switch__track" aria-hidden="true">
-        <span className="lk-theme-switch__thumb">{dark ? <MoonIcon /> : <SunIcon />}</span>
-      </span>
-    </button>
+    <div className="lk-theme-choice" role="radiogroup" aria-label="Giao diện" onKeyDown={onKeyDown}>
+      {OPTIONS.map((option) => {
+        const checked = option.theme === theme;
+        return (
+          <button
+            key={option.theme}
+            type="button"
+            role="radio"
+            aria-checked={checked}
+            tabIndex={checked ? 0 : -1}
+            data-theme-option={option.theme}
+            className="lk-theme-choice__option"
+            onClick={() => {
+              choose(option.theme);
+            }}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
