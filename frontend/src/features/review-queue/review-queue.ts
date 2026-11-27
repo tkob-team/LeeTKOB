@@ -61,6 +61,29 @@ const SOURCE: Record<NonNullable<ConstraintFinding['source']>, ReviewQueueRow['s
   guardrail: 'guardrail',
 };
 
+/**
+ * Stable anonymous student label ("Sinh viên 3F2A"): 4 hex digits of an FNV-1a hash of the student
+ * id. The queue never shows real names (design system); the hash keeps seeded ids that share a
+ * prefix apart.
+ */
+export function studentLabel(studentId: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < studentId.length; i += 1) {
+    hash ^= studentId.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  const hex = (hash >>> 0).toString(16).padStart(8, '0').slice(0, 4).toUpperCase();
+  return `Sinh viên ${hex}`;
+}
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** Local date and time with seconds: submissions can arrive within the same minute. */
+export function formatSubmittedAt(iso: string): string {
+  const d = new Date(iso);
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 /** Short pseudonymous label; the queue never shows student names (design system). */
 export function submissionLabel(submissionId: string): string {
   return submissionId.slice(0, 8);

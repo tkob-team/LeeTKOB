@@ -9,12 +9,15 @@ import {
   deductionLabel,
   EvidenceBlock,
   JudgeResult,
+  MarkdownInline,
   ProblemAlert,
   ReviewQueueTable,
   VerdictBadge,
 } from '../../components/ui';
 import {
+  formatSubmittedAt,
   isCounted,
+  studentLabel,
   submissionLabel,
   toRows,
   UNSURE_CAUSE,
@@ -94,13 +97,8 @@ function LabReviewQueue({ labId }: { labId: string }) {
   const items = queue?.items ?? [];
   const counted = items.filter(isCounted);
   const earlier = items.filter((item) => !isCounted(item));
-  const rows = toRows(counted);
-  const earlierRows = toRows(earlier);
-  const selected = [...rows, ...earlierRows].find((row) => row.id === selectedId);
-  const reviewing = counted.filter((item) => item.reviewStatus === 'reviewing');
-  const notChecked = counted.filter((item) => item.reviewStatus === 'not_checked');
-  const earlierReviewing = earlier.filter((item) => item.reviewStatus === 'reviewing');
-  const select = (row: { id: string }) => {
+  const selected = toRows(items).find((row) => row.id === selectedId);
+  const select = (row: QueueRow) => {
     setSelectedId(row.id);
   };
 
@@ -110,6 +108,7 @@ function LabReviewQueue({ labId }: { labId: string }) {
         <h1 id="review-title" className="lk-page__title">
           Hàng chờ duyệt
         </h1>
+        <p>Kết quả soát ràng buộc của từng bài, chờ trợ giảng xác nhận trước khi công bố điểm.</p>
         <p className="lk-page__note">
           {queue?.provisional
             ? 'Tạm tính: lab chưa hết hạn, hàng chờ đổi khi sinh viên nộp lại.'
@@ -125,49 +124,46 @@ function LabReviewQueue({ labId }: { labId: string }) {
         <EmptyState title="Chưa có bài được tính">Chưa sinh viên nào nộp bài trước hạn.</EmptyState>
       ) : null}
 
-      {rows.length > 0 ? (
-        <div className="lk-section__head">
-          <ReviewQueueTable rows={rows} selectedId={selected?.id} onSelect={select} />
-          {selected && isCounted(selected.item) ? <FindingPanel row={selected} /> : null}
-        </div>
-      ) : null}
-
-      {reviewing.length > 0 ? (
-        <section className="lk-panel" aria-label="Đang soát">
-          <h2 className="lk-panel__title">Đang soát</h2>
-          <ReviewingList items={reviewing} />
-        </section>
-      ) : null}
-
-      {notChecked.length > 0 ? (
-        <section className="lk-panel" aria-label="Không soát">
-          <h2 className="lk-panel__title">Không soát (chấm test chưa AC)</h2>
-          <ul className="lk-list">
-            {notChecked.map((item) => (
-              <li key={item.submissionId}>
-                <span className="lk-mono">{submissionLabel(item.submissionId)}</span>{' '}
-                <JudgeResult code={item.verdict ?? 'pending'} />
-              </li>
+      {items.length > 0 ? (
+        <div className="lk-review">
+          <div className="lk-review__main">
+            {counted.map((item) => (
+              <SubmissionBlock
+                key={item.submissionId}
+                item={item}
+                selectedId={selected?.id}
+                onSelect={select}
+              />
             ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {earlier.length > 0 ? (
-        <section className="lk-section__head" aria-labelledby="earlier-title">
-          <h2 id="earlier-title" className="lk-panel__title">
-            Bài nộp trước (không được tính)
-          </h2>
-          <p className="lk-page__note">
-            Các bài AC nộp trước bài được tính của cùng sinh viên. Chỉ để tham khảo: không dùng để
-            chấm điểm.
-          </p>
-          {earlierRows.length > 0 ? (
-            <ReviewQueueTable rows={earlierRows} selectedId={selected?.id} onSelect={select} />
-          ) : null}
-          {selected && !isCounted(selected.item) ? <FindingPanel row={selected} /> : null}
-          {earlierReviewing.length > 0 ? <ReviewingList items={earlierReviewing} /> : null}
-        </section>
+            {earlier.length > 0 ? (
+              <section className="lk-section__head" aria-labelledby="earlier-title">
+                <h2 id="earlier-title" className="lk-panel__title">
+                  Các lần nộp trước của sinh viên
+                </h2>
+                <p className="lk-page__note">
+                  Không tính điểm, chỉ để đối chiếu với lần nộp được tính.
+                </p>
+                {earlier.map((item) => (
+                  <SubmissionBlock
+                    key={item.submissionId}
+                    item={item}
+                    selectedId={selected?.id}
+                    onSelect={select}
+                  />
+                ))}
+              </section>
+            ) : null}
+          </div>
+          <div className="lk-review__aside">
+            {selected ? (
+              <FindingPanel row={selected} />
+            ) : (
+              <aside className="lk-panel" aria-label="Chi tiết ràng buộc">
+                <p className="lk-page__note">Chọn một dòng để xem lý do và dòng bằng chứng.</p>
+              </aside>
+            )}
+          </div>
+        </div>
       ) : null}
 
       {queue && queue.totalPages > 1 ? (
@@ -197,16 +193,50 @@ function LabReviewQueue({ labId }: { labId: string }) {
   );
 }
 
-function ReviewingList({ items }: { items: ReviewItem[] }) {
+/** One submission: anonymous student, counted tag, time with seconds, test result, findings. */
+function SubmissionBlock({
+  item,
+  selectedId,
+  onSelect,
+}: {
+  item: ReviewItem;
+  selectedId: string | undefined;
+  onSelect: (row: QueueRow) => void;
+}) {
+  const label = submissionLabel(item.submissionId);
+  const rows = toRows([item]);
   return (
-    <ul className="lk-list">
-      {items.map((item) => (
-        <li key={item.submissionId}>
-          <span className="lk-mono">{submissionLabel(item.submissionId)}</span>{' '}
-          <JudgeResult code={item.verdict ?? 'pending'} /> đang soát
-        </li>
-      ))}
-    </ul>
+    <section className="lk-panel lk-submission" aria-label={`Bài nộp ${label}`}>
+      <header className="lk-submission__head">
+        <h3 className="lk-submission__student">{studentLabel(item.student.id)}</h3>
+        {isCounted(item) ? <span className="lk-tag">Được tính điểm</span> : null}
+        <span>
+          Nộp lúc <time dateTime={item.submittedAt}>{formatSubmittedAt(item.submittedAt)}</time>
+        </span>
+        <span>
+          Chấm test <JudgeResult code={item.verdict ?? 'pending'} />
+        </span>
+        <span className="lk-page__note">
+          Mã bài nộp <span className="lk-mono">{label}</span>
+        </span>
+      </header>
+      {item.reviewStatus === 'checked' ? (
+        <ReviewQueueTable
+          rows={rows}
+          selectedId={selectedId}
+          onSelect={(row) => {
+            const found = rows.find((candidate) => candidate.id === row.id);
+            if (found) onSelect(found);
+          }}
+          showSubmission={false}
+          label={`Ràng buộc của bài nộp ${label}`}
+        />
+      ) : item.reviewStatus === 'reviewing' ? (
+        <p className="lk-page__note">Đang soát ràng buộc…</p>
+      ) : (
+        <p className="lk-page__note">Không soát ràng buộc: chấm test chưa AC.</p>
+      )}
+    </section>
   );
 }
 
@@ -219,7 +249,10 @@ function FindingPanel({ row }: { row: QueueRow }) {
         {finding.code} · bài nộp <span className="lk-mono">{label}</span>
         {isCounted(row.item) ? null : ' (không được tính)'}
       </h2>
-      <p>{finding.text}</p>
+      <p className="lk-page__note">{studentLabel(row.item.student.id)}</p>
+      <p>
+        <MarkdownInline>{finding.text}</MarkdownInline>
+      </p>
       <p>
         <VerdictBadge verdict={finding.verdict} /> Khoản trừ:{' '}
         {deductionLabel(finding.verdict, finding.deduction)}

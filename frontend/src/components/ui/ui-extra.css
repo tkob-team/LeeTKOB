@@ -28,14 +28,6 @@
 .lk-table tbody tr[aria-selected='true'] {
   background: var(--surface-sunken);
 }
-/* ReviewQueueTable: the constraint column takes the remaining width and clips with an ellipsis,
- * so the other columns always fit without horizontal scrolling. */
-.lk-table td.lk-table__clip {
-  width: 100%;
-  max-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* Cover (Cover/preview.html). Sizes are the preview's own. */
 .lk-cover {
@@ -273,4 +265,58 @@
 }
 .lk-copy__status:empty {
   display: none;
+}
+
+/* Review queue: one block per submission, the detail panel beside the blocks. The panel column
+ * is always present and sticky, so selecting another row never moves the page. */
+.lk-review {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+.lk-review__main {
+  display: grid;
+  gap: var(--space-6);
+}
+.lk-review__aside {
+  position: sticky;
+  top: var(--space-4);
+  max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto;
+}
+.lk-submission {
+  display: grid;
+  gap: var(--space-3);
+}
+.lk-submission__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.lk-submission__student {
+  margin: 0;
+  font-size: var(--section-font-size);
+  line-height: var(--section-line-height);
+  font-weight: var(--section-font-weight);
+}
+.lk-tag {
+  display: inline-flex;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  font-weight: var(--label-font-weight);
+}
+@media (max-width: 960px) {
+  .lk-review {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lk-review__aside {
+    position: static;
+    max-height: none;
+  }
 }

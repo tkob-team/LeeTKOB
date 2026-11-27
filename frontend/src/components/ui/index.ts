@@ -1,5 +1,5 @@
 export { Button, type ButtonProps, type ButtonVariant } from './Button';
-export { deductionLabel } from './deduction';
+export { deductionLabel, evidenceLabel } from './deduction';
 export { CopyButton, type CopyButtonProps } from './CopyButton';
 export { copyText } from './copy-text';
 export { Cover, type CoverProps } from './Cover';

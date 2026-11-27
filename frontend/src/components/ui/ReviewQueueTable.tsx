@@ -1,4 +1,5 @@
-import { deductionLabel } from './deduction';
+import { deductionLabel, evidenceLabel } from './deduction';
+import { MarkdownInline } from './Markdown';
 import { VerdictBadge, type Verdict } from './VerdictBadge';
 
 export interface ReviewQueueRow {
@@ -21,19 +22,29 @@ export interface ReviewQueueTableProps {
   selectedId?: string;
   /** Opens the row's EvidenceBlock beside the table. */
   onSelect?: (row: ReviewQueueRow) => void;
+  /** False when the table sits under a block header that already names the submission. */
+  showSubmission?: boolean;
+  /** Accessible name of the table. */
+  label?: string;
 }
 
 /**
- * The constraint column is clipped with an ellipsis (full text in the cell's title and in the
- * side panel) so Khoản trừ, Nguồn and Kết luận stay in view without horizontal scrolling.
+ * The constraint text wraps (never clipped) and renders inline code; the other columns keep
+ * their width so Khoản trừ, Nguồn and Kết luận stay in view.
  * No bulk action here: model `violation` rows are reviewed one by one. */
-export function ReviewQueueTable({ rows, selectedId, onSelect }: ReviewQueueTableProps) {
+export function ReviewQueueTable({
+  rows,
+  selectedId,
+  onSelect,
+  showSubmission = true,
+  label,
+}: ReviewQueueTableProps) {
   return (
     <div className="lk-table-wrap">
-      <table className="lk-table">
+      <table className="lk-table" aria-label={label}>
         <thead>
           <tr>
-            <th scope="col">Bài nộp</th>
+            {showSubmission ? <th scope="col">Bài nộp</th> : null}
             <th scope="col">Ràng buộc</th>
             <th scope="col">Khoản trừ</th>
             <th scope="col">Nguồn</th>
@@ -65,21 +76,17 @@ export function ReviewQueueTable({ rows, selectedId, onSelect }: ReviewQueueTabl
                     : undefined
                 }
               >
-                <td className="lk-mono">{row.submissionId}</td>
-                <td className="lk-table__clip" title={row.constraint}>
-                  {row.constraint}
+                {showSubmission ? <td className="lk-mono">{row.submissionId}</td> : null}
+                <td className="lk-wrap">
+                  <MarkdownInline>{row.constraint}</MarkdownInline>
                 </td>
-                <td className={row.verdict === 'pass' ? 'lk-wrap' : undefined}>
-                  {deductionLabel(row.verdict, row.deduction)}
-                </td>
+                <td>{deductionLabel(row.verdict, row.deduction)}</td>
                 <td>{row.source}</td>
                 <td>
                   <VerdictBadge verdict={row.verdict} />
                   {row.unsureCause ? <p className="lk-cause">{row.unsureCause}</p> : null}
                 </td>
-                <td className="lk-mono">
-                  {row.evidenceLines.length > 0 ? row.evidenceLines.join(', ') : '—'}
-                </td>
+                <td>{evidenceLabel(row.evidenceLines)}</td>
               </tr>
             );
           })}
