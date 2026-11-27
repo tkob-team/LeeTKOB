@@ -17,6 +17,11 @@
   color: var(--ink-muted);
 }
 
+/* A link drawn as a button (<a class="lk-btn">) looks like the button: no underline. */
+a.lk-btn {
+  text-decoration: none;
+}
+
 /* ReviewQueueTable: selectable rows. */
 .lk-table tbody tr[tabindex] {
   cursor: pointer;

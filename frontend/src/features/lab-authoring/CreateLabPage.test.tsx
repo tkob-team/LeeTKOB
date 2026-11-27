@@ -124,4 +124,12 @@ describe('create lab form', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Thêm ràng buộc' }));
     expect(screen.getByLabelText('Mã')).toHaveValue('C1');
   });
+
+  it('writes the import button in sentence case, like every other button', () => {
+    renderPage();
+    const button = screen.getByRole('button', { name: 'Nhập từ file' });
+    expect(button).toHaveTextContent(/^Nhập từ file$/);
+    expect(screen.queryByText('NHẬP TỪ FILE')).toBeNull();
+  });
+
 });

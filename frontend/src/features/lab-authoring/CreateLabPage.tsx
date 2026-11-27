@@ -115,7 +115,7 @@ export function CreateLabPage() {
               fileInput.current?.click();
             }}
           >
-            NHẬP TỪ FILE
+            Nhập từ file
           </Button>
           <input
             ref={fileInput}
