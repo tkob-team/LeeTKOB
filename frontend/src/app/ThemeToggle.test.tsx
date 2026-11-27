@@ -1,8 +1,12 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StudentLayout, TaLayout } from './AppLayout';
 import { AuthContext, type AuthState, type Role } from './auth-context';
+import { AuthProvider } from './AuthProvider';
+import { routes } from './routes';
 import {
   applyStoredTheme,
   currentTheme,
@@ -122,5 +126,75 @@ describe('app header', () => {
     const header = screen.getByRole('banner');
     expect(within(header).getByRole('link', { name: 'LeeTKOB' })).toHaveAttribute('href', home);
     expect(within(header).getByRole('switch', { name: 'Giao diện tối' })).toBeVisible();
+  });
+});
+
+describe('theme before sign-in', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    delete document.documentElement.dataset.theme;
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function renderAt(path: string) {
+    render(
+      <AuthProvider>
+        <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />
+      </AuthProvider>,
+    );
+  }
+
+  it.each([
+    ['/login', 'Đăng nhập'],
+    ['/no/such/page', 'Không tìm thấy trang'],
+  ])('shows the same theme switch at the top of %s', async (path, heading) => {
+    systemPrefersDark(true);
+    renderAt(path);
+    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
+    const bar = screen.getByRole('banner');
+    expect(bar).toHaveClass('lk-public__bar');
+    const toggle = within(bar).getByRole('switch', { name: 'Giao diện tối' });
+    expect(toggle).toHaveClass('lk-theme-switch');
+    // No saved choice yet: the switch follows prefers-color-scheme.
+    expect(toggle).toBeChecked();
+
+    fireEvent.click(toggle);
+    expect(localStorage.getItem(THEME_KEY)).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('light');
+  });
+
+  it('puts the switch in the top right corner', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/shell.css'), 'utf8');
+    expect(css).toMatch(/\.lk-public__bar \{[^}]*justify-content: flex-end;/);
+  });
+
+  it('index.html applies the saved theme in an inline script before the app script loads', () => {
+    const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8');
+    const inline = /<script>([\s\S]*?)<\/script>/.exec(html);
+    if (!inline?.[1]) throw new Error('expected an inline script in index.html');
+    expect(html.indexOf(inline[0])).toBeLessThan(html.indexOf('src="/src/main.tsx"'));
+    expect(inline[1]).toContain(`'${THEME_KEY}'`);
+
+    const source = inline[1];
+    // Runs the script the way the browser does: an inline <script> executes when inserted.
+    const run = () => {
+      const script = document.createElement('script');
+      script.textContent = source;
+      document.head.append(script);
+      script.remove();
+    };
+    localStorage.setItem(THEME_KEY, 'dark');
+    run();
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    localStorage.setItem(THEME_KEY, 'light');
+    run();
+    expect(document.documentElement.dataset.theme).toBe('light');
+    // Without a saved choice the script leaves data-theme alone and prefers-color-scheme applies.
+    delete document.documentElement.dataset.theme;
+    localStorage.removeItem(THEME_KEY);
+    run();
+    expect(document.documentElement.dataset.theme).toBeUndefined();
   });
 });

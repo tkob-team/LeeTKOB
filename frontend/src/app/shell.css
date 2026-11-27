@@ -229,12 +229,26 @@
 
 /* Signed-out pages (login, 404): one centred column; the login form and its messages share
  * one width. */
+/* Login and 404 without the app header: the theme switch alone in the top right corner. */
+.lk-public {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+.lk-public > main {
+  width: 100%;
+}
+.lk-public__bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-4);
+}
+
 .lk-auth {
   display: grid;
   align-content: center;
   justify-items: center;
   gap: var(--space-6);
-  min-height: 100vh;
   margin: 0 auto;
   padding: var(--space-8) var(--space-4);
   max-width: var(--lk-width-narrow);
