@@ -71,7 +71,7 @@ describe('student submission and grading', () => {
 
     const table = await screen.findByRole(
       'table',
-      { name: 'Verdict từng test' },
+      { name: 'Kết quả từng test' },
       { timeout: 3000 },
     );
     const rows = within(table).getAllByRole('row').slice(1);
@@ -85,7 +85,7 @@ describe('student submission and grading', () => {
       ['2', 'WA'],
     ]);
     expect(screen.getByRole('status')).toHaveTextContent('Kết quả chung WA');
-    expect(screen.getByText('Bài được tính')).toBeInTheDocument();
+    expect(screen.getByText('Bài được tính điểm (lần nộp cuối trước hạn)')).toBeInTheDocument();
     expect(request.mock.calls.filter(([path]) => path === pollPath)).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Nộp bài' })).toBeEnabled();
   });

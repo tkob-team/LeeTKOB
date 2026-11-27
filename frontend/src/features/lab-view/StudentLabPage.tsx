@@ -151,7 +151,10 @@ export function StudentLabPage() {
       </section>
 
       <div>
-        <Link className="lk-btn lk-btn--primary" to="/student/submit">
+        <Link
+          className="lk-btn lk-btn--primary"
+          to={`/student/submit?lab=${encodeURIComponent(lab.id)}`}
+        >
           Đi tới trang nộp bài
         </Link>
       </div>

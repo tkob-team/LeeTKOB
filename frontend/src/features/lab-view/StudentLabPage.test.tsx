@@ -63,7 +63,7 @@ describe('student lab statement', () => {
     expect(screen.queryByText(/Input|Output/)).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Đi tới trang nộp bài' })).toHaveAttribute(
       'href',
-      '/student/submit',
+      `/student/submit?lab=${labId}`,
     );
   });
 

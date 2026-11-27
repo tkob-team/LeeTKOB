@@ -320,3 +320,38 @@
     max-height: none;
   }
 }
+
+/* JudgeResult size="large": the overall result on the submit page. */
+.lk-judge.lk-judge--large {
+  font-size: var(--title-font-size);
+  line-height: var(--title-line-height);
+  padding: var(--space-1) var(--space-3);
+  border-width: 2px;
+}
+
+/* Submit page: the code field and the result table share one width. */
+.lk-submit {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 80ch;
+}
+.lk-submit .lk-field {
+  max-width: none;
+}
+.lk-submit .lk-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+}
+.lk-result {
+  display: grid;
+  gap: var(--space-3);
+}
+.lk-result p {
+  margin: 0;
+}
+.lk-result__overall {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
