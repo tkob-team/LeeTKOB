@@ -57,7 +57,12 @@ describe('TA lab list', () => {
     expect(request).toHaveBeenCalledWith(`/classes/${classId}/labs`, expect.anything());
   });
 
-  it('points the navigation link "Hàng chờ duyệt" at the lab list', () => {
+  it.each([
+    '/ta/labs',
+    `/ta/classes/${classId}/labs/new`,
+    `/ta/labs/${labId}/review`,
+    '/ta/review-queue',
+  ])('marks the navigation link "Lab" as the current page on %s', (path) => {
     const auth: AuthState = {
       session: { token: 't', role: 'ta', email: 'ta@x', displayName: 'TA' },
       login: vi.fn(),
@@ -65,15 +70,29 @@ describe('TA lab list', () => {
     };
     render(
       <AuthContext value={auth}>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>
           <TaLayout />
         </MemoryRouter>
       </AuthContext>,
     );
     const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
-    expect(within(nav).getByRole('link', { name: 'Hàng chờ duyệt' })).toHaveAttribute(
-      'href',
-      '/ta/labs',
+    const link = within(nav).getByRole('link', { name: 'Lab' });
+    expect(link).toHaveAttribute('href', '/ta/labs');
+    expect(link).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).queryByRole('link', { name: 'Hàng chờ duyệt' })).toBeNull();
+  });
+
+  it('writes the lab title on each review-queue button, not only in its accessible name', async () => {
+    request.mockResolvedValueOnce([{ id: classId, name: 'CTT1' }]).mockResolvedValueOnce([lab]);
+    render(
+      <MemoryRouter>
+        <TaLabsPage />
+      </MemoryRouter>,
     );
+    const link = await screen.findByRole('link', {
+      name: 'Hàng chờ duyệt: Sorting with merge sort',
+    });
+    expect(link).toHaveTextContent('Hàng chờ duyệt: Sorting with merge sort');
+    expect(link).not.toHaveAttribute('aria-label');
   });
 });

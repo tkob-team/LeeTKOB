@@ -111,9 +111,8 @@ export function TaLabsPage() {
                         <Link
                           className="lk-btn lk-btn--secondary"
                           to={`/ta/labs/${encodeURIComponent(lab.id)}/review`}
-                          aria-label={`Hàng chờ duyệt: ${labTitle(lab.title)}`}
                         >
-                          Hàng chờ duyệt
+                          Hàng chờ duyệt: {labTitle(lab.title)}
                         </Link>
                       </td>
                     </tr>
