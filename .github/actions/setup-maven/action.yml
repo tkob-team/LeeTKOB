@@ -60,6 +60,8 @@ runs:
     - name: List restored Maven files
       shell: bash
       run: |
-        find ~/.m2/repository -type f \( -name '*.pom' -o -name '*.jar' \) 2>/dev/null \
+        # A cold cache has no repository yet; find would fail under pipefail.
+        mkdir -p ~/.m2/repository
+        find ~/.m2/repository -type f \( -name '*.pom' -o -name '*.jar' \) \
           | sort > "$RUNNER_TEMP/maven-cache-restored.lst"
         echo "Maven files after cache restore: $(wc -l < "$RUNNER_TEMP/maven-cache-restored.lst")"

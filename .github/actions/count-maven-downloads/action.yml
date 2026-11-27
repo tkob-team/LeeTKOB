@@ -15,7 +15,8 @@ runs:
           exit 0
         fi
         after="$RUNNER_TEMP/maven-files-now.lst"
-        find ~/.m2/repository -type f \( -name '*.pom' -o -name '*.jar' \) 2>/dev/null | sort > "$after"
+        mkdir -p ~/.m2/repository
+        find ~/.m2/repository -type f \( -name '*.pom' -o -name '*.jar' \) | sort > "$after"
         comm -13 "$before" "$after" > "$RUNNER_TEMP/maven-downloaded.lst"
         echo "Maven files downloaded after cache restore: $(wc -l < "$RUNNER_TEMP/maven-downloaded.lst")"
         echo "Maven files now in ~/.m2/repository: $(wc -l < "$after")"
