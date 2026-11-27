@@ -29,18 +29,23 @@ interface PollView {
 }
 
 /**
- * The lab chosen through `?lab=<id>` (link from the statement page), else the first lab. Read
- * from window.location rather than the router so the page also works outside a router.
+ * The lab chosen through `?lab=<id>` (link from the statement page), else the first lab. An id
+ * that is not in the list chooses nothing (`unknown`), so the student never submits to a lab
+ * they did not pick. Read from window.location rather than the router so the page also works
+ * outside a router.
  */
-function initialLab(available: Lab[]): string {
+function initialLab(available: Lab[]): { id: string; unknown: boolean } {
   const wanted = new URLSearchParams(window.location.search).get('lab');
+  if (wanted === null) return { id: available[0]?.id ?? '', unknown: false };
   const match = available.find((lab) => lab.id === wanted);
-  return match?.id ?? available[0]?.id ?? '';
+  return match ? { id: match.id, unknown: false } : { id: '', unknown: true };
 }
 
 export function SubmitJudgePage() {
   const [labs, setLabs] = useState<Lab[] | null>(null);
   const [labId, setLabId] = useState('');
+  const [unknownLab, setUnknownLab] = useState(false);
+  const [labError, setLabError] = useState<string>();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string>();
   const [problem, setProblem] = useState<ProblemDetails>();
@@ -65,7 +70,9 @@ export function SubmitJudgePage() {
       .then((available) => {
         if (abort.signal.aborted) return;
         setLabs(available);
-        setLabId(initialLab(available));
+        const initial = initialLab(available);
+        setLabId(initial.id);
+        setUnknownLab(initial.unknown);
       })
       .catch((cause: unknown) => {
         if (!abort.signal.aborted) setProblem(problemFrom(cause));
@@ -124,7 +131,11 @@ export function SubmitJudgePage() {
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (postingRef.current || !labId) return;
+    if (postingRef.current) return;
+    if (!labId) {
+      setLabError('Chọn một lab.');
+      return;
+    }
     if (!code.trim()) {
       setError('Nhập mã nguồn C++17.');
       return;
@@ -164,6 +175,14 @@ export function SubmitJudgePage() {
     <div className="lk-stack lk-submit">
       <h1 className="lk-page__title">Nộp bài</h1>
       {problem ? <ProblemAlert problem={problem} /> : null}
+      {unknownLab ? (
+        <div className="lk-problem" role="alert">
+          <p className="lk-problem__title">Không tìm thấy lab này.</p>
+          <p className="lk-problem__detail">
+            Đường dẫn trỏ tới một lab không có trong các lớp của bạn. Chọn lab trong danh sách.
+          </p>
+        </div>
+      ) : null}
       {labs?.length === 0 ? <p>Bạn chưa có lab trong các lớp đã tham gia.</p> : null}
       {labs?.length ? (
         <form
@@ -171,14 +190,21 @@ export function SubmitJudgePage() {
             void submit(event);
           }}
         >
-          <FormField label="Lab">
+          <FormField label="Lab" error={labError}>
             <select
               value={labId}
               disabled={posting}
               onChange={(event) => {
                 setLabId(event.target.value);
+                setUnknownLab(false);
+                setLabError(undefined);
               }}
             >
+              {labId === '' ? (
+                <option value="" disabled>
+                  Chọn lab
+                </option>
+              ) : null}
               {labs.map((lab) => (
                 <option key={lab.id} value={lab.id}>
                   {lab.title ?? lab.id}
@@ -203,7 +229,7 @@ export function SubmitJudgePage() {
           </Button>
         </form>
       ) : null}
-      {labs?.length && !submissionId ? (
+      {labs?.length && labId && !submissionId ? (
         <section className="lk-result" aria-labelledby="judge-result-title">
           <h2 id="judge-result-title">Kết quả chấm</h2>
           <p>Chưa nộp bài nào.</p>

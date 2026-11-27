@@ -62,8 +62,9 @@ describe('submit page: preselected lab, result emphasis, shared width', () => {
     expect(screen.queryByText(/Verdict/i)).not.toBeInTheDocument();
   });
 
-  it('keeps the old behaviour without ?lab= or with an unknown lab: the first lab', async () => {
-    window.history.replaceState({}, '', '/student/submit?lab=not-a-lab');
+  // UI-3: an unknown ?lab= no longer falls back to the first lab (SubmitJudgePage.unknown-lab).
+  it('keeps the old behaviour without ?lab=: the first lab', async () => {
+    window.history.replaceState({}, '', '/student/submit');
     request.mockResolvedValueOnce([first, second]);
     render(<SubmitJudgePage />);
 
