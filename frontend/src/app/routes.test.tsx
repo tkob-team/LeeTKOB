@@ -150,7 +150,9 @@ describe('app shell routes', () => {
 
     expect(await screen.findByText(/sv01 · Sinh viên/)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/student/submit');
-    expect(localStorage.getItem('leetkob.token')).toBe(token);
+    // fix/401-any: the token is stored only inside the session entry.
+    expect(JSON.parse(localStorage.getItem('leetkob.session') ?? 'null')).toMatchObject({ token });
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
   });
 
   it('shows one message for a wrong email or password and stays signed out', async () => {
@@ -244,7 +246,8 @@ describe('app shell routes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
     await screen.findByText(/Thay Ta/);
 
-    expect(localStorage.getItem('leetkob.token')).toBe(token);
+    // fix/401-any: the token is stored only inside the session entry.
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
     expect(JSON.parse(localStorage.getItem('leetkob.session') ?? 'null')).toMatchObject({
       token,
       role: 'ta',
@@ -265,8 +268,9 @@ describe('app shell routes', () => {
 
     expect(await screen.findByText(/SV · Sinh viên/)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/student/submit');
-    expect(localStorage.getItem('leetkob.token')).toBe(token);
-    expect(localStorage.getItem('leetkob.session')).not.toBeNull();
+    // fix/401-any: the token is stored only inside the session entry.
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
+    expect(JSON.parse(localStorage.getItem('leetkob.session') ?? 'null')).toMatchObject({ token });
     expect(sessionStorage.getItem('leetkob.session')).toBeNull();
     expect(sessionStorage.getItem('leetkob.token')).toBeNull();
   });
