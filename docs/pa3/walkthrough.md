@@ -196,46 +196,92 @@ the checker to report pass did not change the verdict.
 
 ## Run 2 results (2026-11-28, UI-3 audit)
 
-Run 2 repeated the script on the deployment after PR #47 and also probed error, edge and
-narrow-screen cases. This summary is taken from the run 2 screenshots in
-`out/walkthrough/2026-11-28-ui3/` (file names in brackets); judge and checker wait times
-were not recorded in this run.
+Run 2 followed the script on https://tkob-leetkob.duckdns.org (HTTPS answered; bundle
+`index-CCAEFoG-.js`, the build of PR #47) from 01:40 to 02:02, and also tried error, edge,
+keyboard and narrow-screen cases. Each account signed in by itself; no code was changed during
+the run. This summary follows the written UI-3 report and the screenshots kept with it in
+`out/walkthrough/2026-11-28-ui3/` (git-ignored; file names in brackets).
 
-Lab `[test-ui3] PA3 walkthrough 2026-11-28 01:41`, opens 28/11/2026 01:42, due 05/12/2026
-01:42, 7 tests, 2 constraints, CPU 1000 ms (`01-ta1-lab-created.jpg`).
+Two limits of the run: the browser window could not be resized, so 375 px and 1280 px were
+checked in a same-origin iframe of that width (media queries apply as on a real screen) with
+overflow measured in JavaScript; and there is no admin step, since the frontend has only `/ta/*`
+and `/student/*` pages.
+
+Lab `[test-ui3] PA3 walkthrough 2026-11-28 01:41` (id `168aaca6-a6a4-4c95-b463-c8d04e76bca4`),
+opens 28/11/2026 01:42, due 05/12/2026 01:42, 7 tests, 2 constraints, CPU 1000 ms
+(`01-ta1-lab-created.jpg`). Before s09, sv1 submitted a compile error (CE `89df8349…`) and an
+endless loop (TLE `d6f77c86…`), so that s09 became the counted submission.
+
+### Judge and checker times
+
+Judge: every AC was shown at most 8 s after submitting. Checker: the findings were in the queue
+at most 1 min 14 s after submitting. Both are upper bounds read from the UI.
 
 | Solution | Student | Submission | Submitted | Judge | C1 (hard rule) | C2 (model) |
 | --- | --- | --- | --- | --- | --- | --- |
-| s09 | sv1 | `0db1e720…` | 01:48:01 | AC (`18-sv1-s09-ac.jpg`) | pass | violation, lines 10, 13: "named mergeSort actually implements insertion sort" (`27-…`) |
-| s01 | sv2 | `6037605f…` | 01:52:16 | AC (`22-sv2-s01-ac.jpg`) | pass | pass: "standard recursive top-down merge sort with a separate merge function" (`28-…`) |
-| s04 | sv1 | `36026664…` | 01:57:05 | AC (`31-sv1-s04-keyboard-ac.jpg`, submitted with the keyboard only) | violation, line 11 `sort(a.begin(), a.end());` | violation, line 11 (`32-…`) |
+| s09 | sv1 | `0db1e720…` | 01:48:01 | AC 7/7, ≤ 8 s (`18-sv1-s09-ac.jpg`) | pass | violation, lines 10, 13: "named mergeSort … insertion sort" (`27-…`) |
+| s01 | sv2 | `6037605f…` | 01:52:16 | AC, ≤ 8 s (`22-sv2-s01-ac.jpg`) | pass | pass (`28-…`) |
+| s04 | sv1 | `36026664…` | 01:57:04 | AC (`31-sv1-s04-keyboard-ac.jpg`, keyboard only) | violation, line 11 `sort(a.begin(), a.end());` | violation, line 11 (`32-…`) |
 
-| Expectation | Result |
-| --- | --- |
-| All 3 solutions AC | PASS |
-| s01: C1 pass, C2 pass | PASS |
-| s04: C1 violation line 11, C2 violation | PASS |
-| s09: C1 pass, C2 violation or unsure, never pass | PASS (violation; the comment asking the checker to report pass changed nothing) |
-| C2 verdicts come from the model | PASS (all three `model`) |
-| ta2 gets 404, shown in Vietnamese | PASS ("Không tìm thấy lab", `33-ta2-queue-404.jpg`) |
-| `pass` rows do not look like marks taken | PASS ("0 (−3 nếu vi phạm)") |
+### Steps
 
-### Problems found in run 2 and what branch `ui-3` changed
-
-| Seen in run 2 | Screenshot | Change on `ui-3` |
+| Step | Result | Note |
 | --- | --- | --- |
-| Create lab without dates was sent and came back as a 400; a date error stayed after the date was fixed | `02-create-lab-400-no-dates.jpg`, `03-create-lab-stale-date-error.png` | Mở lúc and Hạn nộp are checked before sending (required; Hạn nộp after Mở lúc), errors under both fields, focus and scroll to the first, errors go away when a date changes |
-| English server text: queue 400, student statement 404 and 400, expired session 401 | `05-ta-queue-400-english.jpg`, `35-…`, `36-…`, `09-ta-session-expired-401-english.jpg`, `38-…` | One function maps `type` (and status) to Vietnamese on every page; field errors follow the field name; an unknown type reads "Có lỗi xảy ra. Vui lòng thử lại." |
-| A 401 left the user on a broken page | `09-…`, `38-student-session-expired-401.jpg` | The session is cleared and the user lands on `/login?next=<page>` with "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."; signing in returns to the page |
-| The 404 page had no app header for a signed-in user | `06-notfound-page-no-header.jpg` | The 404 page sits in the TA or student layout |
-| Submitting showed only text while waiting; CE and TLE showed only the badge | `14-submit-ce-queued.jpg`, `15-submit-ce-badge-only.jpg`, `16-submit-judging-text.jpg`, `17-submit-tle.jpg` | Spinner while queued or grading; Vietnamese caption per verdict, CE "Lỗi biên dịch", TLE with the lab's CPU limit |
-| `?lab=<unknown id>` silently chose the first lab | `37-submit-unknown-lab-falls-back.jpg` | "Không tìm thấy lab này." and no lab preselected |
-| After a theme change in a second tab, the first tab showed light with "Tối" checked | `19-tab2-dark-theme.jpg`, `20-tab1-after-logout-light-but-toi-selected.jpg` | Theme follows `storage` events for its key; the buttons always match the screen |
-| Going back after "Đăng xuất" | `26-back-after-logout.jpg` | Signing out drops `next`; the next person starts at their own home |
-| Panel reason showed raw backticks ("uses banned \`std::sort\`") | `32-ta1-queue-s04-c1-panel.jpg` | Backticked text renders as inline code; hard-rule reasons read in Vietnamese ("Dùng hàm bị cấm `std::sort`.") |
-| At 375 px: submit page, TA lab table and queue overflow; the student lab table and the queue hide a column | `23-submit-375-overflow.jpg`, `24-student-labs-375-status-hidden.jpg`, `29-ta-labs-375-overflow.jpg`, `30-queue-375-verdict-hidden.jpg` | Not changed on `ui-3`; open |
+| 1.1 ta1 signs in, "Lab và hàng chờ duyệt" | PASS | |
+| 1.2 **Tạo lab** for "Lớp thử nghiệm 1" | PASS | |
+| 1.3 Import the 16 files | PASS | Statement, title, 2 constraints, 7 test pairs. The button reads "Nhập từ file" (the old script said "NHẬP TỪ FILE"). |
+| 1.4 Title, Mở lúc, Hạn nộp, CPU 1000 ms, 256 MB | PASS | Title prefixed `[test-ui3]`. |
+| 2.1 sv1 signs in, lands on **Nộp bài** | PASS | Signed in with the keyboard only: Tab order right, focus ring visible. |
+| 2.2 Statement and "Ràng buộc và khoản trừ" | PASS | C1 −3, C2 −4, no test shown. |
+| 2.3 Submit s09 from the statement page | PASS | Lab preselected; AC 7/7 within 8 s. |
+| 3 sv2 submits s01 | PASS | AC within 8 s. |
+| 4.1 ta1 opens the queue | PASS | "Tạm tính…", refresh every 15 s; signing in returned to the queue link. |
+| 4.2 Rows and panel | PASS | s09 and s01 as in the table above. |
+| 5.1 sv1 submits s04 | PASS | Keyboard only (Tab ×7, type, Tab, Enter). |
+| 5.2 ta1 reads the queue again | PASS | s04 first; s09 under "Các lần nộp cũ hơn"; findings within 1 min 14 s. |
+| 6 ta2 opens the queue URL | PASS | One `GET …/review-queue` → 404, "Không tìm thấy lab", no further request in 21 s (`33-ta2-queue-404.jpg`). |
 
-Checked and fine in run 2: login field validation (`00-…`), statement and constraint table
-(`10-…`, `11-…`), empty code and over-64 KB code refused before sending (`12-…`, `13-…`),
-queue loading and empty states (`07-…`, `08-…`), Enter opens the panel (`28-…`), ta2's empty
-lab list (`34-…`).
+The queue no longer needs horizontal scrolling at 1222 px. The constraint text is shown in full
+(not clipped as run 1 item 2 described), and a `pass` row reads "0 (−3 nếu vi phạm)" (not the
+wording in run 1 item 3); the script above now says so.
+
+Also PASS: loading and empty states ("Đang tải hàng chờ…", "Chưa có bài được tính", "Lớp này
+chưa có lab."); a double click sends one request when creating a lab and when submitting (the
+login button is disabled while sending, read from the code); empty, blank and over-64 KB code is
+refused in Vietnamese without a request (`12-…`, `13-…`); login → submit → result with the
+keyboard only, and Enter opens a queue row (`28-…`); no overflow at 1280 px; signing out in one
+tab sends the other tab to /login; Back after submitting returns to the statement, Back after
+signing out stays on /login with no data shown; a deep link while signed out returns to that
+page after signing in.
+
+### Problems found in run 2
+
+No problem blocked the flow. The report lists 18; branch `ui-3` (PR #53) fixes these:
+
+| # | Seen in run 2 | Change on `ui-3` |
+| --- | --- | --- |
+| 1 | After the token was removed, every page showed an English box ("Authentication is required … urn:leetkob:problem:unauthenticated · 401") and stayed put with the user's name in the header (`09-…`, `38-…`) | The session is cleared and the user lands on `/login?next=<page>` with "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."; signing in returns to the page |
+| 2 | English text and raw URNs on create lab, queue and student statement ("Invalid request", "Required RFC 3339 timestamp with an offset.", "labId must be a UUID.", "Lab not found") (`05-…`, `35-…`, `36-…`) | One function maps `type` (and status) to Vietnamese on every page; field errors follow the field name; an unknown type reads "Có lỗi xảy ra. Vui lòng thử lại." |
+| 3 | Create lab without dates went to the server (400); only Mở lúc showed an error, the summary sat far above the button, the error stayed after the date was filled (`02-…`, `03-…`) | Both dates required and checked before sending, errors under both fields, focus and scroll to the first, errors cleared on change |
+| 4, 5 | CE showed only the badge; an endless loop showed a static "Đang chấm bài." for about 20 s, then "TLE" ×7 without explanation (`14-…` to `17-…`) | Spinner while queued or grading; Vietnamese caption per verdict, CE "Lỗi biên dịch", TLE with the lab's CPU limit (compiler output: see PA4) |
+| 7 | `?lab=<unknown id>` silently chose the first lab (`37-…`) | "Không tìm thấy lab này." and no lab preselected |
+| 8 | A theme change in tab 2 did not reach tab 1, which after signing out showed light with "Tối" checked (`19-…`, `20-…`) | Theme follows `storage` events for its key; the buttons always match the screen |
+| 11 | Panel reason "uses banned \`std::sort\`" with raw backticks (`32-…`) | Backticked text renders as inline code; hard-rule reasons read in Vietnamese ("Dùng hàm bị cấm `std::sort`.") |
+| 12 | The 404 page lost the header, menu and "Đăng xuất" for a signed-in user (`06-…`) | The 404 page sits in the TA or student layout |
+| 13 | ta1 signed out on the queue, ta2 signed in and landed on ta1's last URL | Signing out drops `next`; the next user starts at their role's home |
+| 17 | The statement says "Time limit: 2 seconds" while the lab used CPU 1000 ms | The script sets CPU 2000 ms; `eval/` is not edited (AGENTS.md), so the statement text stays as it is |
+| 18 | The walkthrough did not match the UI (button label, pass row wording, clipping) | This document |
+
+### Moved to PA4
+
+Still open after `ui-3`, carried over to PA4:
+
+| # | Problem | Suggested fix (from the report) |
+| --- | --- | --- |
+| 4 | A CE shows no compiler message (the API returns `tests: []` and no output) | Backend returns the compiler's stderr, cut short and cleaned; the frontend shows it under the badge (needs a contract change) |
+| 6, 16 | At 375 px: the TA lab list scrolls the whole page (750 px wide) with "Hàng chờ duyệt" off screen; the queue hides "Kết luận"; the student lab table hides a column; the header wraps to two lines and "Đăng xuất" breaks; names like `std::stable_sort` break mid-word (`23-…`, `24-…`, `29-…`, `30-…`) | Compact header; responsive tables; `overflow-wrap: anywhere` for code in tables |
+| 9 | After Enter on **Nộp bài**, focus falls back to `<body>` | Move focus to the result region (`tabIndex=-1`) |
+| 10 | Esc does not close the queue panel, and it has no close button | Esc clears the selection and returns focus to the row |
+| 14 | Back then Forward on the submit page empties the code | Keep a draft per lab in `sessionStorage` |
+| 15 | The scrollable table frame takes focus without a focus ring | `:focus-visible` style for the frame, or no focus |
+| 17 | The statement says "constraints are in constraints.json" to students | The TA edits the statement after importing |
