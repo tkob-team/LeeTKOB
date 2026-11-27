@@ -43,7 +43,9 @@ describe('submit page: preselected lab, result emphasis, shared width', () => {
     });
     render(<SubmitJudgePage />);
 
-    const status = await screen.findByRole('status');
+    // The status first says "queued" until the poll answers; wait for the final result.
+    const table = await screen.findByRole('table', { name: 'Kết quả từng test' });
+    const status = screen.getByRole('status');
     expect(screen.getByRole('combobox', { name: 'Lab' })).toHaveValue(second.id);
     expect(request).toHaveBeenCalledWith(
       `/labs/${second.id}/submissions/${second.latestSubmissionId}`,
@@ -52,7 +54,6 @@ describe('submit page: preselected lab, result emphasis, shared width', () => {
     expect(status).toHaveTextContent('Kết quả chung AC');
     expect(within(status).getByText('AC')).toHaveClass('lk-judge', 'lk-judge--large');
     expect(screen.getByText('Bài được tính điểm (lần nộp cuối trước hạn)')).toBeInTheDocument();
-    const table = await screen.findByRole('table', { name: 'Kết quả từng test' });
     const headers = within(table)
       .getAllByRole('columnheader')
       .map((cell) => cell.textContent);
