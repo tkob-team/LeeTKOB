@@ -20,4 +20,5 @@ runs:
         comm -13 "$before" "$after" > "$RUNNER_TEMP/maven-downloaded.lst"
         echo "Maven files downloaded after cache restore: $(wc -l < "$RUNNER_TEMP/maven-downloaded.lst")"
         echo "Maven files now in ~/.m2/repository: $(wc -l < "$after")"
-        sed "s|^$HOME/.m2/repository/||" "$RUNNER_TEMP/maven-downloaded.lst" | head -50
+        # head reads the file itself: "sed | head" fails under pipefail when head exits early.
+        head -n 50 "$RUNNER_TEMP/maven-downloaded.lst" | sed "s|^$HOME/.m2/repository/||"
