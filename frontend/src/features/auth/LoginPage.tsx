@@ -5,7 +5,7 @@ import type { ProblemDetails } from '../../api/problem';
 import { fieldErrorMessage, localizeProblem } from '../../api/problem-message';
 import { credentialErrors } from '../../app/auth-api';
 import { afterLoginPath, NEXT_PARAM, useAuth, type Credentials } from '../../app/auth-context';
-import { Button, Cover, FormField, ProblemAlert } from '../../components/ui';
+import { Button, Cover, FormField, PasswordInput, ProblemAlert } from '../../components/ui';
 
 type Field = 'email' | 'password';
 type FieldErrors = Partial<Record<Field, string>>;
@@ -35,6 +35,17 @@ function formProblem(problem: ProblemDetails): ProblemDetails {
     };
   }
   return localizeProblem(problem);
+}
+
+/** Failed sign-ins after which both fields keep their values: 401, 429 and no connection (0). */
+const RETRY_STATUSES = new Set([0, 401, 429]);
+
+/** Focuses the field with the caret after the last character, without selecting the text. */
+function focusAtEnd(input: HTMLInputElement | null) {
+  if (!input) return;
+  input.focus();
+  const end = input.value.length;
+  input.setSelectionRange(end, end);
 }
 
 export function LoginPage() {
@@ -96,10 +107,10 @@ export function LoginPage() {
       } else {
         setProblem(formProblem(failed));
       }
-      if (failed.status === 401) {
-        // Wrong email or password: keep the email, ask for the password again.
-        setPassword('');
-        passwordInput.current?.focus();
+      if (RETRY_STATUSES.has(failed.status) && !serverErrors.email && !serverErrors.password) {
+        // Wrong password, too many attempts or no network: nothing typed is lost; the user can
+        // fix the password where they left it.
+        focusAtEnd(passwordInput.current);
       }
     } finally {
       sending.current = false;
@@ -139,9 +150,8 @@ export function LoginPage() {
           />
         </FormField>
         <FormField label="Mật khẩu" error={fieldErrors.password}>
-          <input
+          <PasswordInput
             ref={passwordInput}
-            type="password"
             autoComplete="current-password"
             required
             aria-required="true"

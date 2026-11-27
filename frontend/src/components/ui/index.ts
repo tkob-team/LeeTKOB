@@ -7,6 +7,7 @@ export { EvidenceBlock, type EvidenceBlockProps } from './EvidenceBlock';
 export { FormField, type FormFieldProps } from './FormField';
 export { JudgeResult, type JudgeCode, type JudgeResultProps } from './JudgeResult';
 export { Markdown, MarkdownInline, type MarkdownProps } from './Markdown';
+export { PasswordInput, type PasswordInputProps } from './PasswordInput';
 export { ProblemAlert, type ProblemAlertProps } from './ProblemAlert';
 export {
   ReviewQueueTable,
