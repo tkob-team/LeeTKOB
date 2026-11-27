@@ -6,7 +6,7 @@ import { StudentLabPage, StudentLabsPage } from '../features/lab-view/StudentLab
 import { ReviewQueuePage } from '../features/review-queue/ReviewQueuePage';
 import { SubmitJudgePage } from '../features/submit-judge/SubmitJudgePage';
 import { StudentLayout, TaLayout } from './AppLayout';
-import { NotFoundPage } from './NotFoundPage';
+import { NotFoundRoute } from './NotFoundPage';
 import { PublicLayout } from './PublicLayout';
 import { HomeRedirect, RequireRole } from './RequireRole';
 
@@ -51,12 +51,5 @@ export const routes: RouteObject[] = [
       { path: 'submit', element: <SubmitJudgePage /> },
     ],
   },
-  {
-    path: '*',
-    element: (
-      <PublicLayout>
-        <NotFoundPage />
-      </PublicLayout>
-    ),
-  },
+  { path: '*', element: <NotFoundRoute /> },
 ];
