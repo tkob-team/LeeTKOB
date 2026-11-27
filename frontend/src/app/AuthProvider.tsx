@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { onUnauthorized } from '../api/client';
+import { onUnauthorized, TOKEN_KEY } from '../api/client';
 import { apiLogin, tokenExpiry } from './auth-api';
 import { AuthContext, type AuthState, type Credentials, type Session } from './auth-context';
 
+/**
+ * The session lives in localStorage so a new tab of the same browser is signed in too. Signing
+ * out in one tab clears it, and the `storage` event signs the other tabs out. Sessions saved by
+ * older builds in sessionStorage are moved over once.
+ */
 const SESSION_KEY = 'leetkob.session';
-const TOKEN_KEY = 'leetkob.token';
 
 /** Longest delay setTimeout accepts. */
 const MAX_TIMER_MS = 2_147_483_647;
@@ -14,9 +18,23 @@ function isLive(session: Session): boolean {
   return expiry !== null && expiry > Date.now();
 }
 
+/** Moves a session saved in sessionStorage by an older build to localStorage, once. */
+function migrateLegacySession(): void {
+  const legacy = sessionStorage.getItem(SESSION_KEY);
+  if (legacy === null) return;
+  if (localStorage.getItem(SESSION_KEY) === null) {
+    localStorage.setItem(SESSION_KEY, legacy);
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    if (token !== null) localStorage.setItem(TOKEN_KEY, token);
+  }
+  sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+}
+
 function readSession(): Session | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    migrateLegacySession();
+    const raw = localStorage.getItem(SESSION_KEY);
     const session = raw ? (JSON.parse(raw) as Session) : null;
     if (session && isLive(session)) return session;
     writeSession(null);
@@ -29,11 +47,11 @@ function readSession(): Session | null {
 function writeSession(session: Session | null): void {
   try {
     if (session) {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-      sessionStorage.setItem(TOKEN_KEY, session.token);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      localStorage.setItem(TOKEN_KEY, session.token);
     } else {
-      sessionStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     }
   } catch {
     // Storage can be unavailable (private mode); the session then lasts for this page only.
@@ -66,6 +84,19 @@ export function AuthProvider({ children, login: loginImpl = apiLogin }: AuthProv
   // A 401 on a signed-in request means the token expired or was revoked: sign out, and
   // RequireRole sends the user to /login.
   useEffect(() => onUnauthorized(logout), [logout]);
+
+  // Another tab signed in or out (or cleared storage): follow it. A missing or expired session
+  // signs this tab out, and RequireRole sends the user to /login.
+  useEffect(() => {
+    const follow = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== SESSION_KEY) return;
+      setSession(readSession());
+    };
+    window.addEventListener('storage', follow);
+    return () => {
+      window.removeEventListener('storage', follow);
+    };
+  }, []);
 
   // Sign out when the token's exp passes, even without a request.
   useEffect(() => {
