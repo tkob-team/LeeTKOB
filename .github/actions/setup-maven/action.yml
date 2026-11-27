@@ -1,0 +1,56 @@
+name: Set up JDK and Maven cache
+description: >-
+  Install JDK 25 and restore the Maven repository and wrapper cache. Only the
+  maven-deps job passes save: 'true'; every other job restores and never saves.
+
+inputs:
+  save:
+    description: "'true' to save the cache at the end of the job when the key missed."
+    default: 'false'
+
+outputs:
+  cache-hit:
+    description: "'true' when the exact key was restored."
+    value: ${{ steps.save.outputs.cache-hit || steps.restore.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK 25
+      uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      with:
+        distribution: temurin
+        java-version: '25'
+
+    # Bump the -vN suffix to force a fresh cache without changing the POM or wrapper.
+    - name: Compute Maven cache key
+      id: key
+      shell: bash
+      run: >-
+        echo "key=maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml',
+        'backend/.mvn/wrapper/maven-wrapper.properties') }}-v2" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Maven cache (saved at job end)
+      id: save
+      if: inputs.save == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.m2/repository
+          ~/.m2/wrapper
+        key: ${{ steps.key.outputs.key }}
+
+    - name: Restore Maven cache (restore only)
+      id: restore
+      if: inputs.save != 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.m2/repository
+          ~/.m2/wrapper
+        key: ${{ steps.key.outputs.key }}
+
+    # Files newer than this marker were downloaded during the job (see count-maven-downloads).
+    - name: Mark cache restore time
+      shell: bash
+      run: touch "$RUNNER_TEMP/maven-cache-restored"
