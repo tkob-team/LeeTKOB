@@ -3,7 +3,12 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
 import { AuthContext, type AuthState } from '../../app/auth-context';
-import type { ReviewItem, ReviewQueuePage as QueueResponse } from './review-queue';
+import {
+  formatSubmittedAt,
+  studentLabel,
+  type ReviewItem,
+  type ReviewQueuePage as QueueResponse,
+} from './review-queue';
 import { POLL_MS, ReviewQueuePage } from './ReviewQueuePage';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
@@ -102,11 +107,14 @@ describe('ReviewQueuePage', () => {
     expect(request).toHaveBeenCalledWith(path, expect.anything());
     const [, first, second] = within(table).getAllByRole('row');
     if (!first || !second) throw new Error('expected two body rows');
-    expect(within(first).getByText('aaaaaaaa')).toBeInTheDocument();
+    expect(
+      within(table.closest('section') as HTMLElement).getByText('aaaaaaaa'),
+    ).toBeInTheDocument();
+    expect(table.closest('section')).toHaveAccessibleName('Bài nộp aaaaaaaa');
     expect(within(first).getByText('violation')).toBeInTheDocument();
     expect(within(first).getByText('−3')).toBeInTheDocument();
     expect(within(first).getByText('hard rule')).toBeInTheDocument();
-    expect(within(first).getByText('12')).toBeInTheDocument();
+    expect(within(first).getByText('dòng 12')).toBeInTheDocument();
     expect(within(second).getByText('unsure')).toBeInTheDocument();
     expect(within(second).getByText('guardrail')).toBeInTheDocument();
     expect(within(second).getByText('Hết thời gian chờ mô hình')).toBeInTheDocument();
@@ -147,11 +155,14 @@ describe('ReviewQueuePage', () => {
     );
     renderAt(`/ta/labs/${labId}/review`);
 
-    const reviewing = await screen.findByRole('region', { name: 'Đang soát' });
+    const reviewing = await screen.findByRole('region', { name: 'Bài nộp bbbbbbbb' });
     expect(within(reviewing).getByText('bbbbbbbb')).toBeInTheDocument();
-    expect(within(reviewing).getByText(/đang soát/)).toBeInTheDocument();
-    const notChecked = screen.getByRole('region', { name: 'Không soát' });
+    expect(within(reviewing).getByText('Đang soát ràng buộc…')).toBeInTheDocument();
+    const notChecked = screen.getByRole('region', { name: 'Bài nộp cccccccc' });
     expect(within(notChecked).getByText('WA')).toBeInTheDocument();
+    expect(
+      within(notChecked).getByText('Không soát ràng buộc: chấm test chưa AC.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.getByText(/Tạm tính/)).toBeInTheDocument();
   });
@@ -162,7 +173,7 @@ describe('ReviewQueuePage', () => {
     request.mockResolvedValue(queue([item({})]));
     renderAt(`/ta/labs/${labId}/review`);
 
-    await screen.findByRole('region', { name: 'Đang soát' });
+    await screen.findByText('Đang soát ràng buộc…');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     await act(async () => {
       await vi.advanceTimersByTimeAsync(POLL_MS);
@@ -220,26 +231,25 @@ describe('ReviewQueuePage', () => {
     );
     renderAt(`/ta/labs/${labId}/review`);
 
-    const earlier = await screen.findByRole('region', { name: 'Bài nộp trước (không được tính)' });
-    const [countedTable, earlierTable] = screen.getAllByRole('table');
-    if (!countedTable || !earlierTable) throw new Error('expected two tables');
-    expect(within(earlier).getByRole('table')).toBe(earlierTable);
-    expect(within(countedTable).getAllByText('aaaaaaaa')).toHaveLength(2);
-    expect(within(countedTable).queryByText('dddddddd')).not.toBeInTheDocument();
-    expect(within(earlierTable).getAllByText('dddddddd')).toHaveLength(2);
-    expect(within(earlierTable).queryByText('aaaaaaaa')).not.toBeInTheDocument();
-    expect(within(earlier).getByText('eeeeeeee')).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Đang soát' })).not.toBeInTheDocument();
+    const earlier = await screen.findByRole('region', { name: 'Các lần nộp trước của sinh viên' });
     expect(
-      countedTable.compareDocumentPosition(earlier) & Node.DOCUMENT_POSITION_FOLLOWING,
+      within(earlier).getByText('Không tính điểm, chỉ để đối chiếu với lần nộp được tính.'),
+    ).toBeInTheDocument();
+    const counted = screen.getByRole('region', { name: 'Bài nộp aaaaaaaa' });
+    const earlierBlock = within(earlier).getByRole('region', { name: 'Bài nộp dddddddd' });
+    const reviewingBlock = within(earlier).getByRole('region', { name: 'Bài nộp eeeeeeee' });
+    expect(within(counted).getByText('Được tính điểm')).toBeInTheDocument();
+    expect(within(earlierBlock).queryByText('Được tính điểm')).not.toBeInTheDocument();
+    expect(within(earlier).queryByRole('region', { name: 'Bài nộp aaaaaaaa' })).toBeNull();
+    expect(within(reviewingBlock).getByText('Đang soát ràng buộc…')).toBeInTheDocument();
+    expect(
+      counted.compareDocumentPosition(earlier) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
 
-    const [, firstEarlier] = within(earlierTable).getAllByRole('row');
+    const [, firstEarlier] = within(within(earlierBlock).getByRole('table')).getAllByRole('row');
     if (!firstEarlier) throw new Error('expected an earlier row');
     fireEvent.click(firstEarlier);
-    const panel = within(earlier).getByRole('complementary', {
-      name: 'Bài nộp dddddddd, ràng buộc C1',
-    });
+    const panel = screen.getByRole('complementary', { name: 'Bài nộp dddddddd, ràng buộc C1' });
     expect(within(panel).getByRole('heading')).toHaveTextContent(
       'C1 · bài nộp dddddddd (không được tính)',
     );
@@ -252,18 +262,65 @@ describe('ReviewQueuePage', () => {
     await screen.findByRole('table');
     expect(screen.getAllByRole('table')).toHaveLength(1);
     expect(
-      screen.queryByRole('region', { name: 'Bài nộp trước (không được tính)' }),
+      screen.queryByRole('region', { name: 'Các lần nộp trước của sinh viên' }),
     ).not.toBeInTheDocument();
   });
 
-  it('shows the deduction as −N only for violation and unsure; pass says no deduction', async () => {
+  it('heads each submission with an anonymous student, the full time and the test result', async () => {
+    const student = 'c1d2e3f4-0a1b-4c2d-8e3f-9a0b1c2d3e4f';
+    const other = 'c1d2e3f4-0a1b-4c2d-8e3f-9a0b1c2d3e50';
+    request.mockResolvedValue(
+      queue([
+        item({ counted: true, submittedAt: '2026-11-27T07:15:42.120Z' }),
+        item({
+          submissionId: 'ffffffff-0000-4000-8000-000000000006',
+          student: { id: other, displayName: 'Minh Tran' },
+          counted: true,
+          verdict: 'WA',
+          reviewStatus: 'not_checked',
+          needsReview: false,
+        }),
+      ]),
+    );
+    renderAt(`/ta/labs/${labId}/review`);
+
+    const block = await screen.findByRole('region', { name: 'Bài nộp aaaaaaaa' });
+    const label = studentLabel(student);
+    expect(label).toMatch(/^Sinh viên [0-9A-F]{4}$/);
+    expect(studentLabel(student)).toBe(label);
+    expect(studentLabel(other)).not.toBe(label);
+    expect(within(block).getByRole('heading', { name: label })).toBeInTheDocument();
+    expect(within(block).getByText('Được tính điểm')).toBeInTheDocument();
+    const time = within(block).getByText(formatSubmittedAt('2026-11-27T07:15:42.120Z'));
+    expect(time.tagName).toBe('TIME');
+    expect(time).toHaveAttribute('dateTime', '2026-11-27T07:15:42.120Z');
+    expect(time.textContent).toMatch(/^\d{2}\/\d{2}\/2026 \d{2}:\d{2}:42$/);
+    expect(within(block).getByText('AC')).toBeInTheDocument();
+    const wrong = screen.getByRole('region', { name: 'Bài nộp ffffffff' });
+    expect(within(wrong).getByRole('heading', { name: studentLabel(other) })).toBeInTheDocument();
+    expect(within(wrong).getByText('WA')).toBeInTheDocument();
+    expect(screen.queryByText(/Lan Nguyen|Minh Tran/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Kết quả soát ràng buộc của từng bài, chờ trợ giảng xác nhận trước khi công bố điểm.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the deduction as −N only for violation and unsure; pass reads 0 (−N nếu vi phạm)', async () => {
     const [violation] = item({}).constraints;
     if (!violation) throw new Error('expected a constraint');
     request.mockResolvedValue(
       queue([
         item({
           constraints: [
-            violation,
+            {
+              ...violation,
+              evidence: [
+                { line: 9, text: 'a' },
+                { line: 10, text: 'b' },
+              ],
+            },
             {
               code: 'C2',
               text: 'Sort with a merge sort you wrote yourself.',
@@ -285,15 +342,16 @@ describe('ReviewQueuePage', () => {
     const [, first, second] = within(table).getAllByRole('row');
     if (!first || !second) throw new Error('expected two body rows');
     expect(within(first).getByText('−3')).toBeInTheDocument();
-    expect(within(second).getByText('Không trừ (mức trừ nếu vi phạm: 4)')).toBeInTheDocument();
+    expect(within(first).getByText('dòng 9, 10')).toBeInTheDocument();
+    expect(within(second).getByText('0 (−4 nếu vi phạm)')).toBeInTheDocument();
+    expect(within(second).getByText('—')).toBeInTheDocument();
     expect(screen.queryByText('−4')).not.toBeInTheDocument();
 
     fireEvent.click(second);
     const panel = screen.getByRole('complementary', { name: 'Bài nộp aaaaaaaa, ràng buộc C2' });
     expect(within(panel).getByText(/Khoản trừ:/)).toHaveTextContent(
-      'pass Khoản trừ: Không trừ (mức trừ nếu vi phạm: 4)',
+      'pass Khoản trừ: 0 (−4 nếu vi phạm)',
     );
-    expect(within(panel).queryByText(/−4/)).not.toBeInTheDocument();
 
     fireEvent.click(first);
     const violationPanel = screen.getByRole('complementary', {
@@ -304,36 +362,51 @@ describe('ReviewQueuePage', () => {
     );
   });
 
-  it('clips the constraint text in the table and shows it in full in the panel', async () => {
+  it('wraps the full constraint text with inline code; the panel sits beside the blocks', async () => {
     const long =
-      'Do not call any library sort function such as std::sort, std::stable_sort, qsort or ' +
-      'std::ranges::sort anywhere in the submitted program, including helper functions.';
+      'Do not call any library sort function such as `std::sort`, `std::stable_sort`, `qsort` ' +
+      'or `std::ranges::sort` anywhere in the submitted program, including helper functions.';
+    const plain = long.replaceAll('`', '');
     const [first, second] = item({}).constraints;
     if (!first || !second) throw new Error('expected two constraints');
     request.mockResolvedValue(queue([item({ constraints: [{ ...first, text: long }, second] })]));
-    renderAt(`/ta/labs/${labId}/review`);
+    const { container } = renderAt(`/ta/labs/${labId}/review`);
 
-    const table = await screen.findByRole('table');
+    const table = await screen.findByRole('table', { name: 'Ràng buộc của bài nộp aaaaaaaa' });
     const headers = within(table)
       .getAllByRole('columnheader')
       .map((cell) => cell.textContent);
-    expect(headers).toEqual([
-      'Bài nộp',
-      'Ràng buộc',
-      'Khoản trừ',
-      'Nguồn',
-      'Kết luận',
-      'Bằng chứng',
-    ]);
-    const [, row] = within(table).getAllByRole('row');
-    if (!row) throw new Error('expected a body row');
-    const cell = within(row).getByText(`C1 ${long}`);
-    expect(cell).toHaveClass('lk-table__clip');
-    expect(cell).toHaveAttribute('title', `C1 ${long}`);
+    expect(headers).toEqual(['Ràng buộc', 'Khoản trừ', 'Nguồn', 'Kết luận', 'Bằng chứng']);
+    const [, row, other] = within(table).getAllByRole('row');
+    if (!row || !other) throw new Error('expected two body rows');
+    const cell = within(row).getAllByRole('cell')[0];
+    if (!cell) throw new Error('expected a constraint cell');
+    expect(cell).toHaveClass('lk-wrap');
+    expect(cell.textContent).toBe(`C1 ${plain}`);
+    expect(within(cell).getByText('std::sort').tagName).toBe('CODE');
+
+    const layout = container.querySelector('.lk-review');
+    const aside = container.querySelector('.lk-review__aside');
+    if (!layout || !aside) throw new Error('expected the two-column layout');
+    expect(aside.parentElement).toBe(layout);
+    expect(
+      within(aside as HTMLElement).getByRole('complementary', { name: 'Chi tiết ràng buộc' }),
+    ).toHaveTextContent('Chọn một dòng để xem lý do và dòng bằng chứng.');
 
     fireEvent.click(row);
-    const panel = screen.getByRole('complementary', { name: 'Bài nộp aaaaaaaa, ràng buộc C1' });
-    expect(within(panel).getByText(long)).toBeInTheDocument();
+    const panel = within(aside as HTMLElement).getByRole('complementary', {
+      name: 'Bài nộp aaaaaaaa, ràng buộc C1',
+    });
+    expect(panel.textContent).toContain(plain);
+    expect(table.isConnected).toBe(true);
+    fireEvent.click(other);
+    expect(
+      within(aside as HTMLElement).getByRole('complementary', {
+        name: 'Bài nộp aaaaaaaa, ràng buộc C2',
+      }),
+    ).toBeInTheDocument();
+    expect(aside.parentElement).toBe(layout);
+    expect(container.querySelectorAll('aside')).toHaveLength(1);
   });
 
   it('shows the 404 problem in Vietnamese without the English title', async () => {

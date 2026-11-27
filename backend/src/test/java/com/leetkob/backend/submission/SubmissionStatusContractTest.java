@@ -1,7 +1,11 @@
 package com.leetkob.backend.submission;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,6 +27,8 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
 class SubmissionStatusContractTest {
+
+  private static final String TIME = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z";
 
   @Autowired private JdbcClient jdbc;
   @Autowired private MockMvc mvc;
@@ -121,6 +127,84 @@ class SubmissionStatusContractTest {
         .andExpect(jsonPath("$[0].title").value("Visible"))
         .andExpect(jsonPath("$[0].latestSubmissionId").value(latest.toString()))
         .andExpect(jsonPath("$[0].tests").doesNotHaveJsonPath());
+  }
+
+  @Test
+  void labListCarriesTimesAndTheLatestVerdict() throws Exception {
+    finish(earlier, "AC");
+    mvc.perform(get("/student/labs").with(actor(student, "STUDENT")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(lab.toString()))
+        .andExpect(jsonPath("$[0].opensAt").value(matchesPattern(TIME)))
+        .andExpect(jsonPath("$[0].dueAt").value(matchesPattern(TIME)))
+        .andExpect(jsonPath("$[0].latestSubmissionId").value(latest.toString()))
+        .andExpect(jsonPath("$[0].latestVerdict").isEmpty()); // latest is still queued
+
+    jdbc.sql(
+            "update judge_jobs set lease_token = gen_random_uuid(),"
+                + " lease_expires_at = now() + interval '1 minute' where submission_id = ?")
+        .param(latest)
+        .update();
+    mvc.perform(get("/student/labs").with(actor(student, "STUDENT")))
+        .andExpect(jsonPath("$[0].latestVerdict").isEmpty()); // grading
+
+    jdbc.sql(
+            "update judge_jobs set lease_token = null, lease_expires_at = null"
+                + " where submission_id = ?")
+        .param(latest)
+        .update();
+    finish(latest, "WA");
+    mvc.perform(get("/student/labs").with(actor(student, "STUDENT")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].latestVerdict").value("WA"))
+        .andExpect(jsonPath("$[0].findings").doesNotHaveJsonPath())
+        .andExpect(jsonPath("$[0].statementMd").doesNotHaveJsonPath());
+  }
+
+  @Test
+  void labNotOpenYetListsItsTimesButNotItsStatement() throws Exception {
+    UUID future = UUID.randomUUID();
+    jdbc.sql(
+            """
+            insert into labs (id, class_id, title, statement_md, opens_at, due_at)
+            select ?, class_id, 'Future', 'SECRET STATEMENT',
+                   timestamptz '2099-01-02T03:04:05.678Z', timestamptz '2099-01-09T03:04:05.678Z'
+            from labs where id = ?
+            """)
+        .params(future, lab)
+        .update();
+
+    mvc.perform(get("/student/labs").with(actor(student, "STUDENT")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].id").value(future.toString()))
+        .andExpect(jsonPath("$[0].title").value("Future"))
+        .andExpect(jsonPath("$[0].opensAt").value("2099-01-02T03:04:05.678Z"))
+        .andExpect(jsonPath("$[0].dueAt").value("2099-01-09T03:04:05.678Z"))
+        .andExpect(jsonPath("$[0].latestSubmissionId").isEmpty())
+        .andExpect(jsonPath("$[0].latestVerdict").isEmpty())
+        .andExpect(jsonPath("$[0].statementMd").doesNotHaveJsonPath())
+        .andExpect(content().string(not(containsString("SECRET STATEMENT"))));
+    mvc.perform(get("/labs/{lab}", future).with(actor(student, "STUDENT")))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.type").value("urn:leetkob:problem:lab-not-open"));
+  }
+
+  @Test
+  void studentOfAnotherClassDoesNotSeeTheLab() throws Exception {
+    UUID outsider = UUID.randomUUID();
+    jdbc.sql("insert into users (id) values (?)").param(outsider).update();
+    jdbc.sql("insert into class_members select class_id, ? from labs where id = ?")
+        .params(outsider, otherLab)
+        .update();
+
+    mvc.perform(get("/student/labs").with(actor(outsider, "STUDENT")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].id").value(otherLab.toString()))
+        .andExpect(jsonPath("$[0].latestSubmissionId").isEmpty())
+        .andExpect(jsonPath("$[0].latestVerdict").isEmpty())
+        .andExpect(content().string(not(containsString(lab.toString()))));
   }
 
   private UUID submission(int secondsAgo) {

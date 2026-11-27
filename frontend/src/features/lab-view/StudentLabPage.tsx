@@ -3,7 +3,13 @@ import { Link, useParams } from 'react-router';
 import { api, ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
-import { ProblemAlert } from '../../components/ui';
+import {
+  JudgeResult,
+  Markdown,
+  MarkdownInline,
+  ProblemAlert,
+  type JudgeCode,
+} from '../../components/ui';
 import {
   formatDateTime,
   formatDeduction,
@@ -11,9 +17,29 @@ import {
   type LabDetail,
 } from '../lab-authoring/lab-api';
 
+/** GET /student/labs (get-student-judge-status.md 1.1.0). */
 interface StudentLab {
   id: string;
   title: string | null;
+  latestSubmissionId: string | null;
+  /** Absent from a 1.0.0 response (old backend during a deploy). */
+  opensAt?: string;
+  dueAt?: string;
+  latestVerdict?: Exclude<JudgeCode, 'pending'> | null;
+}
+
+/** Not open yet, no submission, still grading, or the verdict of the counted submission. */
+function LabStatus({ lab, now }: { lab: StudentLab; now: number }) {
+  if (lab.opensAt && Date.parse(lab.opensAt) > now) {
+    return <>Chưa mở (mở lúc {formatDateTime(lab.opensAt)})</>;
+  }
+  if (!lab.latestSubmissionId) return <>Chưa nộp</>;
+  if (!lab.latestVerdict) return <>Đang chấm</>;
+  return (
+    <>
+      Bài được tính: <JudgeResult code={lab.latestVerdict} />
+    </>
+  );
 }
 
 function requestProblem(cause: unknown): ProblemDetails {
@@ -26,10 +52,11 @@ function requestProblem(cause: unknown): ProblemDetails {
   return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
 }
 
-/** The labs of the student's classes, each linking to its statement. */
+/** The labs of the student's classes as a table: name (links to the statement), deadline, status. */
 export function StudentLabsPage() {
   const [labs, setLabs] = useState<StudentLab[]>();
   const [problem, setProblem] = useState<ProblemDetails>();
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     const abort = new AbortController();
@@ -56,13 +83,34 @@ export function StudentLabsPage() {
       </h1>
       {problem ? <ProblemAlert problem={problem} /> : null}
       {!labs && !problem ? <p className="lk-page__note">Đang tải danh sách lab…</p> : null}
-      <ul className="lk-list">
-        {labs?.map((lab) => (
-          <li key={lab.id}>
-            <Link to={`/student/labs/${encodeURIComponent(lab.id)}`}>{labTitle(lab.title)}</Link>
-          </li>
-        ))}
-      </ul>
+      {labs?.length ? (
+        <div className="lk-table-wrap">
+          <table className="lk-table" aria-label="Danh sách lab">
+            <thead>
+              <tr>
+                <th scope="col">Lab</th>
+                <th scope="col">Hạn nộp</th>
+                <th scope="col">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {labs.map((lab) => (
+                <tr key={lab.id}>
+                  <td className="lk-wrap">
+                    <Link to={`/student/labs/${encodeURIComponent(lab.id)}`}>
+                      {labTitle(lab.title)}
+                    </Link>
+                  </td>
+                  <td>{lab.dueAt ? formatDateTime(lab.dueAt) : '—'}</td>
+                  <td>
+                    <LabStatus lab={lab} now={now} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -114,7 +162,7 @@ export function StudentLabPage() {
       </header>
 
       <section className="lk-panel" aria-label="Đề bài">
-        <pre className="lk-statement">{lab.statementMd}</pre>
+        <Markdown>{lab.statementMd}</Markdown>
       </section>
 
       <section className="lk-panel" aria-labelledby="lab-constraints-title">
@@ -128,8 +176,8 @@ export function StudentLabPage() {
             <table className="lk-table">
               <thead>
                 <tr>
-                  <th scope="col">Mã</th>
-                  <th scope="col">Ràng buộc</th>
+                  <th scope="col">ID</th>
+                  <th scope="col">Chi tiết ràng buộc</th>
                   <th scope="col">Khoản trừ</th>
                 </tr>
               </thead>
@@ -137,7 +185,9 @@ export function StudentLabPage() {
                 {lab.constraints.map((constraint) => (
                   <tr key={constraint.code}>
                     <td className="lk-mono">{constraint.code}</td>
-                    <td className="lk-wrap">{constraint.text}</td>
+                    <td className="lk-wrap">
+                      <MarkdownInline>{constraint.text}</MarkdownInline>
+                    </td>
                     <td>{formatDeduction(constraint.deduction)}</td>
                   </tr>
                 ))}
@@ -149,7 +199,10 @@ export function StudentLabPage() {
       </section>
 
       <div>
-        <Link className="lk-btn lk-btn--primary" to="/student/submit">
+        <Link
+          className="lk-btn lk-btn--primary"
+          to={`/student/submit?lab=${encodeURIComponent(lab.id)}`}
+        >
           Đi tới trang nộp bài
         </Link>
       </div>

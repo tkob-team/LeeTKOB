@@ -26,6 +26,16 @@ interface PollView {
   problem?: ProblemDetails;
 }
 
+/**
+ * The lab chosen through `?lab=<id>` (link from the statement page), else the first lab. Read
+ * from window.location rather than the router so the page also works outside a router.
+ */
+function initialLab(available: Lab[]): string {
+  const wanted = new URLSearchParams(window.location.search).get('lab');
+  const match = available.find((lab) => lab.id === wanted);
+  return match?.id ?? available[0]?.id ?? '';
+}
+
 function requestProblem(cause: unknown): ProblemDetails {
   if (cause instanceof ApiProblemError) return cause.problem;
   return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
@@ -52,7 +62,7 @@ export function SubmitJudgePage() {
       .then((available) => {
         if (abort.signal.aborted) return;
         setLabs(available);
-        setLabId(available[0]?.id ?? '');
+        setLabId(initialLab(available));
       })
       .catch((cause: unknown) => {
         if (!abort.signal.aborted) setProblem(requestProblem(cause));
@@ -130,7 +140,7 @@ export function SubmitJudgePage() {
   }
 
   return (
-    <div className="lk-stack">
+    <div className="lk-stack lk-submit">
       <h1 className="lk-page__title">Nộp bài</h1>
       {problem ? <ProblemAlert problem={problem} /> : null}
       {labs?.length === 0 ? <p>Bạn chưa có lab trong các lớp đã tham gia.</p> : null}
@@ -172,20 +182,26 @@ export function SubmitJudgePage() {
           </Button>
         </form>
       ) : null}
+      {labs?.length && !submissionId ? (
+        <section className="lk-result" aria-labelledby="judge-result-title">
+          <h2 id="judge-result-title">Kết quả chấm</h2>
+          <p>Chưa nộp bài nào.</p>
+        </section>
+      ) : null}
       {submissionId ? (
-        <section aria-labelledby="judge-result-title">
+        <section className="lk-result" aria-labelledby="judge-result-title">
           <h2 id="judge-result-title">Kết quả chấm</h2>
           <p>
             Mã bài nộp <span className="lk-mono">{submissionId}</span>
           </p>
-          {report?.counted ? <p>Bài được tính</p> : null}
+          {report?.counted ? <p>Bài được tính điểm (lần nộp cuối trước hạn)</p> : null}
           {view?.problem ? (
             <ProblemAlert problem={view.problem} />
           ) : (
-            <p role="status">
+            <p role="status" className="lk-result__overall">
               {report?.verdict ? (
                 <>
-                  Kết quả chung <JudgeResult code={report.verdict} />
+                  Kết quả chung <JudgeResult code={report.verdict} size="large" />
                 </>
               ) : report?.status === 'grading' ? (
                 'Đang chấm bài.'
@@ -196,11 +212,11 @@ export function SubmitJudgePage() {
           )}
           {report?.tests.length ? (
             <div className="lk-table-wrap">
-              <table className="lk-table" aria-label="Verdict từng test">
+              <table className="lk-table" aria-label="Kết quả từng test">
                 <thead>
                   <tr>
                     <th scope="col">Test</th>
-                    <th scope="col">Verdict</th>
+                    <th scope="col">Kết quả</th>
                   </tr>
                 </thead>
                 <tbody>

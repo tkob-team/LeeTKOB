@@ -28,14 +28,6 @@
 .lk-table tbody tr[aria-selected='true'] {
   background: var(--surface-sunken);
 }
-/* ReviewQueueTable: the constraint column takes the remaining width and clips with an ellipsis,
- * so the other columns always fit without horizontal scrolling. */
-.lk-table td.lk-table__clip {
-  width: 100%;
-  max-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* Cover (Cover/preview.html). Sizes are the preview's own. */
 .lk-cover {
@@ -205,4 +197,161 @@
 }
 .lk-table td.lk-wrap {
   white-space: normal;
+}
+
+/* Markdown: rendered lab statements and inline constraint text. */
+.lk-markdown {
+  display: grid;
+  gap: var(--space-3);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.lk-markdown > *,
+.lk-markdown li > p {
+  margin: 0;
+}
+.lk-markdown h2 {
+  font-size: var(--title-font-size);
+  line-height: var(--title-line-height);
+  font-weight: var(--title-font-weight);
+}
+.lk-markdown h3,
+.lk-markdown h4 {
+  font-size: var(--section-font-size);
+  line-height: var(--section-line-height);
+  font-weight: var(--section-font-weight);
+}
+.lk-markdown ul,
+.lk-markdown ol {
+  padding-left: var(--space-6);
+}
+.lk-markdown code,
+.lk-markdown-inline code {
+  font-family: var(--font-mono);
+  font-size: var(--code-font-size);
+  padding: 0 var(--space-1);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+.lk-codeblock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+.lk-codeblock pre {
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--code-font-size);
+  line-height: var(--code-line-height);
+}
+.lk-codeblock pre code {
+  padding: 0;
+  background: none;
+}
+.lk-copy {
+  display: inline-grid;
+  justify-items: end;
+  gap: var(--space-1);
+}
+.lk-copy__status {
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  color: var(--ink-muted);
+}
+.lk-copy__status:empty {
+  display: none;
+}
+
+/* Review queue: one block per submission, the detail panel beside the blocks. The panel column
+ * is always present and sticky, so selecting another row never moves the page. */
+.lk-review {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+.lk-review__main {
+  display: grid;
+  gap: var(--space-6);
+}
+.lk-review__aside {
+  position: sticky;
+  top: var(--space-4);
+  max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto;
+}
+.lk-submission {
+  display: grid;
+  gap: var(--space-3);
+}
+.lk-submission__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.lk-submission__student {
+  margin: 0;
+  font-size: var(--section-font-size);
+  line-height: var(--section-line-height);
+  font-weight: var(--section-font-weight);
+}
+.lk-tag {
+  display: inline-flex;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  font-weight: var(--label-font-weight);
+}
+@media (max-width: 960px) {
+  .lk-review {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lk-review__aside {
+    position: static;
+    max-height: none;
+  }
+}
+
+/* JudgeResult size="large": the overall result on the submit page. */
+.lk-judge.lk-judge--large {
+  font-size: var(--title-font-size);
+  line-height: var(--title-line-height);
+  padding: var(--space-1) var(--space-3);
+  border-width: 2px;
+}
+
+/* Submit page: the code field and the result table share one width. */
+.lk-submit {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 80ch;
+}
+.lk-submit .lk-field {
+  max-width: none;
+}
+.lk-submit .lk-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+}
+.lk-result {
+  display: grid;
+  gap: var(--space-3);
+}
+.lk-result p {
+  margin: 0;
+}
+.lk-result__overall {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
