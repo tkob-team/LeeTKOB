@@ -3,7 +3,13 @@ package com.leetkob.backend.judge;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,32 +38,115 @@ final class DockerSandbox {
   record Execution(Outcome outcome, byte[] stdout, String containerName) {}
 
   private final String image;
+  private final URI proxy;
+  private final HttpClient client;
 
   DockerSandbox(String image) {
+    this(image, System.getenv("JUDGE_SANDBOX_PROXY"));
+  }
+
+  DockerSandbox(String image, String proxyAddress) {
     if (image.isBlank() || image.startsWith("-")) {
       throw new IllegalArgumentException("A trusted local sandbox image is required.");
     }
     this.image = image;
+    proxy = proxyAddress == null ? null : URI.create(proxyAddress);
+    client =
+        proxy == null
+            ? null
+            : HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
+  }
+
+  boolean isReady() {
+    if (proxy == null) {
+      return true;
+    }
+    var probe =
+        HttpRequest.newBuilder(proxy.resolve("/health")).timeout(Duration.ofSeconds(3)).build();
+    try {
+      return client.send(probe, HttpResponse.BodyHandlers.discarding()).statusCode() == 204;
+    } catch (InterruptedException error) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (IOException error) {
+      return false;
+    }
   }
 
   Execution compile(String source) {
     byte[] code = source.getBytes(StandardCharsets.UTF_8);
+    if (proxy != null) {
+      return call("/compile", code, 16 * MIB);
+    }
     return execute(
         List.of("compile", Integer.toString(code.length)), 512, 10_000, 16 * MIB, List.of(code));
   }
 
   Execution run(byte[] program, String input, int cpuMs, int memoryMb) {
+    byte[] stdin = input.getBytes(StandardCharsets.UTF_8);
+    if (proxy != null) {
+      byte[] payload =
+          ByteBuffer.allocate(Integer.BYTES + program.length + stdin.length)
+              .putInt(program.length)
+              .put(program)
+              .put(stdin)
+              .array();
+      return call("/run/" + cpuMs + "/" + memoryMb, payload, MIB);
+    }
     return execute(
         List.of("run", Integer.toString(cpuMs), Integer.toString(program.length)),
         memoryMb,
         3 * cpuMs,
         MIB,
-        List.of(program, input.getBytes(StandardCharsets.UTF_8)));
+        List.of(program, stdin));
+  }
+
+  private Execution call(String path, byte[] body, int outputLimit) {
+    var request =
+        HttpRequest.newBuilder(proxy.resolve(path))
+            .timeout(Duration.ofSeconds(45))
+            .POST(HttpRequest.BodyPublishers.ofByteArray(body))
+            .build();
+    try {
+      var response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+      try (var output = response.body()) {
+        if (response.statusCode() != 200) {
+          throw new IllegalStateException("Sandbox proxy rejected the operation.");
+        }
+        byte[] stdout = output.readNBytes(outputLimit + 1);
+        if (stdout.length > outputLimit) {
+          throw new IllegalStateException("Sandbox proxy response exceeded its output limit.");
+        }
+        return new Execution(
+            Outcome.valueOf(response.headers().firstValue("X-Sandbox-Outcome").orElseThrow()),
+            stdout,
+            response.headers().firstValue("X-Sandbox-Container").orElseThrow());
+      }
+    } catch (InterruptedException error) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException("Sandbox proxy call was interrupted.", error);
+    } catch (IOException error) {
+      throw new IllegalStateException("Sandbox proxy is unavailable.", error);
+    }
+  }
+
+  boolean containerGone(String name) throws IOException, InterruptedException {
+    if (proxy == null) {
+      var inspection = new ProcessBuilder("docker", "inspect", name).start();
+      return inspection.waitFor() != 0;
+    }
+    var request =
+        HttpRequest.newBuilder(proxy.resolve("/status/" + name))
+            .timeout(Duration.ofSeconds(15))
+            .GET()
+            .build();
+    return client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode() == 404;
   }
 
   private Execution execute(
       List<String> args, int memoryMb, int wallMs, int outputLimit, List<byte[]> input) {
     String name = "leetkob-judge-" + UUID.randomUUID();
+    var labels = System.getenv("JUDGE_SANDBOX_SCOPE");
     var command =
         new ArrayList<>(
             List.of(
@@ -83,6 +172,9 @@ final class DockerSandbox {
                 "--log-driver=none",
                 "--tmpfs=/work:rw,exec,nosuid,nodev,size=32m,mode=1777",
                 image));
+    if (labels != null) {
+      command.addAll(2, List.of("--label", "org.leetkob.sandbox-scope=" + labels));
+    }
     command.addAll(args);
     Process process = null;
     var io = Executors.newVirtualThreadPerTaskExecutor();

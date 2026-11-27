@@ -401,6 +401,14 @@
 - Rejected: patching `crypto.randomUUID` in the browser console to finish the run; reading findings through the API instead of the queue screen.
 - Validation: all six expectations PASS. Judge waits were 4–10 s; checker results were in the queue within 50 s to 3 min 5 s (upper bounds). ta2 got HTTP 404 from `review-queue`, seen in the Network panel. Open UI issues: the queue table scrolls horizontally, the panel shows the deduction on `pass` rows, and the 404 message is in English.
 
+## 2026-11-28 - T101 sandbox socket proxy (B, Hoa)
+
+- Tool: OpenAI Codex.
+- Kept: the existing daemon, sandbox build profile, Caddy rollout and queue leases.
+- Changed: only the private proxy receives the host socket. The worker waits for readiness,
+  and sandbox-check exercises the same path.
+- Rejected: changing to a rootless daemon or falling back to the host socket.
+
 ## 2026-11-27 — T109: HTTPS with Caddy in front of web (A, Hiep)
 
 - Tool: Claude Code (Claude Opus 5.5). `deploy/.env` was not read; nothing was run on the VM.
