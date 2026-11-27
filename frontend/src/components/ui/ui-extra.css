@@ -410,3 +410,16 @@ a.lk-btn {
   align-items: center;
   gap: var(--space-3);
 }
+
+/* Neutral note above a form, e.g. "session expired" on the login page. */
+.lk-notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+}

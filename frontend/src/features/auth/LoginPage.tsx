@@ -1,9 +1,9 @@
 import { useRef, useState, type SubmitEvent } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { Navigate, useSearchParams } from 'react-router';
 import { ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
 import { credentialErrors } from '../../app/auth-api';
-import { homePath, useAuth, type Credentials } from '../../app/auth-context';
+import { afterLoginPath, NEXT_PARAM, useAuth, type Credentials } from '../../app/auth-context';
 import { Button, Cover, FormField, ProblemAlert } from '../../components/ui';
 
 type Field = 'email' | 'password';
@@ -37,8 +37,8 @@ function formProblem(problem: ProblemDetails): ProblemDetails {
 }
 
 export function LoginPage() {
-  const { session, login } = useAuth();
-  const location = useLocation();
+  const { session, signOutReason, login } = useAuth();
+  const [searchParams] = useSearchParams();
   const emailInput = useRef<HTMLInputElement>(null);
   const passwordInput = useRef<HTMLInputElement>(null);
   const sending = useRef(false);
@@ -52,9 +52,7 @@ export function LoginPage() {
 
   if (session) {
     // Back to the page that sent the user here, if it belongs to their role.
-    const from = (location.state as { from?: string } | null)?.from;
-    const target = from?.startsWith(`/${session.role}/`) ? from : homePath(session.role);
-    return <Navigate to={target} replace />;
+    return <Navigate to={afterLoginPath(session.role, searchParams.get(NEXT_PARAM))} replace />;
   }
 
   function revalidate(next: Credentials) {
@@ -119,6 +117,11 @@ export function LoginPage() {
         <h1 id="login-title" className="lk-page__title">
           Đăng nhập
         </h1>
+        {signOutReason === 'expired' ? (
+          <p className="lk-notice" role="status">
+            Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.
+          </p>
+        ) : null}
         <FormField label="Email" error={fieldErrors.email}>
           <input
             ref={emailInput}
