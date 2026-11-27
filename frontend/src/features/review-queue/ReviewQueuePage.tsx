@@ -18,6 +18,7 @@ import {
 import {
   formatSubmittedAt,
   isCounted,
+  reasonText,
   studentLabel,
   submissionLabel,
   toRows,
@@ -265,6 +266,7 @@ function SubmissionBlock({
 function FindingPanel({ row }: { row: QueueRow }) {
   const { finding } = row;
   const label = submissionLabel(row.item.submissionId);
+  const reason = reasonText(finding);
   return (
     <aside className="lk-panel" aria-label={`Bài nộp ${label}, ràng buộc ${finding.code}`}>
       <h2 className="lk-panel__title">
@@ -280,7 +282,10 @@ function FindingPanel({ row }: { row: QueueRow }) {
         {deductionLabel(finding.verdict, finding.deduction)}
       </p>
       {finding.unsureCause ? <p>Nguyên nhân unsure: {UNSURE_CAUSE[finding.unsureCause]}</p> : null}
-      {finding.reason ? <p>Lý do: {finding.reason}</p> : null}
+      {/* `code` in the reason (banned names, identifiers) shows as inline code. */}
+      {reason ? (
+        <p>Lý do: {reason.includes('`') ? <MarkdownInline>{reason}</MarkdownInline> : reason}</p>
+      ) : null}
       {finding.evidence.length > 0 ? (
         finding.evidence.map((line) => (
           <EvidenceBlock
