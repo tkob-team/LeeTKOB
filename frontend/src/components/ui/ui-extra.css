@@ -448,3 +448,41 @@ a.lk-btn {
 .lk-result__caption {
   color: var(--ink-muted);
 }
+
+/* Password field with the show/hide button inside it, on the right. */
+.lk-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.lk-field .lk-password__input {
+  flex: 1;
+  min-width: 0;
+  padding-right: calc(var(--space-8) + var(--space-1));
+}
+.lk-password__toggle {
+  position: absolute;
+  right: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.lk-password__toggle:hover {
+  color: var(--ink);
+}
+.lk-password__toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+}
+.lk-password__toggle svg {
+  width: var(--space-6);
+  height: var(--space-6);
+}

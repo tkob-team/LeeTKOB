@@ -5,7 +5,7 @@ import type { ProblemDetails } from '../../api/problem';
 import { fieldErrorMessage, localizeProblem } from '../../api/problem-message';
 import { credentialErrors } from '../../app/auth-api';
 import { afterLoginPath, NEXT_PARAM, useAuth, type Credentials } from '../../app/auth-context';
-import { Button, Cover, FormField, ProblemAlert } from '../../components/ui';
+import { Button, Cover, FormField, PasswordInput, ProblemAlert } from '../../components/ui';
 
 type Field = 'email' | 'password';
 type FieldErrors = Partial<Record<Field, string>>;
@@ -150,9 +150,8 @@ export function LoginPage() {
           />
         </FormField>
         <FormField label="Mật khẩu" error={fieldErrors.password}>
-          <input
+          <PasswordInput
             ref={passwordInput}
-            type="password"
             autoComplete="current-password"
             required
             aria-required="true"
