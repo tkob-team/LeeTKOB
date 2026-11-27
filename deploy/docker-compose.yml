@@ -6,7 +6,8 @@
 # Values come from deploy/.env (copy deploy/.env.example; never commit it). Every service lists
 # its variables explicitly; no service loads the whole file, so GEMINI_API_KEY reaches only
 # checker-worker and the Docker socket is mounted only in judge-worker.
-# Only web publishes a port (80). PostgreSQL, the API and the workers stay on the internal network.
+# Only caddy publishes ports (80, 443) and terminates TLS; it proxies to web (nginx) over the
+# `edge` network. PostgreSQL, the API and the workers stay on the internal network.
 
 name: leetkob
 
@@ -98,8 +99,32 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+    # No published port: only caddy reaches web from outside. nginx trusts X-Forwarded-For
+    # only from the edge subnet (deploy/nginx.conf), where caddy is the only other member.
+    expose:
+      - '80'
+    networks:
+      - default
+      - edge
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
     ports:
       - '80:80'
+      - '443:443'
+    environment:
+      LEETKOB_DOMAIN: ${LEETKOB_DOMAIN:?set LEETKOB_DOMAIN in deploy/.env}
+      ACME_EMAIL_OPTION: ${ACME_EMAIL:+email ${ACME_EMAIL}}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and ACME account; keep them so restarts do not request new ones.
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - edge
 
   # One-shot jobs and build-only images; not started by `up`.
   seed:
@@ -137,6 +162,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - m2:/root/.m2
 
+networks:
+  # caddy <-> web only. The subnet is fixed because deploy/nginx.conf trusts it by address.
+  edge:
+    ipam:
+      config:
+        - subnet: 172.29.250.0/28
+
 volumes:
   pgdata:
   m2:
+  caddy_data:
+  caddy_config:
