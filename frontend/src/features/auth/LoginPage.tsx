@@ -2,6 +2,7 @@ import { useRef, useState, type SubmitEvent } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
 import { ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
+import { fieldErrorMessage, localizeProblem } from '../../api/problem-message';
 import { credentialErrors } from '../../app/auth-api';
 import { afterLoginPath, NEXT_PARAM, useAuth, type Credentials } from '../../app/auth-context';
 import { Button, Cover, FormField, ProblemAlert } from '../../components/ui';
@@ -33,7 +34,7 @@ function formProblem(problem: ProblemDetails): ProblemDetails {
       detail: 'Chưa đăng nhập được do lỗi phía máy chủ. Thử lại sau ít phút.',
     };
   }
-  return problem;
+  return localizeProblem(problem);
 }
 
 export function LoginPage() {
@@ -85,7 +86,8 @@ export function LoginPage() {
       const serverErrors: FieldErrors = {};
       for (const fieldError of failed.errors ?? []) {
         if (fieldError.field === 'email' || fieldError.field === 'password') {
-          serverErrors[fieldError.field] = fieldError.detail;
+          // The server's detail is English; the message follows the field name.
+          serverErrors[fieldError.field] = fieldErrorMessage(fieldError.field);
         }
       }
       if (serverErrors.email || serverErrors.password) {

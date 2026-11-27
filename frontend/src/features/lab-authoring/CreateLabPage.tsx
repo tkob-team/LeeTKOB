@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent, type SubmitEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { api, ApiProblemError } from '../../api/client';
+import { api } from '../../api/client';
+import { localizedFieldErrors, problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { Button, FormField, ProblemAlert } from '../../components/ui';
 import type { LabDetail, NewLab } from './lab-api';
@@ -18,12 +19,6 @@ function toIso(local: string): string {
   if (!local) return '';
   const date = new Date(local);
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
-}
-
-function fieldErrors(problem: ProblemDetails | undefined): Record<string, string> {
-  const errors: Record<string, string> = {};
-  for (const error of problem?.errors ?? []) errors[error.field] = error.detail;
-  return errors;
 }
 
 function replaceAt<T>(items: T[], index: number, next: T): T[] {
@@ -45,7 +40,7 @@ export function CreateLabPage() {
   const [imported, setImported] = useState<ImportResult>();
   const [problem, setProblem] = useState<ProblemDetails>();
   const [pending, setPending] = useState(false);
-  const errors = fieldErrors(problem);
+  const errors = localizedFieldErrors(problem);
 
   async function importFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -84,11 +79,7 @@ export function CreateLabPage() {
       });
       void navigate('/ta/labs', { state: { created: lab.title ?? '' } });
     } catch (cause) {
-      setProblem(
-        cause instanceof ApiProblemError
-          ? cause.problem
-          : { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 },
-      );
+      setProblem(problemFrom(cause));
     } finally {
       setPending(false);
     }
@@ -147,7 +138,7 @@ export function CreateLabPage() {
         </section>
       ) : null}
 
-      {problem ? <ProblemAlert problem={problem} showType /> : null}
+      {problem ? <ProblemAlert problem={problem} /> : null}
 
       <section className="lk-panel lk-form-panel" aria-label="Thông tin chung">
         <FormField label="Tiêu đề" error={errors.title}>

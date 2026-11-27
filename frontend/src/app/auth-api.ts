@@ -1,5 +1,6 @@
 import { ApiProblemError, api, type ApiClient } from '../api/client';
 import type { ProblemFieldError } from '../api/problem';
+import { CLIENT_PREFIX } from '../api/problem-message';
 import type { Credentials, Role, Session } from './auth-context';
 
 /** 200 body of POST /auth/login (docs/contract/post-auth-login.md). */
@@ -76,7 +77,7 @@ export async function apiLogin(
   const role = ROLES[response.role];
   if (!role) {
     throw new ApiProblemError({
-      type: 'about:blank',
+      type: `${CLIENT_PREFIX}role-not-supported`,
       title: 'Chưa có giao diện cho vai trò này',
       status: 403,
       detail: 'Tài khoản quản trị chưa dùng được trên giao diện web.',

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { api, ApiProblemError } from '../../api/client';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
 import { useAuth } from '../../app/auth-context';
@@ -30,7 +31,7 @@ import {
 export const POLL_MS = 15_000;
 const PAGE_SIZE = 20;
 
-/** Vietnamese text for problems this page expects; `type` and `status` stay as sent. */
+/** Wording this page uses instead of the shared text; `type` and `status` stay as sent. */
 const PROBLEM_TEXT: Partial<Record<string, Pick<ProblemDetails, 'title' | 'detail'>>> = {
   'urn:leetkob:problem:lab-not-found': {
     title: 'Không tìm thấy lab',
@@ -39,11 +40,9 @@ const PROBLEM_TEXT: Partial<Record<string, Pick<ProblemDetails, 'title' | 'detai
 };
 
 function requestProblem(cause: unknown): ProblemDetails {
-  if (cause instanceof ApiProblemError) {
-    const text = PROBLEM_TEXT[cause.problem.type];
-    return text ? { ...cause.problem, ...text } : cause.problem;
-  }
-  return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
+  const problem = problemFrom(cause);
+  const text = PROBLEM_TEXT[problem.type];
+  return text ? { ...problem, ...text } : problem;
 }
 
 export function ReviewQueuePage() {

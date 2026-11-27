@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
-import { api, ApiProblemError } from '../../api/client';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { uuidV4 } from '../../api/uuid';
 import { Button, FormField, JudgeResult, ProblemAlert, type JudgeCode } from '../../components/ui';
@@ -36,11 +37,6 @@ function initialLab(available: Lab[]): string {
   return match?.id ?? available[0]?.id ?? '';
 }
 
-function requestProblem(cause: unknown): ProblemDetails {
-  if (cause instanceof ApiProblemError) return cause.problem;
-  return { type: 'about:blank', title: 'Không đọc được phản hồi của máy chủ', status: 0 };
-}
-
 export function SubmitJudgePage() {
   const [labs, setLabs] = useState<Lab[] | null>(null);
   const [labId, setLabId] = useState('');
@@ -65,7 +61,7 @@ export function SubmitJudgePage() {
         setLabId(initialLab(available));
       })
       .catch((cause: unknown) => {
-        if (!abort.signal.aborted) setProblem(requestProblem(cause));
+        if (!abort.signal.aborted) setProblem(problemFrom(cause));
       });
     return () => {
       abort.abort();
@@ -87,7 +83,7 @@ export function SubmitJudgePage() {
         if (next.status === 'completed') return;
       } catch (cause) {
         if (abort.signal.aborted) return;
-        const problem = requestProblem(cause);
+        const problem = problemFrom(cause);
         setPollView({ id, problem });
         if (problem.status !== 0 && problem.status < 500) return;
       }
@@ -132,7 +128,7 @@ export function SubmitJudgePage() {
           null,
       );
     } catch (cause) {
-      setProblem(requestProblem(cause));
+      setProblem(problemFrom(cause));
     } finally {
       postingRef.current = false;
       setPosting(false);
