@@ -1,4 +1,5 @@
 export { Button, type ButtonProps, type ButtonVariant } from './Button';
+export { deductionLabel } from './deduction';
 export { Cover, type CoverProps } from './Cover';
 export { EvidenceBlock, type EvidenceBlockProps } from './EvidenceBlock';
 export { FormField, type FormFieldProps } from './FormField';

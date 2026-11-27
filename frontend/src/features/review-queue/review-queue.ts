@@ -15,6 +15,11 @@ export type UnsureCause = 'model' | 'schema' | 'timeout' | 'evidence' | 'cost_ca
 
 export interface ReviewItem {
   submissionId: string;
+  /**
+   * False for an earlier AC submission returned with includeEarlier=true (contract 1.1.0).
+   * Absent from a 1.0.0 response; treated as counted.
+   */
+  counted?: boolean;
   student: { id: string; displayName: string | null };
   submittedAt: string;
   judgeStatus: 'queued' | 'grading' | 'completed';
@@ -59,6 +64,10 @@ const SOURCE: Record<NonNullable<ConstraintFinding['source']>, ReviewQueueRow['s
 /** Short pseudonymous label; the queue never shows student names (design system). */
 export function submissionLabel(submissionId: string): string {
   return submissionId.slice(0, 8);
+}
+
+export function isCounted(item: ReviewItem): boolean {
+  return item.counted !== false;
 }
 
 /** One row per (checked submission, constraint); the API already puts needsReview items first. */

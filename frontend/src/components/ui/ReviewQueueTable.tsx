@@ -1,3 +1,4 @@
+import { deductionLabel } from './deduction';
 import { VerdictBadge, type Verdict } from './VerdictBadge';
 
 export interface ReviewQueueRow {
@@ -22,11 +23,10 @@ export interface ReviewQueueTableProps {
   onSelect?: (row: ReviewQueueRow) => void;
 }
 
-function formatDeduction(value: number): string {
-  return value === 0 ? '0' : `−${String(value)}`;
-}
-
-/** No bulk action here: model `violation` rows are reviewed one by one. */
+/**
+ * The constraint column is clipped with an ellipsis (full text in the cell's title and in the
+ * side panel) so Khoản trừ, Nguồn and Kết luận stay in view without horizontal scrolling.
+ * No bulk action here: model `violation` rows are reviewed one by one. */
 export function ReviewQueueTable({ rows, selectedId, onSelect }: ReviewQueueTableProps) {
   return (
     <div className="lk-table-wrap">
@@ -66,8 +66,12 @@ export function ReviewQueueTable({ rows, selectedId, onSelect }: ReviewQueueTabl
                 }
               >
                 <td className="lk-mono">{row.submissionId}</td>
-                <td>{row.constraint}</td>
-                <td>{formatDeduction(row.deduction)}</td>
+                <td className="lk-table__clip" title={row.constraint}>
+                  {row.constraint}
+                </td>
+                <td className={row.verdict === 'pass' ? 'lk-wrap' : undefined}>
+                  {deductionLabel(row.verdict, row.deduction)}
+                </td>
                 <td>{row.source}</td>
                 <td>
                   <VerdictBadge verdict={row.verdict} />
