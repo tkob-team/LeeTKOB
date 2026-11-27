@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
@@ -51,7 +51,10 @@ describe('student lab statement', () => {
       await screen.findByRole('heading', { name: 'Sorting with merge sort', level: 1 }),
     ).toBeInTheDocument();
     expect(request).toHaveBeenCalledWith(`/labs/${labId}`, expect.anything());
-    expect(screen.getByText(/Read `n` integers\./)).toBeInTheDocument();
+    const paragraph = screen.getByText(
+      (_, element) => element?.tagName === 'P' && element.textContent === 'Read n integers.',
+    );
+    expect(within(paragraph).getByText('n').tagName).toBe('CODE');
     expect(screen.getByText(/thời gian thực 3000 ms/)).toBeInTheDocument();
     expect(
       screen.getByRole('row', { name: /C1 Do not call a library sort function\. −3/ }),
@@ -62,6 +65,49 @@ describe('student lab statement', () => {
       'href',
       '/student/submit',
     );
+  });
+
+  it('renders the statement as Markdown with a copy button per code block', async () => {
+    request.mockResolvedValueOnce({
+      id: labId,
+      classId: 'c',
+      title: 'Sorting',
+      statementMd: [
+        '# Sorting',
+        '',
+        '## Example',
+        '',
+        '```',
+        '6',
+        '5 -2 9',
+        '```',
+        '',
+        '<script>window.x=1</script>',
+      ].join('\n'),
+      opensAt: '2026-11-24T01:00:00.000Z',
+      dueAt: '2026-12-01T16:59:59.000Z',
+      cpuTimeMs: 1000,
+      wallTimeMs: 3000,
+      memoryMb: 256,
+      constraints: [{ code: 'C1', text: 'Do not call `std::sort` or `qsort`.', deduction: 3 }],
+    });
+    renderAt(`/student/labs/${labId}`);
+
+    const statement = await screen.findByRole('region', { name: 'Đề bài' });
+    expect(within(statement).getByRole('heading', { level: 2, name: 'Sorting' })).toBeVisible();
+    expect(within(statement).getByRole('heading', { level: 3, name: 'Example' })).toBeVisible();
+    expect(within(statement).getByRole('button', { name: 'Sao chép' })).toBeVisible();
+    expect(statement.querySelector('script')).toBeNull();
+    expect(statement.textContent).not.toContain('```');
+
+    const table = screen.getByRole('table');
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent);
+    expect(headers).toEqual(['ID', 'Chi tiết ràng buộc', 'Khoản trừ']);
+    const row = within(table).getByRole('row', { name: 'C1 Do not call std::sort or qsort. −3' });
+    expect(within(row).getByText('std::sort').tagName).toBe('CODE');
+    expect(row.textContent).not.toContain('`');
   });
 
   it('explains that a lab is not open yet', async () => {

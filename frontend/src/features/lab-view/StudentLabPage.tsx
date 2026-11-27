@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router';
 import { api, ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
-import { ProblemAlert } from '../../components/ui';
+import { Markdown, MarkdownInline, ProblemAlert } from '../../components/ui';
 import {
   formatDateTime,
   formatDeduction,
@@ -114,7 +114,7 @@ export function StudentLabPage() {
       </header>
 
       <section className="lk-panel" aria-label="Đề bài">
-        <pre className="lk-statement">{lab.statementMd}</pre>
+        <Markdown>{lab.statementMd}</Markdown>
       </section>
 
       <section className="lk-panel" aria-labelledby="lab-constraints-title">
@@ -128,8 +128,8 @@ export function StudentLabPage() {
             <table className="lk-table">
               <thead>
                 <tr>
-                  <th scope="col">Mã</th>
-                  <th scope="col">Ràng buộc</th>
+                  <th scope="col">ID</th>
+                  <th scope="col">Chi tiết ràng buộc</th>
                   <th scope="col">Khoản trừ</th>
                 </tr>
               </thead>
@@ -137,7 +137,9 @@ export function StudentLabPage() {
                 {lab.constraints.map((constraint) => (
                   <tr key={constraint.code}>
                     <td className="lk-mono">{constraint.code}</td>
-                    <td className="lk-wrap">{constraint.text}</td>
+                    <td className="lk-wrap">
+                      <MarkdownInline>{constraint.text}</MarkdownInline>
+                    </td>
                     <td>{formatDeduction(constraint.deduction)}</td>
                   </tr>
                 ))}
