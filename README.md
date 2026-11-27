@@ -241,9 +241,11 @@ the existing JWT verifier and persisted account roles.
 ## Deployment runbook
 
 One Linux VM runs everything with [deploy/docker-compose.yml](deploy/docker-compose.yml).
-Only `web` (nginx) publishes a port, 80; it serves the frontend build and proxies `/api/` to
-the API on the same origin. PostgreSQL (persistent volume `pgdata`), `api`, `judge-worker`
-and `checker-worker` have no published port.
+Only `caddy` publishes ports, 80 and 443: it gets a Let's Encrypt certificate for
+`LEETKOB_DOMAIN`, redirects HTTP to HTTPS and proxies to `web` (nginx) over the private `edge`
+network. `web` serves the frontend build and proxies `/api/` to the API on the same origin.
+PostgreSQL (persistent volume `pgdata`), `web`, `api`, `judge-worker` and `checker-worker` have
+no published port.
 
 | Service | Image | Receives |
 | --- | --- | --- |
@@ -251,17 +253,30 @@ and `checker-worker` have no published port.
 | `api` | `leetkob-api` (backend jar) | database, `JWT_SECRET` |
 | `judge-worker` | `leetkob-judge-worker` (same jar + Docker CLI), `judge-worker` | database, `/var/run/docker.sock`; no `GEMINI_API_KEY` |
 | `checker-worker` | `leetkob-checker`, `worker` | database, Gemini variables; the only service with `GEMINI_API_KEY` |
+| `caddy` | `caddy:2.10.2-alpine` + [deploy/Caddyfile](deploy/Caddyfile) | `LEETKOB_DOMAIN`, optional `ACME_EMAIL`; volumes `caddy_data` (certificates) and `caddy_config` |
 | `web` | `leetkob-web` (nginx + `frontend/dist`) | nothing |
 | `seed` (profile `seed`) | `leetkob-api`, `seed` | database, `SEED_*_PASSWORD` |
 | `sandbox` (profile `build`) | `leetkob-sandbox:pa3` from `sandbox/` | build only |
 | `sandbox-check` (profile `check`) | JDK + Docker CLI + backend sources | Docker socket |
 
 Each service lists its variables explicitly; none loads the whole `deploy/.env`.
-The site is plain HTTP on port 80; put TLS in front before real passwords are used widely.
+HSTS is not enabled yet, so the site can still go back to plain HTTP if the certificate fails
+(step 7).
+
+The login attempt limit counts the client address. Caddy replaces any `X-Forwarded-For` the
+client sends with the client address; nginx trusts that header only from the `edge` subnet
+(`172.29.250.0/28`, where caddy is the only other member) and forwards it to the API.
+`sh deploy/check-client-ip.sh` proves it on a development machine with Docker: it runs the
+real caddy, `nginx.conf` and networks with an echo server in place of the API and expects
+`PASS: the API sees the client address; caddy's address and spoofed headers are ignored`. It
+fails if the nginx `real_ip` lines are removed (the API then sees caddy's address). Do not run
+it on the VM while the stack is up: the stack already owns the `edge` subnet.
 
 ### 1. Set up the VM
 
-Ubuntu 24.04 LTS, at least 2 vCPU and 4 GB RAM, ports 22 and 80 open. Install Docker Engine
+Ubuntu 24.04 LTS, at least 2 vCPU and 4 GB RAM, inbound TCP 22, 80 and 443 open (on AWS, in
+the instance's Security Group: add inbound rules for HTTP 80 and HTTPS 443 from `0.0.0.0/0`;
+port 80 must stay open for the Let's Encrypt HTTP challenge and the redirect). Install Docker Engine
 with the Compose plugin ([docs.docker.com/engine/install/ubuntu](https://docs.docker.com/engine/install/ubuntu/)),
 then add your user to the `docker` group and log in again.
 
@@ -294,7 +309,7 @@ git clone https://github.com/tkob-team/LeeTKOB.git leetkob && cd leetkob
 cp deploy/.env.example deploy/.env && chmod 600 deploy/.env
 stat -c %g /var/run/docker.sock               # DOCKER_GID
 openssl rand -base64 48                       # a JWT_SECRET
-nano deploy/.env                              # DB_USER, DB_PASSWORD, JWT_SECRET, DOCKER_GID, GEMINI_*
+nano deploy/.env                              # LEETKOB_DOMAIN, ACME_EMAIL, DB_*, JWT_SECRET, DOCKER_GID, GEMINI_*
 docker compose -f deploy/docker-compose.yml --profile build build
 ```
 
@@ -360,13 +375,37 @@ docker compose -f deploy/docker-compose.yml up -d
 The API applies new Flyway migrations at start. If `sandbox/` or `DockerSandbox` changed,
 run the check of step 3 again.
 
+When moving from the HTTP-only deployment to HTTPS (T109): open TCP 443 in the Security Group,
+add `LEETKOB_DOMAIN=tkob-leetkob.duckdns.org` (and optionally `ACME_EMAIL`) to `deploy/.env`,
+then run the three commands above. `web` gives up port 80 and `caddy` takes 80 and 443; the
+DNS name must already point at the VM. Check:
+
+```sh
+curl -sI http://tkob-leetkob.duckdns.org | head -3     # 308 Permanent Redirect to https://
+curl -sI https://tkob-leetkob.duckdns.org | head -1    # HTTP/2 200
+```
+
 ### 6. Logs and restarts
 
 ```sh
 docker compose -f deploy/docker-compose.yml logs -f --tail=200 api judge-worker checker-worker
+docker compose -f deploy/docker-compose.yml logs -f --tail=200 caddy   # certificate and access log
+docker compose -f deploy/docker-compose.yml logs --tail=50 web         # client addresses as nginx sees them
 docker compose -f deploy/docker-compose.yml restart judge-worker checker-worker
 docker compose -f deploy/docker-compose.yml exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" leetkob' > "backup-$(date +%F).sql"
 ```
 
 A restarted worker leaves its job leased; another claim takes it after the lease expires
 (60 s for the judge, `--lease-seconds 600` for the checker).
+
+### 7. Go back to plain HTTP
+
+If the certificate cannot be obtained or renewed (caddy log shows `obtaining certificate`
+errors), serve HTTP only without changing the compose file: set
+`LEETKOB_DOMAIN=http://tkob-leetkob.duckdns.org` in `deploy/.env` and run
+`docker compose -f deploy/docker-compose.yml up -d caddy`. Caddy then listens on port 80 only,
+with no redirect and no certificate. Undo by restoring the bare domain and running the same
+command. HSTS is off, so no browser is forced to use HTTPS, but caddy's redirect is a `308
+Permanent Redirect` that browsers cache: a browser that already followed it keeps going to
+`https://` until its cache is cleared (or open the site in a private window). The frontend's
+submission key works on HTTP since #39.

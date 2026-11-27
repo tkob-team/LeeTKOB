@@ -1,0 +1,25 @@
+# caddy service: TLS in front of web (nginx). Runbook: README.md, "Deployment runbook".
+#
+# LEETKOB_DOMAIN is the site address. A bare domain (tkob-leetkob.duckdns.org) gets a
+# Let's Encrypt certificate and HTTP is redirected to HTTPS. `http://<domain>` serves plain
+# HTTP only, with no certificate (rollback). ACME_EMAIL_OPTION is `email <address>` or empty;
+# compose builds it from ACME_EMAIL.
+{
+	{$ACME_EMAIL_OPTION}
+	servers {
+		# Only TCP 80/443 are published, so do not advertise HTTP/3 over UDP.
+		protocols h1 h2
+	}
+}
+
+{$LEETKOB_DOMAIN} {
+	encode gzip
+	log {
+		output stdout
+		format console
+	}
+	# Caddy replaces any X-Forwarded-For sent by the client with the client address
+	# (no trusted_proxies), so web can trust this header from Caddy only.
+	# No HSTS yet: keep the HTTP rollback possible while the certificate is new.
+	reverse_proxy web:80
+}
