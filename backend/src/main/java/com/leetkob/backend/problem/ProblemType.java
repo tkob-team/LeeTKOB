@@ -14,6 +14,7 @@ public enum ProblemType {
   METHOD_NOT_ALLOWED("method-not-allowed", 405, "Method not allowed"),
   LAB_NOT_OPEN("lab-not-open", 409, "Lab is not open yet"),
   LAB_CLOSED("lab-closed", 409, "Lab is closed"),
+  MEMBER_HAS_SUBMISSIONS("member-has-submissions", 409, "Student has submissions in this class"),
   CODE_TOO_LARGE("code-too-large", 413, "Code is too large"),
   UNSUPPORTED_MEDIA_TYPE("unsupported-media-type", 415, "Unsupported media type"),
   IDEMPOTENCY_KEY_REUSED(
