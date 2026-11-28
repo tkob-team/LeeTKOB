@@ -13,16 +13,17 @@ import {
   JudgeResult,
   MarkdownInline,
   ProblemAlert,
+  ReviewQueueTable,
   VerdictBadge,
 } from '../../components/ui';
 import { formatDateTime, labTitle, type Classroom, type LabDetail } from '../lab-authoring/lab-api';
 import { labPhase } from '../lab-authoring/lab-phase';
 import { taClassPath } from '../ta-classes/ta-classes-api';
-import { FindingsTable } from './FindingsTable';
 import {
   formatSubmittedAt,
   isCounted,
   reasonText,
+  SOURCE_LABEL,
   studentLabel,
   submissionLabel,
   toRows,
@@ -308,10 +309,12 @@ function SubmissionBlock({
         </span>
       </header>
       {item.reviewStatus === 'checked' ? (
-        <FindingsTable
+        <ReviewQueueTable
           rows={rows}
           selectedId={selectedId}
           onSelect={onSelect}
+          renderSource={sourceCell}
+          showSubmission={false}
           label={`Ràng buộc của bài nộp ${label}`}
         />
       ) : item.reviewStatus === 'reviewing' ? (
@@ -321,6 +324,12 @@ function SubmissionBlock({
       )}
     </section>
   );
+}
+
+/** The source in Vietnamese ("Luật cứng", "Mô hình", "Chặn an toàn"), its meaning as a title. */
+function sourceCell(row: QueueRow) {
+  const source = SOURCE_LABEL[row.source];
+  return <span title={source.title}>{source.label}</span>;
 }
 
 function FindingPanel({ row }: { row: QueueRow }) {

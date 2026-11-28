@@ -98,6 +98,13 @@ describe('admin class list', () => {
     expect(within(frame).queryByRole('button', { name: /Gán/ })).toBeNull();
   });
 
+  it('names the tab "Lớp học"', async () => {
+    serve({ 'GET /admin/classes': () => [web] });
+    renderPage();
+    await screen.findByRole('region', { name: 'Danh sách lớp' });
+    expect(document.title).toBe('Lớp học · LeeTKOB');
+  });
+
   it('names every TA with the email in small text below, or says there is none', async () => {
     serve({ 'GET /admin/classes': () => [algo, web] });
     renderPage();

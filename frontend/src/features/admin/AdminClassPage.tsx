@@ -3,7 +3,9 @@ import { Link, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
+import { ADMIN_CLASS_NOT_FOUND } from '../../app/not-found-text';
 import { NotFoundPage } from '../../app/NotFoundPage';
+import { usePageTitle } from '../../app/usePageTitle';
 import {
   Button,
   ConfirmDialog,
@@ -304,7 +306,10 @@ export function AdminClassPage() {
     [reloadMembers, toast],
   );
 
-  if (!classroom && problem && NOT_FOUND_TYPES.has(problem.type)) return <NotFoundPage />;
+  const notFound = !classroom && problem !== undefined && NOT_FOUND_TYPES.has(problem.type);
+  usePageTitle(notFound ? undefined : (classroom?.name ?? 'Lớp học'));
+
+  if (notFound) return <NotFoundPage {...ADMIN_CLASS_NOT_FOUND} />;
 
   const back = (
     <Link to="/admin/classes" className="lk-back">

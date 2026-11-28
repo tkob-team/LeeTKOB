@@ -4,7 +4,7 @@ import { api } from '../../api/client';
 import { localizedFieldErrors, problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { usePageTitle } from '../../app/usePageTitle';
-import { Button, FormField, ProblemAlert } from '../../components/ui';
+import { Button, FormField, ProblemAlert, useToast } from '../../components/ui';
 import type { Classroom, LabDetail, NewLab } from './lab-api';
 import { toIso } from './lab-dates';
 import { errorSummary, labFormErrors } from './lab-form-check';
@@ -39,6 +39,7 @@ export interface CreateLabPageProps {
 export function CreateLabPage({ classroom }: CreateLabPageProps) {
   const { classId = '' } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const form = useRef<HTMLFormElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   // Client-side errors by API field path ("title", "tests[0].expectedOutput").
@@ -52,7 +53,8 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
   const [memoryMb, setMemoryMb] = useState('256');
   const [constraints, setConstraints] = useState<DraftConstraint[]>([]);
   const [tests, setTests] = useState<DraftTest[]>([EMPTY_TEST]);
-  const [imported, setImported] = useState<ImportResult>();
+  /** What the last import could not use; the form itself shows what it filled. */
+  const [importWarnings, setImportWarnings] = useState<ImportResult['warnings']>([]);
   const [problem, setProblem] = useState<ProblemDetails>();
   const [pending, setPending] = useState(false);
   const errors: Record<string, string> = { ...localizedFieldErrors(problem), ...clientErrors };
@@ -85,7 +87,9 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
     if (result.title !== undefined) setTitle(result.title);
     if (result.constraints) setConstraints(result.constraints);
     if (result.tests) setTests(result.tests);
-    setImported(result);
+    // What was filled is a success: a toast. What needs a look stays on the page.
+    if (result.notes.length > 0) toast.show(`Đã nhập từ file: ${result.notes.join(' ')}`);
+    setImportWarnings(result.warnings);
     event.target.value = '';
   }
 
@@ -187,15 +191,14 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
         </div>
       </header>
 
-      {imported ? (
-        <section className="lk-panel" aria-label="Kết quả nhập file" role="status">
-          <h2 className="lk-panel__title">Đã nhập từ file</h2>
+      {importWarnings.length > 0 ? (
+        <section className="lk-panel" aria-labelledby="import-warnings-title">
+          <h2 id="import-warnings-title" className="lk-panel__title">
+            Cần xem lại sau khi nhập file
+          </h2>
           <ul className="lk-list">
-            {imported.notes.map((note) => (
-              <li key={note}>{note}</li>
-            ))}
-            {imported.warnings.map((warning) => (
-              <li key={warning}>Cần xem lại: {warning}</li>
+            {importWarnings.map((warning) => (
+              <li key={warning}>{warning}</li>
             ))}
           </ul>
         </section>
