@@ -122,7 +122,9 @@ describe('create lab form', () => {
     chooseFiles([new File(['x'], 'notes.txt')]);
     const panel = await screen.findByRole('region', { name: 'Cần xem lại sau khi nhập file' });
     expect(panel).not.toHaveAttribute('role', 'status');
-    expect(panel).toHaveTextContent('Bỏ qua notes.txt');
+    expect(panel).toHaveTextContent(
+      'Bỏ qua 1 file: notes.txt (không phải đề, ràng buộc hay test).',
+    );
     expect(screen.queryByText(/^Đã nhập từ file/)).toBeNull();
 
     chooseFiles(sortMerge);
