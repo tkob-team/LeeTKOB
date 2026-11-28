@@ -69,6 +69,11 @@ class ClassroomController {
     return service.members(service.actor(jwt), id(classId));
   }
 
+  @GetMapping("/admin/tas")
+  List<ClassroomService.TaAccount> tas(@AuthenticationPrincipal Jwt jwt) {
+    return service.tas(service.actor(jwt));
+  }
+
   private static UUID id(String value) {
     try {
       return UUID.fromString(value);

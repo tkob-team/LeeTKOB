@@ -61,11 +61,21 @@ describe('apiLogin', () => {
     });
   });
 
-  it('refuses an admin account, which has no web screens yet', async () => {
+  it('signs an admin account in with the admin role (admin screens, feat/admin-ui)', async () => {
     const { client: c } = client(() =>
       Promise.resolve({ token: 't', role: 'ADMIN', displayName: null }),
     );
-    await expect(apiLogin({ email: 'admin@b', password: 'x' }, c)).rejects.toMatchObject({
+    await expect(apiLogin({ email: 'admin@b', password: 'x' }, c)).resolves.toMatchObject({
+      role: 'admin',
+      displayName: 'admin',
+    });
+  });
+
+  it('refuses a role that has no web screens', async () => {
+    const { client: c } = client(() =>
+      Promise.resolve({ token: 't', role: 'AUDITOR', displayName: null }),
+    );
+    await expect(apiLogin({ email: 'x@b', password: 'x' }, c)).rejects.toMatchObject({
       problem: { title: 'Chưa có giao diện cho vai trò này' },
     });
   });

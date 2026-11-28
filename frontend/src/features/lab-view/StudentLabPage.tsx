@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
-import { EmptyState } from '../../app/EmptyState';
 import {
+  Button,
+  FormField,
   JudgeResult,
   Markdown,
   MarkdownInline,
@@ -15,6 +16,7 @@ import {
   formatDateTime,
   formatDeduction,
   labTitle,
+  type Classroom,
   type LabDetail,
 } from '../lab-authoring/lab-api';
 
@@ -51,11 +53,96 @@ function requestProblem(cause: unknown): ProblemDetails {
   return problem;
 }
 
+function joinProblem(cause: unknown): ProblemDetails {
+  const problem = problemFrom(cause);
+  if (problem.type === 'urn:leetkob:problem:invalid-request') {
+    return {
+      ...problem,
+      title: 'Mã mời không hợp lệ',
+      detail: 'Mã mời gồm đúng 32 ký tự (chữ, số, - và _). Kiểm tra lại mã.',
+    };
+  }
+  if (problem.type === 'urn:leetkob:problem:class-not-found') {
+    return {
+      ...problem,
+      title: 'Không tìm thấy lớp',
+      detail: 'Không có lớp nào dùng mã mời này. Hỏi lại trợ giảng mã mời của lớp.',
+    };
+  }
+  return problem;
+}
+
+/** "Vào lớp bằng mã mời": POST /classes/join; joining a class again is not an error (200). */
+function JoinClassForm({ onJoined }: { onJoined: () => void }) {
+  const [code, setCode] = useState('');
+  const [error, setError] = useState<string>();
+  const [problem, setProblem] = useState<ProblemDetails>();
+  const [joined, setJoined] = useState<string>();
+  const [pending, setPending] = useState(false);
+
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const inviteCode = code.trim();
+    setJoined(undefined);
+    setProblem(undefined);
+    setError(inviteCode ? undefined : 'Nhập mã mời.');
+    if (!inviteCode) return;
+    setPending(true);
+    try {
+      const classroom = await api.request<Classroom>('/classes/join', {
+        method: 'POST',
+        body: JSON.stringify({ inviteCode }),
+      });
+      setCode('');
+      setJoined(classroom.name);
+      onJoined();
+    } catch (cause) {
+      setProblem(joinProblem(cause));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form
+      className="lk-panel lk-form-panel"
+      noValidate
+      aria-labelledby="join-class-title"
+      onSubmit={(e) => void submit(e)}
+    >
+      <h2 id="join-class-title" className="lk-panel__title">
+        Vào lớp bằng mã mời
+      </h2>
+      <FormField label="Mã mời" error={error} help="Trợ giảng gửi mã mời 32 ký tự của lớp.">
+        <input
+          className="lk-mono"
+          autoComplete="off"
+          spellCheck={false}
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value);
+          }}
+        />
+      </FormField>
+      <div>
+        <Button type="submit" variant="primary" disabled={pending} disabledReason="Đang vào lớp…">
+          Vào lớp
+        </Button>
+      </div>
+      <p role="status" className="lk-page__note">
+        {joined ? `Đã vào lớp ${joined}.` : ''}
+      </p>
+      {problem ? <ProblemAlert problem={problem} /> : null}
+    </form>
+  );
+}
+
 /** The labs of the student's classes as a table: name (links to the statement), deadline, status. */
 export function StudentLabsPage() {
   const [labs, setLabs] = useState<StudentLab[]>();
   const [problem, setProblem] = useState<ProblemDetails>();
   const [now] = useState(() => Date.now());
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -70,16 +157,20 @@ export function StudentLabsPage() {
     return () => {
       abort.abort();
     };
-  }, []);
+  }, [reload]);
 
-  if (labs?.length === 0) {
-    return <EmptyState title="Đề bài">Lớp của bạn chưa có lab nào.</EmptyState>;
-  }
   return (
     <section className="lk-section" aria-labelledby="student-labs-title">
       <h1 id="student-labs-title" className="lk-page__title">
         Đề bài
       </h1>
+      <JoinClassForm
+        onJoined={() => {
+          setProblem(undefined);
+          setReload((n) => n + 1);
+        }}
+      />
+      {labs?.length === 0 ? <p className="lk-page__note">Lớp của bạn chưa có lab nào.</p> : null}
       {problem ? <ProblemAlert problem={problem} /> : null}
       {!labs && !problem ? <p className="lk-page__note">Đang tải danh sách lab…</p> : null}
       {labs?.length ? (

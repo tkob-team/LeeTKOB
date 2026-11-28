@@ -21,6 +21,8 @@ class ClassroomService {
 
   record Member(UUID id, String role) {}
 
+  record TaAccount(UUID id, String email) {}
+
   private static final SecureRandom RANDOM = new SecureRandom();
   private final JdbcClient jdbc;
 
@@ -112,6 +114,13 @@ class ClassroomService {
         .query((rs, row) ->
             new Classroom(
                 rs.getObject("id", UUID.class), rs.getString("name"), rs.getString("invite_code")))
+        .list();
+  }
+
+  List<TaAccount> tas(Actor actor) {
+    requireRole(actor, "ADMIN");
+    return jdbc.sql("select id, email from users where role = 'TA' order by email nulls last, id")
+        .query((rs, row) -> new TaAccount(rs.getObject("id", UUID.class), rs.getString("email")))
         .list();
   }
 
