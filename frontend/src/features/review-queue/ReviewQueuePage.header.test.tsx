@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
@@ -119,7 +119,9 @@ describe('review queue header (A4)', () => {
     serve();
     renderQueue();
     await screen.findByRole('heading', { name: 'Hàng chờ duyệt: Sorting with merge sort' });
-    expect(document.title).toBe('Hàng chờ: Sorting with merge sort · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Hàng chờ: Sorting with merge sort · LeeTKOB');
+    });
   });
 
   it('while the lab loads, shows the plain title and "← Lớp của tôi"', () => {

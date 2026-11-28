@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
@@ -102,7 +102,9 @@ describe('admin class list', () => {
     serve({ 'GET /admin/classes': () => [web] });
     renderPage();
     await screen.findByRole('region', { name: 'Danh sách lớp' });
-    expect(document.title).toBe('Lớp học · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Lớp học · LeeTKOB');
+    });
   });
 
   it('names every TA with the email in small text below, or says there is none', async () => {
