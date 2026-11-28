@@ -19,6 +19,13 @@
 - **Not done or not verified.** The VM migration session left the old Azure VM untouched and left walkthrough labs on both deployments. The sign-in fix was checked locally with Node 26; the Node 22 result comes from PR CI. Backend and checker checks for that fix were left to CI. The final submission was outside the work recorded here.
 - **Summary drafted with OpenAI Codex** from the team's notes, the existing AI log and GitHub evidence.
 
+## 2026-11-28 - Fix the Create Lab tab title in PA#3 CI
+
+- **Tool.** OpenAI Codex investigated the failing CreateLabRoute test and reproduced the stale loading title on the class-not-found screen.
+- **Kept.** The existing title assertion, class access checks, loading and error states, and the default title on unmount.
+- **Changed.** The shared title hook now updates and resets the title in layout effects. A regression test checks that the class-not-found heading and its title appear in the same React commit. The regression test caught the stale title before the fix.
+- **Rejected.** Waiting longer in the existing assertion would hide the brief mismatch in the UI. The fix updates the title before paint.
+
 ## 2026-11-04 — Scaffold repo: Spring Boot backend, Python checker, make checks (A)
 - Attribution: the tracker Overview sheet maps A to Hiep; the original author label is retained.
 - Tool: Claude Code (Claude Opus 5.5)
