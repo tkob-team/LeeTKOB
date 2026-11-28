@@ -2,7 +2,7 @@
 
 The flow is: TA creates a lab from files → students submit → the judge grades → the checker
 proposes findings → the TA reads the review queue → a TA of another class is refused.
-Everything goes through the web UI of the deployment, http://tkob-leetkob.duckdns.org,
+Everything goes through the web UI of the deployment, https://tkob-leetkob.duckdns.org,
 using the seeded test accounts (`ta1`, `ta2`, `sv1`, `sv2` @leetkob.test). There is no
 SSH, no database edit and no seed step. Each account signs in itself on the login page;
 the person driving the browser never types or reads a password.
@@ -37,7 +37,7 @@ give each solution its own student and read the queue once.
 
 ### 1. ta1 creates the lab
 
-1. Open http://tkob-leetkob.duckdns.org. The login page appears; **ta1@leetkob.test signs
+1. Open https://tkob-leetkob.duckdns.org. The login page appears; **ta1@leetkob.test signs
    in**. The TA home is "Lab và hàng chờ duyệt" (`01-ta1-lab-list.jpg`).
 2. Click **Tạo lab** next to "Lớp thử nghiệm 1".
 3. Click **Nhập từ file** and select all 16 files of `eval/dev/problems/sort-merge/` at once.
