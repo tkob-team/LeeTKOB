@@ -1,4 +1,4 @@
-/** Types of docs/contract/classes.md 1.2.0 used by the admin screens. */
+/** Types of docs/contract/classes.md 1.4.0 used by the admin screens. */
 
 /** One item of GET /admin/tas, and one TA of GET /admin/classes. */
 export interface TaAccount {
@@ -22,6 +22,8 @@ export interface AdminMember {
   role: 'TA' | 'STUDENT';
   email: string | null;
   displayName: string | null;
+  /** Submissions of a student in the labs of this class (1.4.0); always 0 for a TA. */
+  submissionCount: number;
 }
 
 /** Names are stripped and must contain 1–200 characters (classes.md). */
@@ -51,3 +53,12 @@ export function taOptionLabel(account: TaAccount): string {
 }
 
 export const adminClassPath = (id: string) => `/admin/classes/${encodeURIComponent(id)}`;
+
+/** Problem type of a removal refused because the student has submissions (classes.md 1.3.0). */
+export const HAS_SUBMISSIONS = 'urn:leetkob:problem:member-has-submissions';
+
+/** DELETE path that removes one member of a class (classes.md 1.3.0). */
+export function removalPath(classId: string, member: AdminMember) {
+  const kind = member.role === 'TA' ? 'tas' : 'students';
+  return `/admin/classes/${encodeURIComponent(classId)}/${kind}/${encodeURIComponent(member.id)}`;
+}

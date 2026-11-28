@@ -521,26 +521,26 @@ a.lk-btn {
   font-size: var(--small-font-size);
   line-height: var(--small-line-height);
 }
+/* The picker keeps the design-system field width (ui.css `.lk-field`, 420px at most); the button
+ * sits beside the select, below the label, and stays there when an error shows under the field. */
 .lk-assign {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: var(--space-3);
 }
 .lk-assign .lk-field {
-  flex: 1 1 280px;
+  flex: 1 1 240px;
   min-width: 0;
-}
-/* The TA picker is a design-system field: same font, line height, padding, border, radius and
- * focus ring as a text input (ui.css `.lk-field select`), so the same height; full field width. */
-.lk-assign .lk-field {
-  max-width: none;
 }
 .lk-assign .lk-field select {
   box-sizing: border-box;
   width: 100%;
 }
-/* Admin class page: a member row with its "Gỡ" control, and the in-place confirmation. */
+.lk-assign > .lk-btn {
+  margin-top: calc(var(--label-line-height) + var(--space-1));
+}
+/* Admin class page: a member row with its "Gỡ" control at the right. */
 .lk-person {
   display: grid;
 }
@@ -551,11 +551,24 @@ a.lk-btn {
   justify-content: space-between;
   gap: var(--space-3);
 }
-.lk-confirm {
+/* Row actions: the column is as narrow as its content and aligned right, in the TA list and
+ * the student table alike; a reason ("Đã có bài nộp") sits left of its locked button. */
+.lk-table .lk-col-actions {
+  width: 1%;
+  text-align: right;
+}
+.lk-table .lk-col-num {
+  width: 1%;
+  text-align: right;
+}
+.lk-table .lk-col-check {
+  width: 1%;
+}
+.lk-row-actions {
   display: inline-flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: flex-end;
+  gap: var(--space-3);
 }
 .lk-panel__title[tabindex='-1']:focus {
   outline: none;
