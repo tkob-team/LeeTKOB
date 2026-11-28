@@ -28,6 +28,10 @@ Follow [docs/pa3/walkthrough.md](docs/pa3/walkthrough.md): ta1 creates a lab fro
 of `eval/dev/problems/sort-merge/`, students submit, the judge grades, the checker proposes
 findings, ta1 reads the review queue, and ta2 is refused with 404.
 
+The TA works from "Lớp của tôi" (`/ta/classes`): a class page lists its labs with the
+latest opening first, so a lab just created for this week is the top row, and each row has
+**Hàng chờ duyệt: <lab title>**.
+
 One student can show all three solutions: sv1 submits s09, s01 and s04 in turn. The queue
 then shows the last one as the counted submission and lists the two earlier AC submissions
 under "Các lần nộp cũ hơn (không tính điểm)".
@@ -51,7 +55,14 @@ under "Các lần nộp cũ hơn (không tính điểm)".
   ([class API contract](docs/contract/classes.md), 1.2.0). The TA's own roster
   (`GET /classes/<id>/members`) still returns ids and roles only, so the review queue stays
   anonymous.
-- A TA sees the invite code of their own classes on the TA lab page.
+- Each TA and each student on the class page has **Gỡ**. Pressing it asks in place
+  ("Xác nhận gỡ <tên>?" and "Huỷ", no browser dialog); confirming removes the member and the
+  page says "Đã gỡ <tên>.". A removed TA loses access to the class's labs and review queue at
+  once (404, as for a TA of another class) and returns to the picker. A student can be
+  removed only while they have no submission in the class; otherwise the page says "<tên>
+  đã có bài nộp, chưa gỡ được." (409 `member-has-submissions`, class API contract 1.3.0:
+  `DELETE /admin/classes/<id>/tas/<userId>`, `DELETE /admin/classes/<id>/students/<userId>`).
+- A TA sees the invite code of their own classes on "Lớp của tôi" and on each class page.
 - A student joins a class by entering the invite code on the student lab list.
 
 ## Continuous integration
@@ -200,12 +211,12 @@ Tokens and the cost of one lab: [Model and cost](README.md#model-and-cost).
   only clears the browser copy. The frontend keeps it in `localStorage`.
 - There is no per-lab cap on model calls yet (planned: 800 calls per lab, FAQ-09).
 - Students join a class with an invitation code, as in Google Classroom. Changing the code
-  and removing a student are not available yet (PA4).
+  is not available yet (PA4).
+- The admin can remove a TA, and a student only while the student has no submission in the
+  class. Removing a student who has submitted, deleting a class and deleting a lab are not
+  available (PA4). A TA cannot see or remove students by name.
 - UI problems moved to PA4: #4, #6/#16, #9, #10, #14, #15, #17, described in
   [docs/pa3/walkthrough.md](docs/pa3/walkthrough.md#moved-to-pa4).
-- A button with a `disabledReason` loses keyboard focus when its state changes, because the
-  button is rendered alone or inside a wrapper with the reason
-  (`frontend/src/components/ui/Button.tsx:37`); moved to PA4.
 
 ## AI log
 
