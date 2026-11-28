@@ -1,4 +1,4 @@
-import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useId, type ButtonHTMLAttributes, type ReactNode, type Ref } from 'react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
@@ -7,6 +7,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Shown as text beside a disabled button; a button is never disabled without saying why. */
   disabledReason?: ReactNode;
   children: ReactNode;
+  /** Forwarded to the <button> (React 19 passes `ref` as a prop). */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function Button({
@@ -34,12 +36,14 @@ export function Button({
       {children}
     </button>
   );
-  if (!showReason) return button;
+  // The DOM shape depends only on whether a reason is given, never on `disabled`: switching
+  // `disabled` must not remount the <button>, which would drop the keyboard focus.
+  if (disabledReason === undefined) return button;
   return (
     <span className="lk-btn-group">
       {button}
-      <span id={reasonId} className="lk-btn-reason">
-        {disabledReason}
+      <span id={reasonId} className="lk-btn-reason" hidden={!showReason}>
+        {showReason ? disabledReason : null}
       </span>
     </span>
   );

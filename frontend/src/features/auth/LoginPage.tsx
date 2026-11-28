@@ -1,79 +1,176 @@
-import { useState, type SubmitEvent } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { useRef, useState, type SubmitEvent } from 'react';
+import { Navigate, useSearchParams } from 'react-router';
 import { ApiProblemError } from '../../api/client';
 import type { ProblemDetails } from '../../api/problem';
-import { homePath, useAuth } from '../../app/auth-context';
-import { Button, Cover, FormField, ProblemAlert } from '../../components/ui';
+import { fieldErrorMessage, localizeProblem } from '../../api/problem-message';
+import { credentialErrors } from '../../app/auth-api';
+import { afterLoginPath, NEXT_PARAM, useAuth, type Credentials } from '../../app/auth-context';
+import { usePageTitle } from '../../app/usePageTitle';
+import { Button, Cover, FormField, PasswordInput, ProblemAlert } from '../../components/ui';
 
-function fieldError(problem: ProblemDetails | null, field: string): string | undefined {
-  return problem?.errors?.find((e) => e.field === field)?.detail;
+type Field = 'email' | 'password';
+type FieldErrors = Partial<Record<Field, string>>;
+
+function toFieldErrors(credentials: Credentials): FieldErrors {
+  const errors: FieldErrors = {};
+  for (const error of credentialErrors(credentials)) {
+    if (error.field === 'email' || error.field === 'password') errors[error.field] = error.detail;
+  }
+  return errors;
+}
+
+/** The message shown above the button for a failed sign-in, by cause. */
+function formProblem(problem: ProblemDetails): ProblemDetails {
+  if (problem.status === 0) {
+    return {
+      ...problem,
+      title: 'Không kết nối được máy chủ',
+      detail: 'Kiểm tra kết nối mạng rồi thử lại.',
+    };
+  }
+  if (problem.status >= 500) {
+    return {
+      ...problem,
+      title: 'Máy chủ đang gặp sự cố',
+      detail: 'Chưa đăng nhập được do lỗi phía máy chủ. Thử lại sau ít phút.',
+    };
+  }
+  return localizeProblem(problem);
+}
+
+/** Failed sign-ins after which both fields keep their values: 401, 429 and no connection (0). */
+const RETRY_STATUSES = new Set([0, 401, 429]);
+
+/** Focuses the field with the caret after the last character, without selecting the text. */
+function focusAtEnd(input: HTMLInputElement | null) {
+  if (!input) return;
+  input.focus();
+  const end = input.value.length;
+  input.setSelectionRange(end, end);
 }
 
 export function LoginPage() {
-  const { session, login } = useAuth();
-  const location = useLocation();
+  const { session, signOutReason, login } = useAuth();
+  usePageTitle('Đăng nhập');
+  const [searchParams] = useSearchParams();
+  const emailInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
+  const sending = useRef(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  // After the first attempt, field errors follow the input as the user corrects it.
+  const [attempted, setAttempted] = useState(false);
   const [problem, setProblem] = useState<ProblemDetails | null>(null);
   const [pending, setPending] = useState(false);
 
   if (session) {
     // Back to the page that sent the user here, if it belongs to their role.
-    const from = (location.state as { from?: string } | null)?.from;
-    const target = from?.startsWith(`/${session.role}/`) ? from : homePath(session.role);
-    return <Navigate to={target} replace />;
+    return <Navigate to={afterLoginPath(session.role, searchParams.get(NEXT_PARAM))} replace />;
+  }
+
+  function revalidate(next: Credentials) {
+    if (attempted) setFieldErrors(toFieldErrors(next));
   }
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPending(true);
+    if (sending.current) return;
+    setAttempted(true);
     setProblem(null);
+    const errors = toFieldErrors({ email, password });
+    setFieldErrors(errors);
+    if (errors.email) {
+      emailInput.current?.focus();
+      return;
+    }
+    if (errors.password) {
+      passwordInput.current?.focus();
+      return;
+    }
+
+    sending.current = true;
+    setPending(true);
     try {
       await login({ email, password });
     } catch (error) {
-      if (error instanceof ApiProblemError) setProblem(error.problem);
-      else throw error;
+      if (!(error instanceof ApiProblemError)) throw error;
+      const failed = error.problem;
+      const serverErrors: FieldErrors = {};
+      for (const fieldError of failed.errors ?? []) {
+        if (fieldError.field === 'email' || fieldError.field === 'password') {
+          // The server's detail is English; the message follows the field name.
+          serverErrors[fieldError.field] = fieldErrorMessage(fieldError.field);
+        }
+      }
+      if (serverErrors.email || serverErrors.password) {
+        setFieldErrors(serverErrors);
+        (serverErrors.email ? emailInput : passwordInput).current?.focus();
+      } else {
+        setProblem(formProblem(failed));
+      }
+      if (RETRY_STATUSES.has(failed.status) && !serverErrors.email && !serverErrors.password) {
+        // Wrong password, too many attempts or no network: nothing typed is lost; the user can
+        // fix the password where they left it.
+        focusAtEnd(passwordInput.current);
+      }
     } finally {
+      sending.current = false;
       setPending(false);
     }
   }
 
   return (
-    <main className="lk-page lk-page--narrow">
+    <main className="lk-auth">
       <Cover tagline="Bằng chứng trước, điểm sau." />
-      <form className="lk-stack" noValidate onSubmit={(e) => void submit(e)}>
-        <h1 className="lk-page__title">Đăng nhập</h1>
-        {problem ? <ProblemAlert problem={problem} /> : null}
-        <FormField label="Email" error={fieldError(problem, 'email')}>
+      <form
+        className="lk-auth__form"
+        noValidate
+        aria-labelledby="login-title"
+        onSubmit={(e) => void submit(e)}
+      >
+        <h1 id="login-title" className="lk-page__title">
+          Đăng nhập
+        </h1>
+        {signOutReason === 'expired' ? (
+          <p className="lk-notice" role="status">
+            Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.
+          </p>
+        ) : null}
+        <FormField label="Email" error={fieldErrors.email}>
           <input
+            ref={emailInput}
             type="email"
             autoComplete="username"
+            required
+            aria-required="true"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
+              revalidate({ email: e.target.value, password });
             }}
           />
         </FormField>
-        <FormField label="Mật khẩu" error={fieldError(problem, 'password')}>
-          <input
-            type="password"
+        <FormField label="Mật khẩu" error={fieldErrors.password}>
+          <PasswordInput
+            ref={passwordInput}
             autoComplete="current-password"
+            required
+            aria-required="true"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
+              revalidate({ email, password: e.target.value });
             }}
           />
         </FormField>
+        {problem ? <ProblemAlert problem={problem} /> : null}
         <div>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={pending}
-            disabledReason="Đang đăng nhập…"
-          >
-            Đăng nhập
+          <Button type="submit" variant="primary" disabled={pending} aria-busy={pending}>
+            {pending ? 'Đang đăng nhập…' : 'Đăng nhập'}
           </Button>
         </div>
+        <p className="lk-page__note">Quên mật khẩu? Liên hệ trợ giảng hoặc quản trị viên.</p>
       </form>
     </main>
   );

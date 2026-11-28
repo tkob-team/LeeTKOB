@@ -2,7 +2,7 @@
 .lk-btn:focus-visible,.lk-field input:focus-visible,.lk-field select:focus-visible,.lk-field textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .lk-btn--primary{background:var(--brand);color:var(--on-brand)}
 .lk-btn--secondary{background:var(--surface-raised);color:var(--ink);border-color:var(--border)}
-.lk-btn--danger{background:var(--surface-raised);color:var(--violation);border-color:var(--violation)}
+.lk-btn--danger{background:var(--danger);color:var(--on-danger);border-color:var(--danger)}
 .lk-btn[disabled]{background:var(--surface-sunken);color:var(--ink-muted);border-color:var(--border);cursor:not-allowed}
 .lk-verdict{display:inline-flex;align-items:center;gap:var(--space-1);font-family:var(--font-sans);font-size:12px;line-height:16px;font-weight:600;padding:2px var(--space-2);border-radius:var(--radius-sm)}
 .lk-verdict--pass{background:var(--pass-soft);color:var(--pass)}

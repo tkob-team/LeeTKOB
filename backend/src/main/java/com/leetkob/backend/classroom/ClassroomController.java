@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,6 +68,36 @@ class ClassroomController {
   List<ClassroomService.Member> members(
       @AuthenticationPrincipal Jwt jwt, @PathVariable String classId) {
     return service.members(service.actor(jwt), id(classId));
+  }
+
+  @GetMapping("/admin/tas")
+  List<ClassroomService.TaAccount> tas(@AuthenticationPrincipal Jwt jwt) {
+    return service.tas(service.actor(jwt));
+  }
+
+  @GetMapping("/admin/classes")
+  List<ClassroomService.AdminClass> adminClasses(@AuthenticationPrincipal Jwt jwt) {
+    return service.adminClasses(service.actor(jwt));
+  }
+
+  @GetMapping("/admin/classes/{classId}/members")
+  List<ClassroomService.AdminMember> adminMembers(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable String classId) {
+    return service.adminMembers(service.actor(jwt), id(classId));
+  }
+
+  @DeleteMapping("/admin/classes/{classId}/tas/{userId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void removeTa(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable String classId, @PathVariable String userId) {
+    service.removeTa(service.actor(jwt), id(classId), id(userId));
+  }
+
+  @DeleteMapping("/admin/classes/{classId}/students/{userId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void removeStudent(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable String classId, @PathVariable String userId) {
+    service.removeStudent(service.actor(jwt), id(classId), id(userId));
   }
 
   private static UUID id(String value) {

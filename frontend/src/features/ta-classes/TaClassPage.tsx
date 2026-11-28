@@ -1,0 +1,125 @@
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
+import type { ProblemDetails } from '../../api/problem';
+import { CLASS_NOT_FOUND } from '../../app/not-found-text';
+import { NotFoundPage } from '../../app/NotFoundPage';
+import { usePageTitle } from '../../app/usePageTitle';
+import { InviteCode, ProblemAlert, useToast } from '../../components/ui';
+import type { Classroom, LabSummary } from '../lab-authoring/lab-api';
+import { LabTable } from '../lab-authoring/LabTable';
+import { countRole, type RosterEntry } from './ta-classes-api';
+
+/** An unknown class, a class the TA does not teach (404) or a non-UUID id (400). */
+const NOT_FOUND_TYPES = new Set([
+  'urn:leetkob:problem:class-not-found',
+  'urn:leetkob:problem:invalid-request',
+]);
+
+interface Loaded {
+  classroom: Classroom;
+  roster: RosterEntry[];
+  labs: LabSummary[];
+}
+
+/** One class for its TA: "Tạo lab", invite code, member counts and the labs with their queues. */
+export function TaClassPage() {
+  const { classId = '' } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const created = (location.state as { created?: string } | null)?.created;
+  const [data, setData] = useState<Loaded>();
+  const [problem, setProblem] = useState<ProblemDetails>();
+
+  // "Đã tạo lab …" arrives in the history state from CreateLabPage: show it once as a toast,
+  // then clear the state so a reload or a return to this entry does not show it again.
+  const shownFor = useRef<string>(undefined);
+  useEffect(() => {
+    if (created === undefined || shownFor.current === location.key) return;
+    shownFor.current = location.key;
+    toast.show(`Đã tạo lab ${created}.`);
+    void navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [created, toast, navigate, location.key, location.pathname, location.search]);
+
+  useEffect(() => {
+    const abort = new AbortController();
+    const signal = abort.signal;
+    const base = `/classes/${encodeURIComponent(classId)}`;
+    Promise.all([
+      api.request<Classroom>(base, { signal }),
+      api.request<RosterEntry[]>(`${base}/members`, { signal }),
+      api.request<LabSummary[]>(`${base}/labs`, { signal }),
+    ])
+      .then(([classroom, roster, labs]) => {
+        if (!signal.aborted) setData({ classroom, roster, labs });
+      })
+      .catch((cause: unknown) => {
+        if (!signal.aborted) setProblem(problemFrom(cause));
+      });
+    return () => {
+      abort.abort();
+    };
+  }, [classId]);
+
+  const notFound = problem !== undefined && NOT_FOUND_TYPES.has(problem.type);
+  usePageTitle(notFound ? undefined : (data?.classroom.name ?? 'Lớp của tôi'));
+
+  if (notFound) return <NotFoundPage {...CLASS_NOT_FOUND} />;
+
+  const back = (
+    <Link to="/ta/classes" className="lk-back">
+      ← Lớp của tôi
+    </Link>
+  );
+  if (!data) {
+    return (
+      <section className="lk-section">
+        {back}
+        {problem ? (
+          <ProblemAlert problem={problem} />
+        ) : (
+          <p className="lk-page__note">Đang tải lớp…</p>
+        )}
+      </section>
+    );
+  }
+
+  const { classroom, roster, labs } = data;
+  const code = classroom.inviteCode;
+  return (
+    <section className="lk-section" aria-labelledby="ta-class-title">
+      <header className="lk-section__head">
+        {back}
+        <div className="lk-title-row">
+          <h1 id="ta-class-title" className="lk-page__title">
+            {classroom.name}
+          </h1>
+          <Link
+            className="lk-btn lk-btn--primary"
+            to={`/ta/classes/${encodeURIComponent(classroom.id)}/labs/new`}
+          >
+            Tạo lab
+          </Link>
+        </div>
+        {code ? (
+          <p className="lk-page__note">
+            Mã mời: <InviteCode code={code} classLabel={classroom.name} />
+          </p>
+        ) : (
+          <p className="lk-page__note">Lớp này chưa có mã mời.</p>
+        )}
+        <p className="lk-page__note">
+          {countRole(roster, 'TA')} trợ giảng · {countRole(roster, 'STUDENT')} sinh viên
+        </p>
+      </header>
+      <section className="lk-panel" aria-labelledby="ta-class-labs-title">
+        <h2 id="ta-class-labs-title" className="lk-panel__title">
+          Lab và hàng chờ duyệt
+        </h2>
+        <LabTable labs={labs} />
+      </section>
+    </section>
+  );
+}

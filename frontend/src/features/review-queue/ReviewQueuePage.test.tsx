@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -90,9 +92,35 @@ function renderAt(url: string) {
   );
 }
 
+/**
+ * The page also reads the lab and its class for the header (A4, audit 2026-11-28); those answer
+ * fixed data here, and every other path goes to `queueRequest`, which the tests below drive.
+ */
+const queueRequest = vi.fn<ApiClient['request']>();
+const labDetail = {
+  id: labId,
+  classId: '1b2c3d4e-0000-4000-8000-000000000001',
+  title: 'Sorting with merge sort',
+  statementMd: '# Sorting',
+  opensAt: '2026-11-03T01:00:00Z',
+  dueAt: '2026-11-10T16:59:00Z',
+  cpuTimeMs: 1000,
+  wallTimeMs: 3000,
+  memoryMb: 256,
+  constraints: [],
+};
+
 describe('ReviewQueuePage', () => {
   beforeEach(() => {
     request.mockReset();
+    queueRequest.mockReset();
+    request.mockImplementation((requestPath, init) => {
+      if (requestPath === `/labs/${labId}`) return Promise.resolve(labDetail);
+      if (requestPath.startsWith('/classes/')) {
+        return Promise.resolve({ id: labDetail.classId, name: 'CTT1' });
+      }
+      return queueRequest(requestPath, init);
+    });
   });
 
   afterEach(() => {
@@ -100,11 +128,11 @@ describe('ReviewQueuePage', () => {
   });
 
   it('shows each submission × constraint with verdict, evidence lines, deduction and unsure cause', async () => {
-    request.mockResolvedValue(queue([item({})]));
+    queueRequest.mockResolvedValue(queue([item({})]));
     renderAt(`/ta/labs/${labId}/review`);
 
     const table = await screen.findByRole('table');
-    expect(request).toHaveBeenCalledWith(path, expect.anything());
+    expect(queueRequest).toHaveBeenCalledWith(path, expect.anything());
     const [, first, second] = within(table).getAllByRole('row');
     if (!first || !second) throw new Error('expected two body rows');
     expect(
@@ -113,10 +141,11 @@ describe('ReviewQueuePage', () => {
     expect(table.closest('section')).toHaveAccessibleName('Bài nộp aaaaaaaa');
     expect(within(first).getByText('violation')).toBeInTheDocument();
     expect(within(first).getByText('−3')).toBeInTheDocument();
-    expect(within(first).getByText('hard rule')).toBeInTheDocument();
+    // A16 (audit 2026-11-28): the source is named in Vietnamese; the API value is unchanged.
+    expect(within(first).getByText('Luật cứng')).toBeInTheDocument();
     expect(within(first).getByText('dòng 12')).toBeInTheDocument();
     expect(within(second).getByText('unsure')).toBeInTheDocument();
-    expect(within(second).getByText('guardrail')).toBeInTheDocument();
+    expect(within(second).getByText('Chặn an toàn')).toBeInTheDocument();
     expect(within(second).getByText('Hết thời gian chờ mô hình')).toBeInTheDocument();
     expect(screen.queryByText('Lan Nguyen')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /công bố/i })).not.toBeInTheDocument();
@@ -135,7 +164,7 @@ describe('ReviewQueuePage', () => {
   });
 
   it('lists submissions still being checked and those not checked because they are not AC', async () => {
-    request.mockResolvedValue(
+    queueRequest.mockResolvedValue(
       queue(
         [
           item({
@@ -169,8 +198,10 @@ describe('ReviewQueuePage', () => {
 
   it('refreshes by polling so new findings appear without reloading', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    request.mockResolvedValueOnce(queue([item({ reviewStatus: 'reviewing', needsReview: false })]));
-    request.mockResolvedValue(queue([item({})]));
+    queueRequest.mockResolvedValueOnce(
+      queue([item({ reviewStatus: 'reviewing', needsReview: false })]),
+    );
+    queueRequest.mockResolvedValue(queue([item({})]));
     renderAt(`/ta/labs/${labId}/review`);
 
     await screen.findByText('Đang soát ràng buộc…');
@@ -179,12 +210,12 @@ describe('ReviewQueuePage', () => {
       await vi.advanceTimersByTimeAsync(POLL_MS);
     });
     expect(await screen.findByRole('table')).toBeInTheDocument();
-    expect(request).toHaveBeenCalledTimes(2);
+    expect(queueRequest).toHaveBeenCalledTimes(2);
   });
 
   it('shows the problem and stops polling when the TA may not read the lab', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    request.mockRejectedValue(
+    queueRequest.mockRejectedValue(
       new ApiProblemError({
         type: 'urn:leetkob:problem:lab-not-found',
         title: 'Lab not found',
@@ -198,26 +229,26 @@ describe('ReviewQueuePage', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(POLL_MS * 2);
     });
-    expect(request).toHaveBeenCalledTimes(1);
+    expect(queueRequest).toHaveBeenCalledTimes(1);
   });
 
   it('pages through the queue', async () => {
-    request.mockResolvedValueOnce(queue([item({})], { totalItems: 21, totalPages: 2 }));
-    request.mockResolvedValueOnce(
+    queueRequest.mockResolvedValueOnce(queue([item({})], { totalItems: 21, totalPages: 2 }));
+    queueRequest.mockResolvedValueOnce(
       queue([item({ needsReview: false })], { page: 1, totalItems: 21, totalPages: 2 }),
     );
     renderAt(`/ta/labs/${labId}/review`);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Trang sau' }));
     expect(await screen.findByText('Trang 2/2')).toBeInTheDocument();
-    expect(request).toHaveBeenLastCalledWith(
+    expect(queueRequest).toHaveBeenLastCalledWith(
       `/labs/${labId}/review-queue?page=1&size=20&includeEarlier=true`,
       expect.anything(),
     );
   });
 
   it('lists earlier AC submissions under the counted ones, marked as not counted', async () => {
-    request.mockResolvedValue(
+    queueRequest.mockResolvedValue(
       queue([
         item({ counted: true }),
         item({ submissionId: 'dddddddd-0000-4000-8000-000000000004', counted: false }),
@@ -231,10 +262,16 @@ describe('ReviewQueuePage', () => {
     );
     renderAt(`/ta/labs/${labId}/review`);
 
-    const earlier = await screen.findByRole('region', { name: 'Các lần nộp trước của sinh viên' });
+    const earlier = await screen.findByRole('region', {
+      name: 'Các lần nộp cũ hơn (không tính điểm)',
+    });
     expect(
-      within(earlier).getByText('Không tính điểm, chỉ để đối chiếu với lần nộp được tính.'),
+      within(earlier).getByText('Bài AC sinh viên nộp trước lần được tính, chỉ để tham khảo.'),
     ).toBeInTheDocument();
+    expect(within(earlier).getByRole('heading', { level: 2 }).textContent).toBe(
+      'Các lần nộp cũ hơn (không tính điểm)',
+    );
+    expect(screen.queryByText('Các lần nộp trước của sinh viên')).toBeNull();
     const counted = screen.getByRole('region', { name: 'Bài nộp aaaaaaaa' });
     const earlierBlock = within(earlier).getByRole('region', { name: 'Bài nộp dddddddd' });
     const reviewingBlock = within(earlier).getByRole('region', { name: 'Bài nộp eeeeeeee' });
@@ -255,21 +292,59 @@ describe('ReviewQueuePage', () => {
     );
   });
 
+  it('gives every submission block a badge: counted, or a neutral "Không tính điểm"', async () => {
+    queueRequest.mockResolvedValue(
+      queue([
+        item({ counted: true }),
+        item({ submissionId: 'dddddddd-0000-4000-8000-000000000004', counted: false }),
+        item({
+          submissionId: 'eeeeeeee-0000-4000-8000-000000000005',
+          counted: false,
+          reviewStatus: 'reviewing',
+          needsReview: false,
+        }),
+      ]),
+    );
+    renderAt(`/ta/labs/${labId}/review`);
+
+    const counted = await screen.findByRole('region', { name: 'Bài nộp aaaaaaaa' });
+    expect(within(counted).getByText('Được tính điểm')).toHaveClass('lk-tag');
+    expect(within(counted).getByText('Được tính điểm')).not.toHaveClass('lk-tag--muted');
+    expect(within(counted).queryByText('Không tính điểm')).toBeNull();
+    expect(counted).not.toHaveClass('lk-submission--earlier');
+
+    for (const name of ['Bài nộp dddddddd', 'Bài nộp eeeeeeee']) {
+      const block = screen.getByRole('region', { name });
+      const badge = within(block).getByText('Không tính điểm');
+      expect(badge).toHaveClass('lk-tag', 'lk-tag--muted');
+      expect(within(block).queryByText('Được tính điểm')).toBeNull();
+      expect(block).toHaveClass('lk-panel', 'lk-submission', 'lk-submission--earlier');
+    }
+
+    const css = readFileSync(join(process.cwd(), 'src/components/ui/ui-extra.css'), 'utf8');
+    expect(css).toMatch(
+      /\.lk-tag\.lk-tag--muted \{[^}]*background: var\(--surface-sunken\);[^}]*color: var\(--ink-muted\);/,
+    );
+    expect(css).toMatch(
+      /\.lk-submission\.lk-submission--earlier \{[^}]*background: var\(--surface\);[^}]*border-style: dashed;/,
+    );
+  });
+
   it('shows no earlier section when every item is counted', async () => {
-    request.mockResolvedValue(queue([item({ counted: true })]));
+    queueRequest.mockResolvedValue(queue([item({ counted: true })]));
     renderAt(`/ta/labs/${labId}/review`);
 
     await screen.findByRole('table');
     expect(screen.getAllByRole('table')).toHaveLength(1);
     expect(
-      screen.queryByRole('region', { name: 'Các lần nộp trước của sinh viên' }),
+      screen.queryByRole('region', { name: 'Các lần nộp cũ hơn (không tính điểm)' }),
     ).not.toBeInTheDocument();
   });
 
   it('heads each submission with an anonymous student, the full time and the test result', async () => {
     const student = 'c1d2e3f4-0a1b-4c2d-8e3f-9a0b1c2d3e4f';
     const other = 'c1d2e3f4-0a1b-4c2d-8e3f-9a0b1c2d3e50';
-    request.mockResolvedValue(
+    queueRequest.mockResolvedValue(
       queue([
         item({ counted: true, submittedAt: '2026-11-27T07:15:42.120Z' }),
         item({
@@ -310,7 +385,7 @@ describe('ReviewQueuePage', () => {
   it('shows the deduction as −N only for violation and unsure; pass reads 0 (−N nếu vi phạm)', async () => {
     const [violation] = item({}).constraints;
     if (!violation) throw new Error('expected a constraint');
-    request.mockResolvedValue(
+    queueRequest.mockResolvedValue(
       queue([
         item({
           constraints: [
@@ -369,7 +444,9 @@ describe('ReviewQueuePage', () => {
     const plain = long.replaceAll('`', '');
     const [first, second] = item({}).constraints;
     if (!first || !second) throw new Error('expected two constraints');
-    request.mockResolvedValue(queue([item({ constraints: [{ ...first, text: long }, second] })]));
+    queueRequest.mockResolvedValue(
+      queue([item({ constraints: [{ ...first, text: long }, second] })]),
+    );
     const { container } = renderAt(`/ta/labs/${labId}/review`);
 
     const table = await screen.findByRole('table', { name: 'Ràng buộc của bài nộp aaaaaaaa' });
@@ -410,7 +487,7 @@ describe('ReviewQueuePage', () => {
   });
 
   it('shows the 404 problem in Vietnamese without the English title', async () => {
-    request.mockRejectedValue(
+    queueRequest.mockRejectedValue(
       new ApiProblemError({
         type: 'urn:leetkob:problem:lab-not-found',
         title: 'Lab not found',
@@ -428,8 +505,36 @@ describe('ReviewQueuePage', () => {
     expect(within(alert).queryByText(/Lab not found/)).not.toBeInTheDocument();
   });
 
-  it('keeps other problems as the server sent them', async () => {
-    request.mockRejectedValue(
+  // A4 (audit 2026-11-28): /ta/labs only redirected to the class list, so the 404 now links
+  // there directly and says so.
+  it('on 404 drops the auto-refresh note and links back to Lớp của tôi', async () => {
+    queueRequest.mockRejectedValue(
+      new ApiProblemError({
+        type: 'urn:leetkob:problem:lab-not-found',
+        title: 'Lab not found',
+        status: 404,
+      }),
+    );
+    renderAt(`/ta/labs/${labId}/review`);
+
+    await screen.findByRole('alert');
+    expect(screen.queryByText(/Tự làm mới/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Về Lớp của tôi' })).toHaveAttribute(
+      'href',
+      '/ta/classes',
+    );
+  });
+
+  it('keeps the auto-refresh note while the queue loads normally', async () => {
+    queueRequest.mockResolvedValue(queue([item({})]));
+    renderAt(`/ta/labs/${labId}/review`);
+
+    expect(await screen.findByText(/Tự làm mới mỗi 15 giây/)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Về Lớp của tôi' })).toBeNull();
+  });
+
+  it('shows other problems in Vietnamese, never the server title', async () => {
+    queueRequest.mockRejectedValue(
       new ApiProblemError({
         type: 'urn:leetkob:problem:forbidden-role',
         title: 'Role is not allowed to submit',
@@ -439,7 +544,11 @@ describe('ReviewQueuePage', () => {
     );
     renderAt(`/ta/labs/${labId}/review`);
 
-    expect(await screen.findByText('Role is not allowed to submit')).toBeInTheDocument();
+    // UI-3: problem-message.ts replaces the English title of every problem.
+    expect(
+      await screen.findByText('Bạn không có quyền thực hiện thao tác này'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Role is not allowed to submit')).toBeNull();
   });
 
   it('keeps the empty queue page when no lab is chosen', () => {

@@ -1,5 +1,6 @@
 import { ApiProblemError, api, type ApiClient } from '../api/client';
 import type { ProblemFieldError } from '../api/problem';
+import { CLIENT_PREFIX } from '../api/problem-message';
 import type { Credentials, Role, Session } from './auth-context';
 
 /** 200 body of POST /auth/login (docs/contract/post-auth-login.md). */
@@ -9,7 +10,7 @@ interface LoginResponse {
   displayName: string | null;
 }
 
-const ROLES: Partial<Record<LoginResponse['role'], Role>> = { TA: 'ta', STUDENT: 'student' };
+const ROLES: Partial<Record<string, Role>> = { ADMIN: 'admin', TA: 'ta', STUDENT: 'student' };
 
 function invalid(errors: ProblemFieldError[]): ApiProblemError {
   return new ApiProblemError({
@@ -21,19 +22,28 @@ function invalid(errors: ProblemFieldError[]): ApiProblemError {
   });
 }
 
+/** Input mistakes the login form reports under each field before sending anything. */
+export function credentialErrors({ email, password }: Credentials): ProblemFieldError[] {
+  const trimmed = email.trim();
+  const errors: ProblemFieldError[] = [];
+  if (trimmed.length === 0) {
+    errors.push({ field: 'email', detail: 'Nhập email.' });
+  } else if (!/^[^\s@]+@[^\s@]+$/.test(trimmed)) {
+    errors.push({ field: 'email', detail: 'Nhập email có dạng ten@truong.edu.vn.' });
+  }
+  if (password.length === 0) {
+    errors.push({ field: 'password', detail: 'Nhập mật khẩu.' });
+  }
+  return errors;
+}
+
 /** Signs in with POST /auth/login. Obvious input mistakes are reported before any request. */
 export async function apiLogin(
   { email, password }: Credentials,
   client: ApiClient = api,
 ): Promise<Session> {
   const trimmed = email.trim();
-  const errors: ProblemFieldError[] = [];
-  if (!/^[^\s@]+@[^\s@]+$/.test(trimmed)) {
-    errors.push({ field: 'email', detail: 'Nhập email có dạng ten@truong.edu.vn.' });
-  }
-  if (password.length === 0) {
-    errors.push({ field: 'password', detail: 'Nhập mật khẩu.' });
-  }
+  const errors = credentialErrors({ email, password });
   if (errors.length > 0) throw invalid(errors);
 
   let response: LoginResponse;
@@ -67,10 +77,10 @@ export async function apiLogin(
   const role = ROLES[response.role];
   if (!role) {
     throw new ApiProblemError({
-      type: 'about:blank',
+      type: `${CLIENT_PREFIX}role-not-supported`,
       title: 'Chưa có giao diện cho vai trò này',
       status: 403,
-      detail: 'Tài khoản quản trị chưa dùng được trên giao diện web.',
+      detail: 'Tài khoản này chưa dùng được trên giao diện web.',
     });
   }
   return {

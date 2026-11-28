@@ -105,8 +105,8 @@ socket only in the judge worker service. Its sandbox containers receive neither 
 socket nor the service environment. `JUDGE_SANDBOX_IMAGE` can select a trusted image
 already available to that daemon.
 
-The `sandbox` job runs on PRs, `main`, and the `pa3` tag. Reproduce its nine sandbox
-checks and the worker restart test after building the image.
+The `sandbox` job runs on PRs, `main`, and the `pa3` tag. Reproduce its sandbox
+checks (nine minimums, 11 tests) and the worker restart test after building the image.
 
 ```sh
 (cd backend && JUDGE_SANDBOX_TESTS=1 sh ./mvnw -B -ntp \
@@ -251,13 +251,14 @@ no published port.
 | --- | --- | --- |
 | `postgres` | `postgres:17-alpine` | `DB_USER`, `DB_PASSWORD` |
 | `api` | `leetkob-api` (backend jar) | database, `JWT_SECRET` |
-| `judge-worker` | `leetkob-judge-worker` (same jar + Docker CLI), `judge-worker` | database, `/var/run/docker.sock`; no `GEMINI_API_KEY` |
+| `judge-worker` | `leetkob-judge-worker` (same backend jar), `judge-worker` | database and private sandbox proxy |
 | `checker-worker` | `leetkob-checker`, `worker` | database, Gemini variables; the only service with `GEMINI_API_KEY` |
 | `caddy` | `caddy:2.10.2-alpine` + [deploy/Caddyfile](deploy/Caddyfile) | `LEETKOB_DOMAIN`, optional `ACME_EMAIL`; volumes `caddy_data` (certificates) and `caddy_config` |
 | `web` | `leetkob-web` (nginx + `frontend/dist`) | nothing |
 | `seed` (profile `seed`) | `leetkob-api`, `seed` | database, `SEED_*_PASSWORD` |
 | `sandbox` (profile `build`) | `leetkob-sandbox:pa3` from `sandbox/` | build only |
-| `sandbox-check` (profile `check`) | JDK + Docker CLI + backend sources | Docker socket |
+| `sandbox-proxy` | backend jar and Docker CLI | host Docker socket |
+| `sandbox-check` (profile `check`) | JDK + backend sources | private sandbox proxy |
 
 Each service lists its variables explicitly; none loads the whole `deploy/.env`.
 HSTS is not enabled yet, so the site can still go back to plain HTTP if the certificate fails
@@ -271,6 +272,11 @@ real caddy, `nginx.conf` and networks with an echo server in place of the API an
 `PASS: the API sees the client address; caddy's address and spoofed headers are ignored`. It
 fails if the nginx `real_ip` lines are removed (the API then sees caddy's address). Do not run
 it on the VM while the stack is up: the stack already owns the `edge` subnet.
+
+nginx answers 404 for any path with a segment that starts with a dot (`/.env`, `/.git/config`)
+instead of falling back to `index.html`. `sh deploy/check-dotfiles.sh` runs the real
+`nginx.conf` in the nginx image with a stub page and expects
+`PASS: dot paths get 404; client-side routes still get index.html`.
 
 ### 1. Set up the VM
 
@@ -313,13 +319,14 @@ nano deploy/.env                              # LEETKOB_DOMAIN, ACME_EMAIL, DB_*
 docker compose -f deploy/docker-compose.yml --profile build build
 ```
 
-`--profile build` also builds `leetkob-sandbox:pa3` from `sandbox/` on the VM's daemon, which
-is where `judge-worker` starts sandbox containers.
+`--profile build` builds the configured sandbox image (default `leetkob-sandbox:pa3`) from
+`sandbox/` on the VM's existing daemon. The private proxy starts sandbox containers
+and is the only service that mounts the daemon socket. It checks that the selected image
+is available before the worker takes jobs.
 
 ### 3. Mandatory check before opening the site
 
-Run the sandbox probes (`DockerSandboxTest` with `JUDGE_SANDBOX_TESTS=1`) against this VM's
-daemon. Do not give the URL to anyone until it reports `Tests run: 11, Failures: 0, Errors: 0,
+Run the sandbox probes (`DockerSandboxTest` with `JUDGE_SANDBOX_TESTS=1`) through the VM's proxy on the existing daemon. Do not give the URL to anyone until it reports `Tests run: 11, Failures: 0, Errors: 0,
 Skipped: 0`.
 
 ```sh
@@ -409,3 +416,6 @@ command. HSTS is off, so no browser is forced to use HTTPS, but caddy's redirect
 Permanent Redirect` that browsers cache: a browser that already followed it keeps going to
 `https://` until its cache is cleared (or open the site in a private window). The frontend's
 submission key works on HTTP since #39.
+
+See the [private operations dashboard](deploy/OPERATIONS.md) and the
+[Gemini region incident report](docs/incidents/2026-11-24-gemini-region.md).

@@ -1,4 +1,5 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router';
+import type { ReactNode } from 'react';
+import { Link, matchPath, Outlet, useLocation, useNavigate } from 'react-router';
 import { Button } from '../components/ui';
 import { homePath, useAuth } from './auth-context';
 import { ThemeToggle } from './ThemeToggle';
@@ -6,6 +7,26 @@ import { ThemeToggle } from './ThemeToggle';
 export interface NavItem {
   to: string;
   label: string;
+  /** Route patterns where this item is the current page; defaults to `to` and its sub-paths. */
+  activeOn?: string[];
+}
+
+function isActive(item: NavItem, pathname: string): boolean {
+  return (item.activeOn ?? [item.to]).some(
+    (pattern) => matchPath({ path: pattern, end: false }, pathname) !== null,
+  );
+}
+
+/**
+ * "Name · Role", or only the name when it already says the role ("Quản trị viên" for the
+ * role "Quản trị"), so the role is never written twice.
+ */
+function whoLabel(displayName: string | undefined, roleLabel: string): string {
+  if (!displayName) return roleLabel;
+  if (displayName.toLocaleLowerCase('vi').includes(roleLabel.toLocaleLowerCase('vi'))) {
+    return displayName;
+  }
+  return `${displayName} · ${roleLabel}`;
 }
 
 export interface AppLayoutProps {
@@ -13,11 +34,14 @@ export interface AppLayoutProps {
   width: 'wide' | 'narrow';
   roleLabel: string;
   nav: NavItem[];
+  /** Page content; defaults to the matched child route. */
+  children?: ReactNode;
 }
 
-export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
+export function AppLayout({ width, roleLabel, nav, children }: AppLayoutProps) {
   const { session, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   return (
     <div className="lk-shell">
       <header className="lk-shell__header">
@@ -27,15 +51,18 @@ export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
           </Link>
           <nav className="lk-shell__nav" aria-label="Điều hướng chính">
             {nav.map((item) => (
-              <NavLink key={item.to} to={item.to} className="lk-shell__link">
+              <Link
+                key={item.to}
+                to={item.to}
+                className="lk-shell__link"
+                aria-current={isActive(item, pathname) ? 'page' : undefined}
+              >
                 {item.label}
-              </NavLink>
+              </Link>
             ))}
           </nav>
           <div className="lk-shell__user">
-            <span className="lk-shell__who">
-              {session?.displayName} · {roleLabel}
-            </span>
+            <span className="lk-shell__who">{whoLabel(session?.displayName, roleLabel)}</span>
             <ThemeToggle />
             <Button
               onClick={() => {
@@ -48,24 +75,39 @@ export function AppLayout({ width, roleLabel, nav }: AppLayoutProps) {
           </div>
         </div>
       </header>
-      <main className={`lk-page lk-page--${width}`}>
-        <Outlet />
-      </main>
+      <main className={`lk-page lk-page--${width}`}>{children ?? <Outlet />}</main>
     </div>
   );
 }
 
-export function TaLayout() {
+export function AdminLayout({ children }: { children?: ReactNode }) {
+  return (
+    <AppLayout width="wide" roleLabel="Quản trị" nav={[{ to: '/admin/classes', label: 'Lớp học' }]}>
+      {children}
+    </AppLayout>
+  );
+}
+
+export function TaLayout({ children }: { children?: ReactNode }) {
   return (
     <AppLayout
       width="wide"
       roleLabel="Trợ giảng"
-      nav={[{ to: '/ta/labs', label: 'Hàng chờ duyệt' }]}
-    />
+      nav={[
+        {
+          to: '/ta/classes',
+          label: 'Lớp của tôi',
+          // The class list, a class, creating a lab and each lab's review queue are one menu item.
+          activeOn: ['/ta/classes', '/ta/labs', '/ta/review-queue'],
+        },
+      ]}
+    >
+      {children}
+    </AppLayout>
   );
 }
 
-export function StudentLayout() {
+export function StudentLayout({ children }: { children?: ReactNode }) {
   return (
     <AppLayout
       width="narrow"
@@ -74,6 +116,8 @@ export function StudentLayout() {
         { to: '/student/labs', label: 'Đề bài' },
         { to: '/student/submit', label: 'Nộp bài' },
       ]}
-    />
+    >
+      {children}
+    </AppLayout>
   );
 }

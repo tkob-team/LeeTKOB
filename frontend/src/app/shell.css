@@ -3,6 +3,8 @@
   /* Layout widths from docs/design-system/README.md (TA max 1280px, student max 760px). */
   --lk-width-wide: 1280px;
   --lk-width-narrow: 760px;
+  /* Signed-out forms: the width of one form field (docs/design-system FormField, 420px). */
+  --lk-width-form: 420px;
 }
 
 .lk-shell {
@@ -94,6 +96,8 @@
 
 .lk-page__title {
   margin: 0;
+  /* A lab title can be one long line (~120 characters): wrap it, never overflow. */
+  overflow-wrap: anywhere;
   font-size: var(--title-font-size);
   line-height: var(--title-line-height);
   font-weight: var(--title-font-weight);
@@ -101,6 +105,7 @@
 
 .lk-page__note {
   margin: 0;
+  overflow-wrap: anywhere;
   font-size: var(--small-font-size);
   line-height: var(--small-line-height);
   color: var(--ink-muted);
@@ -133,72 +138,49 @@
   }
 }
 
-/* Light/dark switch in the header (app/ThemeToggle.tsx). On = dark. Sizes come from tokens. */
-.lk-theme-switch {
+/* Light/dark choice "Sáng | Tối" (app/ThemeToggle.tsx): two joined buttons, the theme in use
+ * filled with the brand token. Sizes come from tokens. */
+.lk-theme-choice {
   display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1);
-  border: 0;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+.lk-theme-choice__option {
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  border-radius: 0;
   background: none;
   color: var(--ink-muted);
   font-family: var(--font-sans);
   font-size: var(--small-font-size);
   line-height: var(--small-line-height);
+  font-weight: var(--label-font-weight);
   cursor: pointer;
-}
-.lk-theme-switch:hover {
-  color: var(--ink);
-}
-.lk-theme-switch:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
-.lk-theme-switch__track {
-  position: relative;
-  flex: none;
-  width: calc(var(--space-8) + var(--space-1));
-  height: calc(var(--space-4) + var(--space-1));
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-sunken);
   transition:
     background-color 0.12s,
-    border-color 0.12s;
+    color 0.12s;
 }
-.lk-theme-switch[aria-checked='true'] .lk-theme-switch__track {
+.lk-theme-choice__option + .lk-theme-choice__option {
+  border-left: 1px solid var(--border);
+}
+.lk-theme-choice__option:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.lk-theme-choice__option:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+.lk-theme-choice__option:hover {
+  color: var(--ink);
+}
+.lk-theme-choice__option[aria-checked='true'] {
   background: var(--brand);
-  border-color: var(--brand);
+  color: var(--on-brand);
 }
-
-.lk-theme-switch__thumb {
-  position: absolute;
-  top: 1px;
-  left: 1px;
-  display: grid;
-  place-items: center;
-  width: var(--space-4);
-  height: var(--space-4);
-  border-radius: var(--radius-lg);
-  background: var(--surface-raised);
-  color: var(--ink-muted);
-  transition: transform 0.12s ease;
-}
-.lk-theme-switch[aria-checked='true'] .lk-theme-switch__thumb {
-  transform: translateX(var(--space-4));
-  color: var(--brand);
-}
-
-.lk-theme-switch__icon {
-  width: var(--space-3);
-  height: var(--space-3);
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.lk-theme-choice__option:focus-visible {
+  position: relative;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 /* Cross-fade colours for a moment after the viewer switches theme (app/theme.ts). */
@@ -216,8 +198,97 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lk-theme-switch__track,
-  .lk-theme-switch__thumb {
+  .lk-theme-choice__option {
     transition: none;
   }
+}
+
+/* Signed-out pages (login, 404): one centred column; the login form and its messages share
+ * one width. */
+/* Login and 404 without the app header: the theme switch alone in the top right corner. */
+.lk-public {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+.lk-public > main {
+  width: 100%;
+}
+.lk-public__bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-4);
+}
+
+.lk-auth {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-6);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  max-width: var(--lk-width-narrow);
+}
+.lk-auth > * {
+  width: 100%;
+}
+.lk-auth__form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--lk-width-form);
+}
+.lk-auth__form .lk-field {
+  max-width: none;
+}
+.lk-auth__form .lk-field input {
+  width: 100%;
+}
+.lk-auth__form > .lk-page__note {
+  margin: 0;
+}
+
+/* Page fit at 375 px. A grid column sized `auto` grows to its widest child, so a wide table
+ * (TA lab table) or a long lab name in a <select> (Nộp bài) widened the whole page. These
+ * columns may shrink to 0; the table then scrolls inside its own frame. */
+.lk-section:has(.lk-table-frame),
+.lk-panel:has(> .lk-table-frame) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lk-table-frame {
+  min-width: 0;
+  max-width: 100%;
+}
+.lk-field select {
+  max-width: 100%;
+  min-width: 0;
+}
+.lk-submit {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lk-submit > form,
+.lk-submit .lk-field {
+  min-width: 0;
+}
+.lk-submit .lk-field {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lk-submit .lk-field select {
+  box-sizing: border-box;
+  width: 100%;
+}
+/* Submit page: the counted-submission note and the deadline under "Nộp bài". */
+.lk-submit__note {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.lk-submit__note > p {
+  margin: 0;
+}
+/* Short submission id with its copy button on one wrapping line. */
+.lk-submission-id {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
 }

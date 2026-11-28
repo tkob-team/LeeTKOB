@@ -44,6 +44,10 @@ The submission POST returns a receipt with status `queued` for both creation and
 
 ## Observability handoff
 
+The queue stores the first claim timestamp and the successful attempt's grading
+duration for operational measurements. The verdict and checker enqueue remain atomic.
+Historical rows may lack timing fields.
+
 The worker emits the submission ID, outcome and time in the grading adapter as key-value log fields. The queue timestamps support later end-to-end measurements from submission receipt to result commit. For T57, this query measures jobs ready to claim and jobs currently leased as separate counts.
 
 ```sql
@@ -56,3 +60,14 @@ select count(*) filter (
 from judge_jobs
 where finished_at is null;
 ```
+
+## Sandbox proxy
+
+The deployment worker uses a dedicated proxy on a private Compose network. Only the
+proxy mounts the daemon socket. It owns compile and run settings, rejects unsupported
+operations and reports an infrastructure failure if the operation cannot complete.
+
+The deployed worker checks proxy readiness before taking work. Readiness requires the
+configured sandbox image to be present on the daemon. After readiness or grading
+fails, the worker waits five seconds before probing again. The lease still protects
+any job already in progress when the dependency fails.

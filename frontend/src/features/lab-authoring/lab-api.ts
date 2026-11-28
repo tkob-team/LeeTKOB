@@ -41,10 +41,11 @@ export interface LabSummary {
   studentsSubmitted: number;
 }
 
-/** One item of GET /classes. */
+/** One item of GET /classes (classes.md); inviteCode is null or absent for students. */
 export interface Classroom {
   id: string;
   name: string;
+  inviteCode?: string | null;
 }
 
 /** POST /classes/{classId}/labs body. */

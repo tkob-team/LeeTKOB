@@ -17,6 +17,11 @@
   color: var(--ink-muted);
 }
 
+/* A link drawn as a button (<a class="lk-btn">) looks like the button: no underline. */
+a.lk-btn {
+  text-decoration: none;
+}
+
 /* ReviewQueueTable: selectable rows. */
 .lk-table tbody tr[tabindex] {
   cursor: pointer;
@@ -191,12 +196,50 @@
   padding: 0 var(--space-1);
   font-weight: var(--section-font-weight);
 }
+/* Fields side by side with equal widths (create-lab dates, limits, constraint code and
+ * deduction, test input and expected output); one column on phones. */
+.lk-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+.lk-cols > .lk-field,
+.lk-form-panel > .lk-field,
+.lk-fieldset > .lk-field {
+  max-width: none;
+}
+.lk-cols input,
+.lk-cols textarea,
+.lk-form-panel > .lk-field input,
+.lk-form-panel > .lk-field textarea,
+.lk-fieldset > .lk-field textarea {
+  width: 100%;
+}
+@media (max-width: 760px) {
+  .lk-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .lk-field .lk-code-input {
   font-family: var(--font-mono);
   min-width: min(100%, 36ch);
 }
 .lk-table td.lk-wrap {
   white-space: normal;
+  overflow-wrap: anywhere;
+  /* Keeps a long lab title readable instead of squeezing it to a few letters per line. */
+  min-width: 16ch;
+}
+/* A button in a wrapping cell (the queue button with the lab title) wraps with it. */
+.lk-table td.lk-wrap .lk-btn {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* Headings and the lab picker that carry a lab name never run past the page edge. */
+.lk-panel__title,
+.lk-field select {
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 /* Markdown: rendered lab statements and inline constraint text. */
@@ -304,12 +347,24 @@
 .lk-tag {
   display: inline-flex;
   padding: 0 var(--space-2);
+  border: 1px solid var(--brand);
   border-radius: var(--radius-sm);
   background: var(--brand);
   color: var(--on-brand);
   font-size: var(--small-font-size);
   line-height: var(--small-line-height);
   font-weight: var(--label-font-weight);
+}
+/* Earlier submissions (not counted): neutral badge, paler ground and a dashed outline, so a
+ * single block is recognisable without its section heading. */
+.lk-tag.lk-tag--muted {
+  border-color: var(--border);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+}
+.lk-submission.lk-submission--earlier {
+  background: var(--surface);
+  border-style: dashed;
 }
 @media (max-width: 960px) {
   .lk-review {
@@ -354,4 +409,368 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+/* Neutral note above a form, e.g. "session expired" on the login page. */
+.lk-notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+}
+
+/* Busy indicator next to "Đang chấm bài." The text says the same, so it is aria-hidden. */
+.lk-spinner {
+  display: inline-block;
+  flex: none;
+  width: var(--space-4);
+  height: var(--space-4);
+  border: 2px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: lk-spin 0.8s linear infinite;
+}
+@keyframes lk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lk-spinner {
+    animation-duration: 2.4s;
+  }
+}
+.lk-result__caption {
+  color: var(--ink-muted);
+}
+
+/* Password field with the show/hide button inside it, on the right. */
+.lk-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.lk-field .lk-password__input {
+  flex: 1;
+  min-width: 0;
+  padding-right: calc(var(--space-8) + var(--space-1));
+}
+.lk-password__toggle {
+  position: absolute;
+  right: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.lk-password__toggle:hover {
+  color: var(--ink);
+}
+.lk-password__toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+}
+.lk-password__toggle svg {
+  width: var(--space-6);
+  height: var(--space-6);
+}
+
+/* Admin: a scrollable table frame shows the focus ring (keyboard scrolling on phones). */
+.lk-table-wrap:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* Admin: people listed by name with the email in small text below. */
+.lk-people {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lk-people li {
+  display: grid;
+}
+.lk-people__email {
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  color: var(--ink-muted);
+  overflow-wrap: anywhere;
+}
+/* Admin: invite code with its copy button. */
+.lk-invite {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* Admin class page: back link and the TA picker beside its button. */
+.lk-back {
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+}
+/* The picker keeps the design-system field width (ui.css `.lk-field`, 420px at most); the button
+ * sits beside the select, below the label, and stays there when an error shows under the field. */
+.lk-assign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.lk-assign .lk-field {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.lk-assign .lk-field select {
+  box-sizing: border-box;
+  width: 100%;
+}
+.lk-assign > .lk-btn {
+  margin-top: calc(var(--label-line-height) + var(--space-1));
+}
+/* Admin class page: a member row with its "Gỡ" control at the right. */
+.lk-person {
+  display: grid;
+}
+.lk-people--actions li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+/* Row actions: the column is as narrow as its content and aligned right, in the TA list and
+ * the student table alike; a reason ("Đã có bài nộp") sits left of its locked button. */
+.lk-table .lk-col-actions {
+  width: 1%;
+  text-align: right;
+}
+.lk-table .lk-col-num {
+  width: 1%;
+  text-align: right;
+}
+.lk-table .lk-col-check {
+  width: 1%;
+}
+.lk-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+.lk-panel__title[tabindex='-1']:focus {
+  outline: none;
+}
+.lk-panel__title[tabindex='-1']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* TA class page: the class name and "Tạo lab" on one row; a long name wraps, the button stays
+ * at the right whatever the name's length. */
+.lk-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.lk-title-row > .lk-page__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lk-title-row > .lk-btn {
+  flex: 0 0 auto;
+}
+
+/* InviteCode: the button keeps the width of its longest label (labels share one grid cell). */
+.lk-swap {
+  display: inline-grid;
+  justify-items: center;
+}
+.lk-swap > *,
+.lk-swap::before,
+.lk-swap::after {
+  grid-area: 1 / 1;
+}
+.lk-swap::before {
+  content: attr(data-alt1);
+  visibility: hidden;
+}
+.lk-swap::after {
+  content: attr(data-alt2);
+  visibility: hidden;
+}
+
+/* ConfirmDialog: a native modal <dialog>; the content fills it so a click on the dialog element
+ * itself can only come from the backdrop. */
+.lk-dialog {
+  box-sizing: border-box;
+  width: min(480px, calc(100vw - 2 * var(--space-4)));
+  max-height: calc(100vh - 2 * var(--space-8));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+.lk-dialog::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+.lk-dialog:focus {
+  outline: none;
+}
+.lk-dialog__content {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+.lk-dialog__title {
+  margin: 0;
+  font-size: var(--section-font-size);
+  line-height: var(--section-line-height);
+  font-weight: var(--section-font-weight);
+  overflow-wrap: anywhere;
+}
+.lk-dialog__body {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--body-font-size);
+  line-height: var(--body-line-height);
+}
+.lk-dialog__body p,
+.lk-dialog__body ul {
+  margin: 0;
+}
+.lk-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+@media (max-width: 600px) {
+  .lk-dialog__content {
+    padding: var(--space-4);
+  }
+}
+
+/* Toasts: success messages, bottom right; full width at the bottom on phones. */
+.lk-toasts {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 10;
+  display: grid;
+  gap: var(--space-2);
+  width: min(400px, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+.lk-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  pointer-events: auto;
+}
+/* A warning says "Lưu ý:" in words; the thicker ink edge only repeats it. */
+.lk-toast--warning {
+  border-left: 4px solid var(--ink);
+}
+.lk-toast__tone {
+  font-weight: var(--label-font-weight);
+}
+.lk-toast__message {
+  flex: 1;
+  margin: 0;
+  font-size: var(--body-font-size);
+  line-height: var(--body-line-height);
+  overflow-wrap: anywhere;
+}
+.lk-toast__close {
+  flex: none;
+  padding: 0 var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--brand);
+  font: inherit;
+  font-size: var(--small-font-size);
+  line-height: var(--body-line-height);
+  cursor: pointer;
+}
+.lk-toast__close:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .lk-toasts {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    padding: var(--space-2);
+  }
+}
+
+/* Bulk actions above a selectable table: the bar always takes its place, so selecting a row
+ * never moves the table. The hint and the actions share one grid cell; the actions are hidden
+ * with visibility while nothing is selected, so the bar keeps the height of the taller one. */
+.lk-bulkbar {
+  display: grid;
+  align-items: center;
+  min-height: calc(var(--body-line-height) + 2 * var(--space-2) + 2px);
+}
+.lk-bulkbar > * {
+  grid-area: 1 / 1;
+}
+.lk-bulkbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.lk-bulkbar__hint {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--body-font-size);
+  line-height: var(--body-line-height);
+  color: var(--ink-muted);
+}
+.lk-bulkbar--idle {
+  visibility: hidden;
+}
+.lk-bulkbar__count {
+  margin-right: auto;
+  font-family: var(--font-sans);
+  font-size: var(--body-font-size);
+  line-height: var(--body-line-height);
+  color: var(--ink);
+}
+.lk-table input[type='checkbox'] {
+  margin: 0;
+  vertical-align: middle;
+}
+.lk-table input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.lk-dialog__list {
+  padding-left: var(--space-6);
 }

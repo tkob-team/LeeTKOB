@@ -37,11 +37,11 @@ function stubFetch(login: () => Response, other: () => Response = () => json([])
 }
 
 function storeSession(role: 'ta' | 'student', token: string) {
-  sessionStorage.setItem(
+  localStorage.setItem(
     'leetkob.session',
     JSON.stringify({ token, role, email: 'sv01@truong.edu.vn', displayName: 'SV' }),
   );
-  sessionStorage.setItem('leetkob.token', token);
+  localStorage.setItem('leetkob.token', token);
 }
 
 afterEach(() => {
@@ -59,8 +59,9 @@ describe('app shell routes', () => {
   it('shows field errors before sending a request', async () => {
     renderAt('/login');
     fireEvent.click(await screen.findByRole('button', { name: 'Đăng nhập' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa đăng nhập được');
-    expect(screen.getByLabelText('Mật khẩu')).toHaveAccessibleDescription('Nhập mật khẩu.');
+    expect(await screen.findByLabelText('Mật khẩu')).toHaveAccessibleDescription('Nhập mật khẩu.');
+    expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Nhập email.');
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('signs a TA in, returns to the requested page, and keeps students out', async () => {
@@ -86,16 +87,14 @@ describe('app shell routes', () => {
     expect(screen.getByText(/Thay Ta/)).toBeInTheDocument();
 
     await router.navigate('/student/submit');
-    expect(
-      await screen.findByRole('heading', { name: 'Lab và hàng chờ duyệt' }),
-    ).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
+    expect(await screen.findByRole('heading', { name: 'Lớp của tôi' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/ta/classes');
 
     fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
   });
 
-  it('sends a TA to the lab list after sign-in', async () => {
+  it('sends a TA to the class list after sign-in', async () => {
     stubFetch(() => json({ token: fakeToken('TA'), role: 'TA', displayName: 'Thay Ta' }));
     const router = renderAt('/login');
     fireEvent.change(await screen.findByLabelText('Email'), {
@@ -104,21 +103,17 @@ describe('app shell routes', () => {
     fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'x' } });
     fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
 
-    expect(
-      await screen.findByRole('heading', { name: 'Lab và hàng chờ duyệt' }),
-    ).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
-    expect(screen.getByRole('link', { name: 'LeeTKOB' })).toHaveAttribute('href', '/ta/labs');
+    expect(await screen.findByRole('heading', { name: 'Lớp của tôi' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/ta/classes');
+    expect(screen.getByRole('link', { name: 'LeeTKOB' })).toHaveAttribute('href', '/ta/classes');
   });
 
-  it('redirects the old TA home /ta/classes to /ta/labs', async () => {
+  it('redirects the old TA home /ta/labs to /ta/classes', async () => {
     stubFetch(() => json({}));
     storeSession('ta', fakeToken('TA'));
-    const router = renderAt('/ta/classes');
-    expect(
-      await screen.findByRole('heading', { name: 'Lab và hàng chờ duyệt' }),
-    ).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
+    const router = renderAt('/ta/labs');
+    expect(await screen.findByRole('heading', { name: 'Lớp của tôi' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/ta/classes');
   });
 
   it('keeps students on their own home: / and /ta/classes lead to /student/submit', async () => {
@@ -149,7 +144,9 @@ describe('app shell routes', () => {
 
     expect(await screen.findByText(/sv01 · Sinh viên/)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/student/submit');
-    expect(sessionStorage.getItem('leetkob.token')).toBe(token);
+    // fix/401-any: the token is stored only inside the session entry.
+    expect(JSON.parse(localStorage.getItem('leetkob.session') ?? 'null')).toMatchObject({ token });
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
   });
 
   it('shows one message for a wrong email or password and stays signed out', async () => {
@@ -174,7 +171,7 @@ describe('app shell routes', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Sai email hoặc mật khẩu');
     expect(router.state.location.pathname).toBe('/login');
-    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
   });
 
   it('drops a stored session whose token has expired', async () => {
@@ -182,7 +179,7 @@ describe('app shell routes', () => {
     const router = renderAt('/student/submit');
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/login');
-    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
   });
 
   it('signs out when the token expires while the page is open', async () => {
@@ -216,6 +213,92 @@ describe('app shell routes', () => {
     const router = renderAt('/student/submit');
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/login');
+    expect(localStorage.getItem('leetkob.session')).toBeNull();
+  });
+
+  // A6 (audit 2026-11-28): the button names where it really goes for each role.
+  it.each([
+    [null, '/', 'Về trang đăng nhập'],
+    ['ta' as const, '/ta/classes', 'Về Lớp của tôi'],
+    ['student' as const, '/student/labs', 'Về danh sách đề bài'],
+  ])('the 404 page (signed in as %s) links back to %s', async (role, href, label) => {
+    stubFetch(() => json({}));
+    if (role) storeSession(role, fakeToken(role === 'ta' ? 'TA' : 'STUDENT'));
+    renderAt('/no/such/page');
+    expect(await screen.findByRole('heading', { name: 'Không tìm thấy trang' })).toBeVisible();
+    expect(screen.getByRole('link', { name: label })).toHaveAttribute('href', href);
+    expect(screen.queryByText(/Tự làm mới/)).toBeNull();
+  });
+
+  it('keeps the session in localStorage, so a new tab is signed in too', async () => {
+    const token = fakeToken('TA');
+    stubFetch(() => json({ token, role: 'TA', displayName: 'Thay Ta' }));
+    renderAt('/login');
+    fireEvent.change(await screen.findByLabelText('Email'), {
+      target: { value: 'ta01@truong.edu.vn' },
+    });
+    fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'x' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
+    await screen.findByText(/Thay Ta/);
+
+    // fix/401-any: the token is stored only inside the session entry.
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
+    expect(JSON.parse(localStorage.getItem('leetkob.session') ?? 'null')).toMatchObject({
+      token,
+      role: 'ta',
+    });
     expect(sessionStorage.getItem('leetkob.session')).toBeNull();
+    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+  });
+
+  it('moves a session saved in sessionStorage by an older build to localStorage once', async () => {
+    stubFetch(() => json({}));
+    const token = fakeToken('STUDENT');
+    sessionStorage.setItem(
+      'leetkob.session',
+      JSON.stringify({ token, role: 'student', email: 'sv01@truong.edu.vn', displayName: 'SV' }),
+    );
+    sessionStorage.setItem('leetkob.token', token);
+    const router = renderAt('/student/submit');
+
+    expect(await screen.findByText(/SV · Sinh viên/)).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/student/submit');
+    // fix/401-any: the token is stored only inside the session entry.
+    expect(localStorage.getItem('leetkob.token')).toBeNull();
+    expect(JSON.parse(localStorage.getItem('leetkob.session') ?? 'null')).toMatchObject({ token });
+    expect(sessionStorage.getItem('leetkob.session')).toBeNull();
+    expect(sessionStorage.getItem('leetkob.token')).toBeNull();
+  });
+
+  it('signs out and returns to /login when another tab signs out (storage event)', async () => {
+    stubFetch(() => json({}));
+    storeSession('student', fakeToken('STUDENT'));
+    const router = renderAt('/student/submit');
+    await screen.findByText(/SV · Sinh viên/);
+
+    // What the browser does in this tab when another tab removes the session.
+    localStorage.removeItem('leetkob.session');
+    localStorage.removeItem('leetkob.token');
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: 'leetkob.session', oldValue: 'x', newValue: null }),
+      );
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/login');
+  });
+
+  it('ignores storage events for other keys', async () => {
+    stubFetch(() => json({}));
+    storeSession('student', fakeToken('STUDENT'));
+    const router = renderAt('/student/submit');
+    await screen.findByText(/SV · Sinh viên/);
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'leetkob.theme', newValue: 'dark' }));
+    });
+    expect(screen.getByText(/SV · Sinh viên/)).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/student/submit');
   });
 });

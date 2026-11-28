@@ -38,6 +38,7 @@ class PostgresJudgeQueue implements JudgeQueue {
             )
             update judge_jobs j
             set lease_token = :token,
+                first_claimed_at = coalesce(j.first_claimed_at, clock_timestamp()),
                 lease_expires_at = clock_timestamp() + :millis * interval '1 millisecond'
             from candidate c
             join submissions s on s.id = c.submission_id
@@ -87,6 +88,22 @@ class PostgresJudgeQueue implements JudgeQueue {
 
   @Override
   public boolean complete(Claim claim, Result result) {
+    return completeWithTiming(claim, result, null);
+  }
+
+  @Override
+  public boolean complete(Claim claim, Result result, long gradingMillis) {
+    return completeWithTiming(claim, result, gradingMillis);
+  }
+
+  @Override
+  public void recordInfrastructureFailure(Claim claim) {
+    jdbc.sql("insert into judge_infrastructure_failures (id, submission_id) values (?, ?)")
+        .params(UUID.randomUUID(), claim.submissionId())
+        .update();
+  }
+
+  private boolean completeWithTiming(Claim claim, Result result, Long gradingMillis) {
     return jdbc.sql(
             """
             with locked_job as materialized (
@@ -101,6 +118,7 @@ class PostgresJudgeQueue implements JudgeQueue {
             ), finished as (
               update judge_jobs j
               set result = cast(:result as jsonb), finished_at = c.completed_at,
+                  grading_ms = :gradingMillis,
                   lease_token = null, lease_expires_at = null
               from completion c
               where j.submission_id = c.submission_id and c.lease_expires_at > c.completed_at
@@ -112,6 +130,7 @@ class PostgresJudgeQueue implements JudgeQueue {
             select exists (select 1 from finished)
             """)
         .param("result", json.writeValueAsString(result))
+        .param("gradingMillis", gradingMillis, java.sql.Types.BIGINT)
         .param("submissionId", claim.submissionId())
         .param("token", claim.leaseToken())
         .param("accepted", result.verdict() == Verdict.AC)

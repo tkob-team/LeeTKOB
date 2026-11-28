@@ -1,0 +1,551 @@
+import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
+import { Link, useParams } from 'react-router';
+import { api } from '../../api/client';
+import { problemFrom } from '../../api/problem-message';
+import type { ProblemDetails } from '../../api/problem';
+import { ADMIN_CLASS_NOT_FOUND } from '../../app/not-found-text';
+import { NotFoundPage } from '../../app/NotFoundPage';
+import { usePageTitle } from '../../app/usePageTitle';
+import {
+  Button,
+  ConfirmDialog,
+  FormField,
+  InviteCode,
+  ProblemAlert,
+  useToast,
+} from '../../components/ui';
+import type { Classroom } from '../lab-authoring/lab-api';
+import { PersonName } from './AdminClassesPage';
+import { BulkRemoveDialog, type BulkResult } from './BulkRemoveDialog';
+import {
+  HAS_SUBMISSIONS,
+  personName,
+  removalPath,
+  submittedLabel,
+  taOptionLabel,
+  type AdminMember,
+  type TaAccount,
+} from './admin-api';
+
+/** An unknown class (404) or an id that is not a UUID (400) both mean "no such class". */
+const NOT_FOUND_TYPES = new Set([
+  'urn:leetkob:problem:class-not-found',
+  'urn:leetkob:problem:invalid-request',
+]);
+
+/** What removing a member does, by role (A1). */
+function consequence(member: AdminMember) {
+  const name = personName(member);
+  return member.role === 'TA'
+    ? `${name} sẽ không còn xem được lab và hàng chờ duyệt của lớp này. Có thể gán lại sau.`
+    : `${name} sẽ không còn thấy lab của lớp này. Chỉ gỡ được khi sinh viên chưa nộp bài nào trong lớp.`;
+}
+
+/**
+ * Picker of the TAs not yet in this class and "Gán". "Gán" is always enabled: pressed with
+ * nothing chosen it says so under the field. After an assignment the TA leaves the picker, a
+ * toast confirms it and the focus returns to the picker; with nobody left, a sentence replaces
+ * the form.
+ */
+function AssignTaForm({
+  classId,
+  candidates,
+  hasAccounts,
+  onAssigned,
+}: {
+  classId: string;
+  candidates: TaAccount[];
+  hasAccounts: boolean;
+  onAssigned: (account: TaAccount) => Promise<void>;
+}) {
+  const [userId, setUserId] = useState('');
+  const [error, setError] = useState<string>();
+  const [problem, setProblem] = useState<ProblemDetails>();
+  const [pending, setPending] = useState(false);
+  /** Bumped after each assignment or empty press; the effect then focuses the picker. */
+  const [focusCount, setFocusCount] = useState(0);
+  const select = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (focusCount > 0) select.current?.focus();
+  }, [focusCount]);
+
+  if (!hasAccounts) return <p className="lk-page__note">Chưa có tài khoản trợ giảng.</p>;
+  if (candidates.length === 0) {
+    return <p className="lk-page__note">Mọi trợ giảng đã được gán cho lớp này.</p>;
+  }
+
+  async function assign() {
+    if (pending) return;
+    const account = candidates.find((ta) => ta.id === userId);
+    if (!account) {
+      setError('Chọn một trợ giảng.');
+      setFocusCount((n) => n + 1);
+      return;
+    }
+    setPending(true);
+    setProblem(undefined);
+    try {
+      await api.request<undefined>(`/classes/${encodeURIComponent(classId)}/tas`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: account.id }),
+      });
+      setUserId('');
+      await onAssigned(account);
+      setFocusCount((n) => n + 1);
+    } catch (cause) {
+      setProblem(problemFrom(cause));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="lk-section">
+      {problem ? <ProblemAlert problem={problem} /> : null}
+      <div className="lk-assign">
+        <FormField label="Gán thêm trợ giảng" error={error}>
+          <select
+            ref={select}
+            value={userId}
+            onChange={(e) => {
+              setUserId(e.target.value);
+              setError(undefined);
+              setProblem(undefined);
+            }}
+          >
+            <option value="">Chọn trợ giảng…</option>
+            {candidates.map((ta) => (
+              <option key={ta.id} value={ta.id}>
+                {taOptionLabel(ta)}
+              </option>
+            ))}
+          </select>
+        </FormField>
+        <Button variant="primary" onClick={() => void assign()} aria-disabled={pending}>
+          {pending ? 'Đang gán…' : 'Gán'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** State of the one-member removal dialog. */
+interface RemovalState {
+  member: AdminMember;
+  pending: boolean;
+  problem?: ProblemDetails;
+  /** 409: the student has submissions; nothing is left to confirm. */
+  blocked: boolean;
+}
+
+/**
+ * Removing one member: a ConfirmDialog naming the consequence for the role. Success closes it
+ * with a toast; 409 keeps it open with the reason and only "Đóng"; another error keeps
+ * "Thử lại".
+ */
+function RemoveMemberDialog({
+  state,
+  className,
+  classId,
+  onChange,
+  onRemoved,
+}: {
+  state: RemovalState | undefined;
+  className: string;
+  classId: string;
+  onChange: (next: RemovalState | undefined) => void;
+  onRemoved: (member: AdminMember) => Promise<void>;
+}) {
+  if (!state) return null;
+  const { member } = state;
+  const name = personName(member);
+
+  async function confirm() {
+    if (!state || state.pending) return;
+    onChange({ ...state, pending: true, problem: undefined });
+    try {
+      await api.request<undefined>(removalPath(classId, member), { method: 'DELETE' });
+      onChange(undefined);
+      await onRemoved(member);
+    } catch (cause) {
+      const problem = problemFrom(cause);
+      if (problem.type === HAS_SUBMISSIONS) {
+        onChange({
+          member,
+          pending: false,
+          blocked: true,
+          problem: {
+            type: problem.type,
+            status: problem.status,
+            title: `${name} đã có bài nộp trong lớp nên chưa gỡ được.`,
+          },
+        });
+      } else {
+        onChange({ member, pending: false, blocked: false, problem });
+      }
+    }
+  }
+
+  return (
+    <ConfirmDialog
+      open
+      title={`Gỡ ${name} khỏi ${className}?`}
+      body={<p>{consequence(member)}</p>}
+      confirmLabel={state.blocked ? undefined : state.problem ? 'Thử lại' : `Gỡ ${name}`}
+      pendingLabel="Đang gỡ…"
+      cancelLabel={state.blocked ? 'Đóng' : 'Huỷ'}
+      pending={state.pending}
+      problem={state.problem}
+      onConfirm={() => void confirm()}
+      onCancel={() => {
+        onChange(undefined);
+      }}
+    />
+  );
+}
+
+/** One class for the admin: invite code, TAs (and assigning one), students with name and email. */
+export function AdminClassPage() {
+  const { classId = '' } = useParams();
+  const toast = useToast();
+  const [classroom, setClassroom] = useState<Classroom>();
+  const [members, setMembers] = useState<AdminMember[]>();
+  const [tas, setTas] = useState<TaAccount[]>([]);
+  const [problem, setProblem] = useState<ProblemDetails>();
+  const [removal, setRemoval] = useState<RemovalState>();
+  /** Ids of the selected students (B1); kept across reloads for the students still listed. */
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  /** Index of the last row whose checkbox was clicked, for Shift+click ranges. */
+  const lastClicked = useRef<number>(undefined);
+  const [bulkTargets, setBulkTargets] = useState<AdminMember[]>();
+  /** Bumped to focus the students heading after the next render. */
+  const [focusStudents, setFocusStudents] = useState(0);
+  const selectAll = useRef<HTMLInputElement>(null);
+  const taHeading = useRef<HTMLHeadingElement>(null);
+  const studentHeading = useRef<HTMLHeadingElement>(null);
+  const lockedReasonId = useId();
+
+  const membersPath = `/admin/classes/${encodeURIComponent(classId)}/members`;
+
+  useEffect(() => {
+    const abort = new AbortController();
+    const signal = abort.signal;
+    Promise.all([
+      api.request<Classroom>(`/classes/${encodeURIComponent(classId)}`, { signal }),
+      api.request<AdminMember[]>(membersPath, { signal }),
+      api.request<TaAccount[]>('/admin/tas', { signal }),
+    ])
+      .then(([found, list, accounts]) => {
+        if (signal.aborted) return;
+        setClassroom(found);
+        setMembers(list);
+        setTas(accounts);
+      })
+      .catch((cause: unknown) => {
+        if (!signal.aborted) setProblem(problemFrom(cause));
+      });
+    return () => {
+      abort.abort();
+    };
+  }, [classId, membersPath]);
+
+  const reloadMembers = useCallback(async () => {
+    try {
+      setMembers(await api.request<AdminMember[]>(membersPath));
+    } catch (cause) {
+      setProblem(problemFrom(cause));
+    }
+  }, [membersPath]);
+
+  const onAssigned = useCallback(
+    async (account: TaAccount) => {
+      toast.show(`Đã gán ${personName(account)}.`);
+      await reloadMembers();
+    },
+    [reloadMembers, toast],
+  );
+
+  /** After a removal: the toast, the reloaded list, and the focus on the section heading. */
+  const onRemoved = useCallback(
+    async (member: AdminMember) => {
+      toast.show(`Đã gỡ ${personName(member)} khỏi lớp.`);
+      setSelected((current) => {
+        const next = new Set(current);
+        next.delete(member.id);
+        return next;
+      });
+      await reloadMembers();
+      (member.role === 'TA' ? taHeading : studentHeading).current?.focus();
+    },
+    [reloadMembers, toast],
+  );
+
+  const studentsNow = members?.filter((m) => m.role === 'STUDENT') ?? [];
+  const selectable = studentsNow.filter((m) => m.submissionCount === 0);
+  const selectedCount = selectable.filter((m) => selected.has(m.id)).length;
+
+  useEffect(() => {
+    if (selectAll.current) {
+      selectAll.current.indeterminate = selectedCount > 0 && selectedCount < selectable.length;
+    }
+  });
+
+  useEffect(() => {
+    if (focusStudents > 0) studentHeading.current?.focus();
+  }, [focusStudents]);
+
+  /** After the bulk requests: reload, keep the failed students selected, toast the summary. */
+  const onBulkFinished = useCallback(
+    async (results: BulkResult[]) => {
+      const removed = results.filter((r) => r.outcome.kind === 'removed').length;
+      setSelected(
+        new Set(results.filter((r) => r.outcome.kind !== 'removed').map((r) => r.member.id)),
+      );
+      toast.show(`Đã gỡ ${String(removed)}/${String(results.length)} sinh viên.`);
+      await reloadMembers();
+    },
+    [reloadMembers, toast],
+  );
+
+  const notFound = !classroom && problem !== undefined && NOT_FOUND_TYPES.has(problem.type);
+  usePageTitle(notFound ? undefined : (classroom?.name ?? 'Lớp học'));
+
+  if (notFound) return <NotFoundPage {...ADMIN_CLASS_NOT_FOUND} />;
+
+  const back = (
+    <Link to="/admin/classes" className="lk-back">
+      ← Lớp học
+    </Link>
+  );
+  if (!classroom || !members) {
+    return (
+      <section className="lk-section">
+        {back}
+        {problem ? (
+          <ProblemAlert problem={problem} />
+        ) : (
+          <p className="lk-page__note">Đang tải lớp…</p>
+        )}
+      </section>
+    );
+  }
+
+  const classTas = members.filter((m) => m.role === 'TA');
+  const students = members.filter((m) => m.role === 'STUDENT');
+  const taIds = new Set(classTas.map((m) => m.id));
+
+  function askRemove(member: AdminMember) {
+    setRemoval({ member, pending: false, blocked: false });
+  }
+
+  /** A row checkbox; with Shift held, every selectable row between it and the last click follows. */
+  function toggleRow(index: number, event: ChangeEvent<HTMLInputElement>) {
+    const on = event.target.checked;
+    const shift = 'shiftKey' in event.nativeEvent && (event.nativeEvent as MouseEvent).shiftKey;
+    const from = shift && lastClicked.current !== undefined ? lastClicked.current : index;
+    const [lo, hi] = from < index ? [from, index] : [index, from];
+    const next = new Set(selected);
+    students.slice(lo, hi + 1).forEach((m) => {
+      if (m.submissionCount > 0) return;
+      if (on) next.add(m.id);
+      else next.delete(m.id);
+    });
+    lastClicked.current = index;
+    setSelected(next);
+  }
+
+  function toggleAll(event: ChangeEvent<HTMLInputElement>) {
+    setSelected(event.target.checked ? new Set(selectable.map((m) => m.id)) : new Set());
+  }
+
+  const idle = selectedCount === 0;
+
+  return (
+    <section className="lk-section" aria-labelledby="admin-class-title">
+      <header className="lk-section__head">
+        {back}
+        <h1 id="admin-class-title" className="lk-page__title">
+          {classroom.name}
+        </h1>
+        {classroom.inviteCode ? (
+          <p className="lk-page__note">
+            Mã mời: <InviteCode code={classroom.inviteCode} classLabel={classroom.name} />
+          </p>
+        ) : (
+          <p className="lk-page__note">Lớp này chưa có mã mời.</p>
+        )}
+      </header>
+      {problem ? <ProblemAlert problem={problem} /> : null}
+
+      <section className="lk-panel" aria-labelledby="class-tas-title">
+        <h2 id="class-tas-title" className="lk-panel__title" ref={taHeading} tabIndex={-1}>
+          Trợ giảng ({classTas.length})
+        </h2>
+        {classTas.length === 0 ? (
+          <p className="lk-page__note">Lớp này chưa có trợ giảng.</p>
+        ) : (
+          <ul className="lk-people lk-people--actions">
+            {classTas.map((ta) => (
+              <li key={ta.id}>
+                <PersonName person={ta} />
+                <span className="lk-row-actions">
+                  <Button
+                    aria-label={`Gỡ ${personName(ta)}`}
+                    onClick={() => {
+                      askRemove(ta);
+                    }}
+                  >
+                    Gỡ
+                  </Button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <AssignTaForm
+          classId={classroom.id}
+          candidates={tas.filter((ta) => !taIds.has(ta.id))}
+          hasAccounts={tas.length > 0}
+          onAssigned={onAssigned}
+        />
+      </section>
+
+      <section className="lk-panel" aria-labelledby="class-students-title">
+        <h2
+          id="class-students-title"
+          className="lk-panel__title"
+          ref={studentHeading}
+          tabIndex={-1}
+        >
+          Sinh viên ({students.length})
+        </h2>
+        {students.length === 0 ? (
+          <p className="lk-page__note">Chưa có sinh viên. Gửi mã mời để sinh viên tự vào lớp.</p>
+        ) : (
+          <>
+            <p className="lk-page__note">Chỉ gỡ được sinh viên chưa nộp bài trong lớp.</p>
+            {/* Read once by every locked checkbox and "Gỡ" button (aria-describedby). */}
+            <span id={lockedReasonId} hidden>
+              Đã có bài nộp
+            </span>
+            {/* The hint and the actions share one cell of fixed height, so the table never moves. */}
+            <div className="lk-bulkbar">
+              {idle ? (
+                <p className="lk-bulkbar__hint">Chọn sinh viên để gỡ nhiều người cùng lúc.</p>
+              ) : null}
+              <div
+                className={idle ? 'lk-bulkbar__actions lk-bulkbar--idle' : 'lk-bulkbar__actions'}
+                aria-hidden={idle || undefined}
+                inert={idle}
+              >
+                <span className="lk-bulkbar__count">Đã chọn {selectedCount} sinh viên</span>
+                <Button
+                  onClick={() => {
+                    setSelected(new Set());
+                  }}
+                >
+                  Bỏ chọn
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setBulkTargets(selectable.filter((m) => selected.has(m.id)));
+                  }}
+                >
+                  {`Gỡ ${String(selectedCount)} sinh viên`}
+                </Button>
+              </div>
+            </div>
+            <div className="lk-table-wrap" role="region" aria-label="Sinh viên" tabIndex={0}>
+              <table className="lk-table">
+                <thead>
+                  <tr>
+                    <th scope="col" className="lk-col-check">
+                      <input
+                        ref={selectAll}
+                        type="checkbox"
+                        aria-label={`Chọn tất cả ${String(selectable.length)} sinh viên đang hiện`}
+                        checked={selectable.length > 0 && selectedCount === selectable.length}
+                        disabled={selectable.length === 0}
+                        onChange={toggleAll}
+                      />
+                    </th>
+                    <th scope="col">Tên</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Đã nộp</th>
+                    <th scope="col" className="lk-col-actions">
+                      <span className="lk-sr-only">Thao tác</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((student, index) => {
+                    const name = personName(student);
+                    const locked = student.submissionCount > 0;
+                    return (
+                      <tr key={student.id}>
+                        <td className="lk-col-check">
+                          <input
+                            type="checkbox"
+                            aria-label={`Chọn ${name}`}
+                            checked={!locked && selected.has(student.id)}
+                            disabled={locked}
+                            aria-describedby={locked ? lockedReasonId : undefined}
+                            onChange={(event) => {
+                              toggleRow(index, event);
+                            }}
+                          />
+                        </td>
+                        <td className="lk-wrap">{name}</td>
+                        <td className="lk-wrap">{student.email ?? '—'}</td>
+                        <td>{submittedLabel(student)}</td>
+                        <td className="lk-col-actions">
+                          <span
+                            className="lk-row-actions"
+                            title={locked ? 'Đã có bài nộp, không gỡ được.' : undefined}
+                          >
+                            <Button
+                              aria-label={`Gỡ ${name}`}
+                              disabled={locked}
+                              aria-describedby={locked ? lockedReasonId : undefined}
+                              onClick={() => {
+                                askRemove(student);
+                              }}
+                            >
+                              Gỡ
+                            </Button>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
+
+      <RemoveMemberDialog
+        state={removal}
+        className={classroom.name}
+        classId={classroom.id}
+        onChange={setRemoval}
+        onRemoved={onRemoved}
+      />
+      {bulkTargets ? (
+        <BulkRemoveDialog
+          targets={bulkTargets}
+          className={classroom.name}
+          classId={classroom.id}
+          onFinished={onBulkFinished}
+          onClose={() => {
+            setBulkTargets(undefined);
+            if (selectable.every((m) => !selected.has(m.id))) setFocusStudents((n) => n + 1);
+          }}
+        />
+      ) : null}
+    </section>
+  );
+}

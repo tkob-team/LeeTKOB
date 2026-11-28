@@ -1,7 +1,8 @@
 /**
- * Reads the eval layout `eval/dev/problems/<id>/` from files the TA picked:
- * `statement.md`, `constraints.json` (`[{id, text, deduction}]`) and `tests/NN.in` + `NN.out`.
- * Only the file name matters, so the files may be picked from one folder or several.
+ * Reads a lab from files the TA picked, in the eval layout `eval/dev/problems/<id>/` or close
+ * to it: the statement (`statement.md`, or the only `.md`), the constraints (`constraints.json`
+ * `[{id, text, deduction}]`, or the only `.json`) and tests `NN.in` + `NN.out` at any depth.
+ * `importLabFiles` takes loose files, `importLabFolder` one picked folder.
  */
 
 export interface DraftTest {
@@ -21,6 +22,10 @@ export interface ImportResult {
   statementMd?: string;
   constraints?: DraftConstraint[];
   tests?: DraftTest[];
+  /** The number (file stem, "01") of each entry of `tests`, in the same order. */
+  testNames?: string[];
+  /** `importLabFolder` only: the name of the picked folder. */
+  folder?: string;
   /** Files that were read and what they filled, in Vietnamese. */
   notes: string[];
   /** Problems that need the TA's attention, in Vietnamese. */
@@ -35,11 +40,6 @@ export interface ImportFile {
 }
 
 const TEST_FILE = /^(.+)\.(in|out)$/;
-
-function baseName(file: ImportFile): string {
-  const path = file.webkitRelativePath || file.name;
-  return path.split(/[\\/]/).pop() ?? path;
-}
 
 /** First `# ` heading of a Markdown statement, used as the lab title. */
 export function titleOf(markdown: string): string | undefined {
@@ -66,57 +66,145 @@ export function parseConstraints(text: string): DraftConstraint[] {
   });
 }
 
-export async function importLabFiles(files: Iterable<ImportFile>): Promise<ImportResult> {
-  const result: ImportResult = { notes: [], warnings: [] };
-  const inputs = new Map<string, ImportFile>();
-  const outputs = new Map<string, ImportFile>();
+/** A picked file with the path shown in messages and its own name. */
+interface Picked {
+  file: ImportFile;
+  /** Inside the picked folder ("tests/01.in") for a folder, else as the browser gives it. */
+  path: string;
+  name: string;
+}
 
-  for (const file of files) {
-    const name = baseName(file);
-    if (name === 'statement.md') {
-      result.statementMd = await file.text();
-      result.title = titleOf(result.statementMd);
-      result.notes.push('statement.md: đã điền đề bài' + (result.title ? ' và tiêu đề.' : '.'));
-      continue;
+function picked(file: ImportFile, insideFolder: boolean): Picked {
+  const full = file.webkitRelativePath || file.name;
+  const parts = full.split(/[\\/]/);
+  const name = parts[parts.length - 1] ?? full;
+  const path = insideFolder && parts.length > 1 ? parts.slice(1).join('/') : full;
+  return { file, path, name };
+}
+
+const byNumber = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
+
+/**
+ * The one file to read for the statement or the constraints: the file with the usual name
+ * (`statement.md`, `constraints.json`), else the only file with that extension. Two or more
+ * candidates are reported and none is read.
+ */
+function chooseOne(
+  files: Picked[],
+  usual: string,
+  extension: string,
+  what: string,
+  warnings: string[],
+): { chosen?: Picked; candidates: Picked[] } {
+  const named = files.filter((p) => p.name === usual);
+  const candidates =
+    named.length > 0 ? named : files.filter((p) => p.name.toLowerCase().endsWith(extension));
+  if (candidates.length === 1) return { chosen: candidates[0], candidates };
+  if (candidates.length > 1) {
+    const kind = named.length > 0 ? usual : extension;
+    warnings.push(
+      `Có ${String(candidates.length)} file ${kind} (${candidates.map((p) => p.path).join(', ')}), không biết file nào là ${what}; chưa nhập ${what}.`,
+    );
+  }
+  return { candidates };
+}
+
+export async function importLabFiles(files: Iterable<ImportFile>): Promise<ImportResult> {
+  return collect(Array.from(files, (file) => picked(file, false)));
+}
+
+/**
+ * One picked folder (`<input webkitdirectory>`), read with the same rules as picked files:
+ * tests `NN.in`/`NN.out` at any depth (the top, `tests/` or another subfolder), the statement
+ * and constraints by name or as the only `.md`/`.json`. A kind the folder lacks is simply
+ * absent from the result, so the form keeps what it has.
+ */
+export async function importLabFolder(files: Iterable<ImportFile>): Promise<ImportResult> {
+  const list = Array.from(files);
+  const first = list[0];
+  const result = await collect(list.map((file) => picked(file, true)));
+  if (first) result.folder = (first.webkitRelativePath || first.name).split(/[\\/]/)[0];
+  return result;
+}
+
+async function collect(files: Picked[]): Promise<ImportResult> {
+  const result: ImportResult = { notes: [], warnings: [] };
+  const kindWarnings: string[] = [];
+  const testWarnings: string[] = [];
+  const used = new Set<Picked>();
+
+  const inputs = new Map<string, Picked[]>();
+  const outputs = new Map<string, Picked[]>();
+  for (const p of files) {
+    const test = TEST_FILE.exec(p.name);
+    if (test?.[1] && (test[2] === 'in' || test[2] === 'out')) {
+      const side = test[2] === 'in' ? inputs : outputs;
+      side.set(test[1], [...(side.get(test[1]) ?? []), p]);
+      used.add(p);
     }
-    if (name === 'constraints.json') {
-      try {
-        result.constraints = parseConstraints(await file.text());
-        result.notes.push(`constraints.json: ${String(result.constraints.length)} ràng buộc.`);
-      } catch (error) {
-        const reason = error instanceof Error ? error.message : 'không đọc được.';
-        result.warnings.push(`constraints.json: ${reason}`);
-      }
-      continue;
-    }
-    const test = TEST_FILE.exec(name);
-    if (test?.[1] && test[2]) {
-      (test[2] === 'in' ? inputs : outputs).set(test[1], file);
-      continue;
-    }
-    result.warnings.push(
-      `Bỏ qua ${name}: không thuộc bố cục statement.md, constraints.json, tests/NN.in, NN.out.`,
+  }
+
+  const statement = chooseOne(files, 'statement.md', '.md', 'đề', kindWarnings);
+  statement.candidates.forEach((p) => used.add(p));
+  if (statement.chosen) {
+    result.statementMd = await statement.chosen.file.text();
+    result.title = titleOf(result.statementMd);
+    result.notes.push(
+      `${statement.chosen.path}: đã điền đề bài` + (result.title ? ' và tiêu đề.' : '.'),
     );
   }
 
-  const stems = [...new Set([...inputs.keys(), ...outputs.keys()])].sort((a, b) =>
-    a.localeCompare(b, undefined, { numeric: true }),
-  );
+  const constraints = chooseOne(files, 'constraints.json', '.json', 'ràng buộc', kindWarnings);
+  constraints.candidates.forEach((p) => used.add(p));
+  if (constraints.chosen) {
+    const path = constraints.chosen.path;
+    try {
+      result.constraints = parseConstraints(await constraints.chosen.file.text());
+      result.notes.push(`${path}: ${String(result.constraints.length)} ràng buộc.`);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'không đọc được.';
+      kindWarnings.push(`${path}: ${reason}`);
+    }
+  }
+
+  const stems = [...new Set([...inputs.keys(), ...outputs.keys()])].sort(byNumber);
   const tests: DraftTest[] = [];
+  const testNames: string[] = [];
   for (const stem of stems) {
-    const input = inputs.get(stem);
-    const output = outputs.get(stem);
+    const ins = inputs.get(stem) ?? [];
+    const outs = outputs.get(stem) ?? [];
+    const repeated = [ins, outs].find((side) => side.length > 1);
+    if (repeated) {
+      const file = repeated[0]?.name ?? stem;
+      testWarnings.push(
+        `Test ${stem}: ${file} có ở ${String(repeated.length)} nơi (${repeated.map((p) => p.path).join(', ')}), chưa nhập test này.`,
+      );
+      continue;
+    }
+    const input = ins[0];
+    const output = outs[0];
     if (!input || !output) {
-      result.warnings.push(
+      testWarnings.push(
         `Test ${stem}: thiếu file ${input ? `${stem}.out` : `${stem}.in`}, đã bỏ qua.`,
       );
       continue;
     }
-    tests.push({ input: await input.text(), expectedOutput: await output.text() });
+    tests.push({ input: await input.file.text(), expectedOutput: await output.file.text() });
+    testNames.push(stem);
   }
   if (tests.length > 0) {
     result.tests = tests;
+    result.testNames = testNames;
     result.notes.push(`tests: ${String(tests.length)} cặp input/output.`);
   }
+
+  // Every file that is none of the three kinds, in one line.
+  const skipped = files.filter((p) => !used.has(p)).map((p) => p.path);
+  if (skipped.length > 0) {
+    result.warnings.push(
+      `Bỏ qua ${String(skipped.length)} file: ${skipped.join(', ')} (không phải đề, ràng buộc hay test).`,
+    );
+  }
+  result.warnings.push(...kindWarnings, ...testWarnings);
   return result;
 }
