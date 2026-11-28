@@ -41,6 +41,16 @@ function numbered(result: ImportResult): FormTest[] {
   return (result.tests ?? []).map((test, i) => ({ ...test, name: names[i] ?? String(i + 1) }));
 }
 
+/** "a", "a và b", "a, b và c". */
+function joinWords(words: string[]): string {
+  if (words.length <= 1) return words.join('');
+  return `${words.slice(0, -1).join(', ')} và ${words[words.length - 1] ?? ''}`;
+}
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 /** `<input webkitdirectory>`: not in React's typings, so it is set on the element. */
 function pickDirectory(input: HTMLInputElement | null) {
   input?.setAttribute('webkitdirectory', '');
@@ -250,46 +260,89 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
   }
 
   /**
-   * Loads one problem folder (statement, constraints, tests). A form that already holds
-   * something is replaced only after a ConfirmDialog; an empty form is filled at once.
+   * Loads one problem folder. Only the kinds the folder holds (statement, constraints, tests)
+   * are replaced; a kind it lacks stays as it is on the form and a warning toast says so. A
+   * form that already holds something in a kind to be replaced asks first; otherwise the
+   * folder is loaded at once.
    */
   async function importFolder(event: ChangeEvent<HTMLInputElement>) {
     const files = takeFiles(event);
     if (files.length === 0) return;
     const result = await importLabFolder(files);
     setImportWarnings(result.warnings);
+    const folder = result.folder ?? 'đã chọn';
     const incomingTests = numbered(result);
-    if (result.statementMd === undefined && !result.constraints && incomingTests.length === 0) {
+    const hasStatement = result.statementMd !== undefined;
+    const hasConstraints = result.constraints !== undefined;
+    const hasTests = incomingTests.length > 0;
+    if (!hasStatement && !hasConstraints && !hasTests) {
+      toast.warn(`Thư mục ${folder} không có đề, ràng buộc hay test nào; form được giữ nguyên.`);
       return;
     }
-    const folder = result.folder ?? 'đã chọn';
-    const hasContent =
-      title.trim() !== '' ||
-      statementMd.trim() !== '' ||
-      constraints.length > 0 ||
-      tests.some((t) => !isBlank(t));
+
+    const kinds = [
+      ...(hasStatement ? ['đề'] : []),
+      ...(hasConstraints ? ['ràng buộc'] : []),
+      ...(hasTests ? ['test'] : []),
+    ];
+    const replaced = [
+      ...(hasStatement ? ['tiêu đề và đề bài'] : []),
+      ...(hasConstraints ? ['mọi ràng buộc'] : []),
+      ...(hasTests ? ['mọi test'] : []),
+    ];
+    const kept = [
+      ...(hasStatement ? [] : ['đề bài']),
+      ...(hasConstraints ? [] : ['ràng buộc']),
+      ...(hasTests ? [] : ['test']),
+    ];
+    const willReplaceContent =
+      (hasStatement && (title.trim() !== '' || statementMd.trim() !== '')) ||
+      (hasConstraints && constraints.length > 0) ||
+      (hasTests && tests.some((t) => !isBlank(t)));
     if (
-      hasContent &&
+      willReplaceContent &&
       (await ask({
-        title: `Thay toàn bộ đề, ràng buộc và test bằng nội dung thư mục ${folder}?`,
-        body: 'Tiêu đề, đề bài, mọi ràng buộc và mọi test trên form sẽ được thay. Hai mốc giờ, thời gian CPU và bộ nhớ giữ nguyên.',
+        title: `Thay toàn bộ ${joinWords(kinds)} bằng nội dung thư mục ${folder}?`,
+        body:
+          `${capitalize(joinWords(replaced))} trên form sẽ được thay.` +
+          (kept.length > 0
+            ? ` ${capitalize(joinWords(kept))} giữ nguyên vì thư mục không có.`
+            : '') +
+          ' Hai mốc giờ, thời gian CPU và bộ nhớ giữ nguyên.',
         confirmLabel: `Thay bằng thư mục ${folder}`,
       })) !== 'confirm'
     ) {
       return;
     }
-    setTitle(result.title ?? '');
-    setStatementMd(result.statementMd ?? '');
-    setConstraints(result.constraints ?? []);
-    setTests(incomingTests.length > 0 ? mergeTests([], incomingTests) : [FIRST_TEST]);
-    clearErrors('title', 'statementMd');
-    clearTestErrors();
-    const parts = [
-      ...(result.statementMd !== undefined ? ['đề bài'] : []),
-      `${String(result.constraints?.length ?? 0)} ràng buộc`,
-      `${String(incomingTests.length)} test`,
-    ];
+
+    const parts: string[] = [];
+    if (result.statementMd !== undefined) {
+      setStatementMd(result.statementMd);
+      if (result.title !== undefined) setTitle(result.title);
+      clearErrors('title', 'statementMd');
+      parts.push('đề bài');
+    }
+    if (result.constraints) {
+      setConstraints(result.constraints);
+      parts.push(`${String(result.constraints.length)} ràng buộc`);
+    }
+    if (hasTests) {
+      setTests(mergeTests([], incomingTests));
+      clearTestErrors();
+      parts.push(`${String(incomingTests.length)} test`);
+    }
     toast.show(`Đã nhập thư mục ${folder}: ${parts.join(', ')}.`);
+    if (!hasStatement) {
+      toast.warn(`Thư mục ${folder} không có file đề .md; đề bài hiện có được giữ nguyên.`);
+    }
+    if (!hasConstraints) {
+      toast.warn(
+        `Thư mục ${folder} không có file ràng buộc .json; ràng buộc hiện có được giữ nguyên.`,
+      );
+    }
+    if (!hasTests) {
+      toast.warn(`Thư mục ${folder} không có file test nào; test hiện có được giữ nguyên.`);
+    }
   }
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
@@ -360,8 +413,8 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
           {classroom ? `Tạo lab cho ${classroom.name}` : 'Tạo lab'}
         </h1>
         <p className="lk-page__note">
-          Chọn cùng lúc file đề (.md), file ràng buộc (.json) và các file test (NN.in, NN.out). Sau
-          khi nhập vẫn sửa tay được.
+          Chọn cùng lúc file đề (.md), file ràng buộc (.json) và các file test (NN.in, NN.out). Hoặc
+          chọn cả thư mục bài bằng “Nhập thư mục”. Sau khi nhập vẫn sửa tay được.
         </p>
         <div className="lk-row">
           <Button
@@ -410,6 +463,10 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
         <p className="lk-page__note">
           Có thể nhập từng phần. Test trùng số sẽ được hỏi trước khi ghi đè. Nên nhập cả thư mục bài
           để tránh lẫn test của bài khác.
+        </p>
+        <p className="lk-page__note">
+          Thư mục cần có 1 file đề .md, 1 file ràng buộc .json và các file test NN.in/NN.out (ở gốc
+          hay trong tests/ đều được).
         </p>
       </header>
 

@@ -128,3 +128,34 @@ describe('Toast', () => {
     expect(screen.queryByText(/Đã gỡ/)).toBeNull();
   });
 });
+
+function WarnTrigger() {
+  const toast = useToast();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        toast.warn('Thư mục p không có file test nào; test hiện có được giữ nguyên.');
+      }}
+    >
+      Nhập
+    </button>
+  );
+}
+
+describe('warning toast', () => {
+  it('says "Lưu ý:" in words, not by colour alone, in the same live region', () => {
+    render(
+      <ToastProvider>
+        <WarnTrigger />
+      </ToastProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Nhập' }));
+    const region = screen.getByRole('status', { name: 'Thông báo' });
+    const message = within(region).getByText(/test hiện có được giữ nguyên/);
+    expect(message).toHaveTextContent(
+      /^Lưu ý: Thư mục p không có file test nào; test hiện có được giữ nguyên\.$/,
+    );
+    expect(message.closest('.lk-toast')).toHaveClass('lk-toast--warning');
+  });
+});

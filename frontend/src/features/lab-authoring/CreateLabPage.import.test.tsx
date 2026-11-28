@@ -254,11 +254,15 @@ describe('folder import', () => {
       inFolder('p/notes.txt', 'x'),
       inFolder('p/01.in', 'stray'),
     ]);
-    await screen.findByText('Đã nhập thư mục p: đề bài, 0 ràng buộc, 1 test.');
+    // notes.txt is no kind; the stray 01.in repeats tests/01.in, so test 01 is not chosen.
+    await screen.findByText('Đã nhập thư mục p: đề bài.');
     const panel = screen.getByRole('region', { name: 'Cần xem lại sau khi nhập file' });
-    expect(panel).toHaveTextContent('Bỏ qua notes.txt');
-    expect(panel).toHaveTextContent('Bỏ qua 01.in');
-    expect(panel).toHaveTextContent('Thư mục p không có constraints.json.');
+    expect(panel).toHaveTextContent(
+      'Bỏ qua 1 file: notes.txt (không phải đề, ràng buộc hay test).',
+    );
+    expect(panel).toHaveTextContent(
+      'Test 01: 01.in có ở 2 nơi (tests/01.in, 01.in), chưa nhập test này.',
+    );
   });
 });
 

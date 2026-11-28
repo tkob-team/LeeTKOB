@@ -49,7 +49,7 @@ describe('importLabFiles', () => {
     expect(result.tests).toBeUndefined();
     expect(result.constraints).toBeUndefined();
     expect(result.warnings).toEqual([
-      'Bỏ qua notes.txt: không thuộc bố cục statement.md, constraints.json, tests/NN.in, NN.out.',
+      'Bỏ qua 1 file: notes.txt (không phải đề, ràng buộc hay test).',
       'constraints.json: constraints.json phải là một mảng.',
       'Test 01: thiếu file 01.out, đã bỏ qua.',
       'Test 02: thiếu file 02.in, đã bỏ qua.',
