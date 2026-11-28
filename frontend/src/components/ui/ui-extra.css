@@ -540,3 +540,43 @@ a.lk-btn {
   box-sizing: border-box;
   width: 100%;
 }
+/* Admin class page: a member row with its "Gỡ" control, and the in-place confirmation. */
+.lk-person {
+  display: grid;
+}
+.lk-people--actions li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.lk-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.lk-panel__title[tabindex='-1']:focus {
+  outline: none;
+}
+.lk-panel__title[tabindex='-1']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* TA class page: the class name and "Tạo lab" on one row; a long name wraps, the button stays
+ * at the right whatever the name's length. */
+.lk-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.lk-title-row > .lk-page__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lk-title-row > .lk-btn {
+  flex: 0 0 auto;
+}

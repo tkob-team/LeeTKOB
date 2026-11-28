@@ -1,4 +1,4 @@
-# Class management API — 1.2.0 (T29)
+# Class management API — 1.3.0 (T29)
 
 All endpoints require the existing valid HS256 Bearer JWT (`sub`, `role`, `exp`).
 The user must exist and the signed global role must equal `users.role`; a missing
@@ -21,6 +21,8 @@ add a login screen or an alternative token issuer. User provisioning must set
 | GET `/admin/tas` | ADMIN | — | each item also carries `displayName` (1.2.0) |
 | GET `/admin/classes` | ADMIN | — | 200 array of `{id, name, inviteCode, tas: [{id, email, displayName}], studentCount}` (1.2.0) |
 | GET `/admin/classes/{classId}/members` | ADMIN | — | 200 array of `{id, role, email, displayName}`, TAs first, then by name (1.2.0) |
+| DELETE `/admin/classes/{classId}/tas/{userId}` | ADMIN | — | 204, also on repeat or when the user is not a TA of the class (1.3.0) |
+| DELETE `/admin/classes/{classId}/students/{userId}` | ADMIN | — | 204, also on repeat; 409 member-has-submissions when the student has a submission in a lab of the class (1.3.0) |
 
 Class objects contain `id`, `name`, `inviteCode`. For students, inviteCode is null
 (or omitted by JSON serialization), never the actual code. ADMIN and the assigned
@@ -76,3 +78,23 @@ let a TA map the ids seen elsewhere to real people. Names and emails of members 
 therefore served only on the `/admin/` paths. AdminClassesContractTest covers the
 three endpoints, the 403/401/404/400 cases, the orderings, and that the TA roster
 still carries no email or displayName.
+
+1.3.0 lets the administrator remove class members. DELETE
+`/admin/classes/{classId}/tas/{userId}` removes the TA assignment; the TA loses
+access at once (the class leaves GET `/classes`, and GET `/classes/{classId}/labs`
+and GET `/labs/{labId}/review-queue` of that class return 404, as for a TA of
+another class). DELETE `/admin/classes/{classId}/students/{userId}` removes a
+student who has no submission in any lab of the class: the class's labs leave GET
+`/student/labs` and a new submission returns 404. A student with at least one
+submission in the class is not removed: 409 with the new problem type
+`urn:leetkob:problem:member-has-submissions` (title "Student has submissions in this
+class"), and membership is unchanged, so the review queue and grades keep their
+student. Submissions in other classes do not count. Both are idempotent: removing a
+user who is not (or no longer) a member returns 204. An unknown class returns 404
+class-not-found and a malformed id 400 invalid-request. ADMIN only: TA and STUDENT
+receive 403 class-access-denied; a missing token, unknown user or changed role
+receives 401. The check and the delete run in one transaction but do not lock out a
+submission sent at the same moment; removing a student mid-lab is an administrative
+action outside the grading window. Removing a TA or student with submissions,
+deleting classes and deleting labs remain later extensions.
+AdminRemoveMembersContractTest covers these cases.

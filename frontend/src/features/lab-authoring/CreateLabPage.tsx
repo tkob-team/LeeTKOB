@@ -105,7 +105,9 @@ export function CreateLabPage() {
         method: 'POST',
         body: JSON.stringify(body),
       });
-      void navigate('/ta/labs', { state: { created: lab.title ?? '' } });
+      void navigate(`/ta/classes/${encodeURIComponent(classId)}`, {
+        state: { created: lab.title ?? '' },
+      });
     } catch (cause) {
       setProblem(problemFrom(cause));
     } finally {
@@ -146,7 +148,10 @@ export function CreateLabPage() {
             tabIndex={-1}
             onChange={(e) => void importFiles(e)}
           />
-          <Link className="lk-btn lk-btn--secondary" to="/ta/labs">
+          <Link
+            className="lk-btn lk-btn--secondary"
+            to={`/ta/classes/${encodeURIComponent(classId)}`}
+          >
             Huỷ
           </Link>
         </div>

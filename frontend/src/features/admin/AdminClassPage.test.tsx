@@ -143,7 +143,7 @@ describe('admin class page', () => {
       within(tas)
         .getAllByRole('listitem')
         .map((li) => li.textContent),
-    ).toEqual(['Anna Trợ giảnganna.ta@truong.edu.vn']);
+    ).toEqual(['Anna Trợ giảnganna.ta@truong.edu.vnGỡ']);
     const students = screen.getByRole('region', { name: 'Sinh viên (2)' });
     const rows = within(students).getAllByRole('row').slice(1);
     expect(
@@ -153,8 +153,8 @@ describe('admin class page', () => {
           .map((c) => c.textContent),
       ),
     ).toEqual([
-      ['An', 'an@truong.edu.vn'],
-      ['Chi', 'chi@truong.edu.vn'],
+      ['An', 'an@truong.edu.vn', 'Gỡ'],
+      ['Chi', 'chi@truong.edu.vn', 'Gỡ'],
     ]);
   });
 

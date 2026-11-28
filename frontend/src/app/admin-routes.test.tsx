@@ -147,7 +147,7 @@ describe('admin routes', () => {
   });
 
   it.each([
-    ['ta' as const, 'TA', '/ta/labs'],
+    ['ta' as const, 'TA', '/ta/classes'],
     ['student' as const, 'STUDENT', '/student/submit'],
   ])('keeps a %s out of /admin/classes', async (role, claim, home) => {
     stubFetch();

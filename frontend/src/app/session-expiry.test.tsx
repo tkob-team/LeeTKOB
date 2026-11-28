@@ -121,10 +121,10 @@ describe('next after signing in', () => {
   it.each([
     ['student' as const, '/student/labs/1', '/student/labs/1'],
     ['student' as const, '/ta/labs', '/student/submit'],
-    ['ta' as const, '/student/submit', '/ta/labs'],
-    ['ta' as const, 'https://evil.example/ta/', '/ta/labs'],
-    ['ta' as const, '//evil.example/ta/labs', '/ta/labs'],
-    ['ta' as const, null, '/ta/labs'],
+    ['ta' as const, '/student/submit', '/ta/classes'],
+    ['ta' as const, 'https://evil.example/ta/', '/ta/classes'],
+    ['ta' as const, '//evil.example/ta/labs', '/ta/classes'],
+    ['ta' as const, null, '/ta/classes'],
   ])('for %s, next %s goes to %s', (role, next, expected) => {
     expect(afterLoginPath(role, next)).toBe(expected);
   });

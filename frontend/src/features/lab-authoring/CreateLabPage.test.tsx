@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
 import { CreateLabPage } from './CreateLabPage';
-import { TaLabsPage } from './TaLabsPage';
+import { TaClassPage } from '../ta-classes/TaClassPage';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
 
@@ -20,7 +20,7 @@ function renderPage() {
   const router = createMemoryRouter(
     [
       { path: '/ta/classes/:classId/labs/new', element: <CreateLabPage /> },
-      { path: '/ta/labs', element: <TaLabsPage /> },
+      { path: '/ta/classes/:classId', element: <TaClassPage /> },
     ],
     { initialEntries: [`/ta/classes/${classId}/labs/new`] },
   );
@@ -80,7 +80,7 @@ describe('create lab form', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tạo lab' }));
 
     expect(await screen.findByText('Đã tạo lab Lab 3: sắp xếp.')).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
+    expect(router.state.location.pathname).toBe(`/ta/classes/${classId}`);
     const [path, init] = request.mock.calls[0] ?? [];
     expect(path).toBe(`/classes/${classId}/labs`);
     expect(init?.method).toBe('POST');

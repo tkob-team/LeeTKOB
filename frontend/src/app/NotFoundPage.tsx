@@ -7,7 +7,7 @@ import { PublicLayout } from './PublicLayout';
 /** Lab (or, for an admin, class) list of the signed-in role; signed-out users go through /. */
 function labListPath(role: Role | undefined): string {
   if (role === 'admin') return '/admin/classes';
-  if (role === 'ta') return '/ta/labs';
+  if (role === 'ta') return '/ta/classes';
   if (role === 'student') return '/student/labs';
   return '/';
 }

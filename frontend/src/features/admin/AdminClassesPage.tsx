@@ -65,16 +65,25 @@ function CreateClassForm({ onCreated }: { onCreated: (classroom: Classroom) => v
   );
 }
 
+/** A name with the email in small text below it. */
+export function PersonName({ person }: { person: AdminClass['tas'][number] }) {
+  return (
+    <span className="lk-person">
+      <span>{personName(person)}</span>
+      {person.email && person.email !== personName(person) ? (
+        <small className="lk-people__email">{person.email}</small>
+      ) : null}
+    </span>
+  );
+}
+
 /** People with the email in small text below the name; every person is listed. */
 export function PeopleList({ people }: { people: AdminClass['tas'] }) {
   return (
     <ul className="lk-people">
       {people.map((person) => (
         <li key={person.id}>
-          <span>{personName(person)}</span>
-          {person.email && person.email !== personName(person) ? (
-            <small className="lk-people__email">{person.email}</small>
-          ) : null}
+          <PersonName person={person} />
         </li>
       ))}
     </ul>

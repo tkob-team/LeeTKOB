@@ -191,6 +191,42 @@ class ClassroomService {
         .list();
   }
 
+  /** Removes a TA from a class; removing someone who is not a TA there is also a success. */
+  @Transactional
+  void removeTa(Actor actor, UUID classId, UUID userId) {
+    requireRole(actor, "ADMIN");
+    find(classId);
+    jdbc.sql("delete from class_tas where class_id = ? and user_id = ?")
+        .params(classId, userId)
+        .update();
+  }
+
+  /**
+   * Removes a student who has no submission in any lab of the class; with one, 409 and nothing
+   * changes, so the review queue and grades never lose their student.
+   */
+  @Transactional
+  void removeStudent(Actor actor, UUID classId, UUID userId) {
+    requireRole(actor, "ADMIN");
+    find(classId);
+    boolean submitted =
+        jdbc.sql(
+                """
+                select exists (select 1 from submissions s join labs l on l.id = s.lab_id
+                               where l.class_id = ? and s.student_id = ?)
+                """)
+            .params(classId, userId)
+            .query(Boolean.class)
+            .single();
+    if (submitted) {
+      throw new ApiException(
+          ProblemType.MEMBER_HAS_SUBMISSIONS, "The student has submissions in this class.");
+    }
+    jdbc.sql("delete from class_members where class_id = ? and user_id = ?")
+        .params(classId, userId)
+        .update();
+  }
+
   private static TaAccount taAccount(ResultSet rs) throws SQLException {
     return new TaAccount(
         rs.getObject("id", UUID.class), rs.getString("email"), rs.getString("display_name"));

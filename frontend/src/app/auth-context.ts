@@ -39,7 +39,7 @@ export function useAuth(): AuthState {
 
 export function homePath(role: Role): string {
   if (role === 'admin') return '/admin/classes';
-  return role === 'ta' ? '/ta/labs' : '/student/submit';
+  return role === 'ta' ? '/ta/classes' : '/student/submit';
 }
 
 /** Query parameter of /login that names the page to return to after signing in. */

@@ -149,7 +149,7 @@ describe('theme', () => {
 
 describe('app header', () => {
   it.each([
-    ['ta' as const, <TaLayout key="ta" />, '/ta/labs'],
+    ['ta' as const, <TaLayout key="ta" />, '/ta/classes'],
     ['student' as const, <StudentLayout key="student" />, '/student/submit'],
   ])('the LeeTKOB brand links %s users to their home page', (role, layout, home) => {
     render(

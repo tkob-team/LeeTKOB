@@ -3,10 +3,11 @@ import { AdminClassPage } from '../features/admin/AdminClassPage';
 import { AdminClassesPage } from '../features/admin/AdminClassesPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { CreateLabPage } from '../features/lab-authoring/CreateLabPage';
-import { TaLabsPage } from '../features/lab-authoring/TaLabsPage';
 import { StudentLabPage, StudentLabsPage } from '../features/lab-view/StudentLabPage';
 import { ReviewQueuePage } from '../features/review-queue/ReviewQueuePage';
 import { SubmitJudgePage } from '../features/submit-judge/SubmitJudgePage';
+import { TaClassesPage } from '../features/ta-classes/TaClassesPage';
+import { TaClassPage } from '../features/ta-classes/TaClassPage';
 import { AdminLayout, StudentLayout, TaLayout } from './AppLayout';
 import { NotFoundRoute } from './NotFoundPage';
 import { PublicLayout } from './PublicLayout';
@@ -44,10 +45,11 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <HomeRedirect /> },
-      // Old TA home; kept so bookmarks and links still work.
-      { path: 'classes', element: <Navigate to="/ta/labs" replace /> },
+      { path: 'classes', element: <TaClassesPage /> },
+      { path: 'classes/:classId', element: <TaClassPage /> },
       { path: 'review-queue', element: <ReviewQueuePage /> },
-      { path: 'labs', element: <TaLabsPage /> },
+      // Old TA home (one page of every lab); kept so bookmarks and links still work.
+      { path: 'labs', element: <Navigate to="/ta/classes" replace /> },
       { path: 'classes/:classId/labs/new', element: <CreateLabPage /> },
       { path: 'labs/:labId/review', element: <ReviewQueuePage /> },
     ],

@@ -87,16 +87,14 @@ describe('app shell routes', () => {
     expect(screen.getByText(/Thay Ta/)).toBeInTheDocument();
 
     await router.navigate('/student/submit');
-    expect(
-      await screen.findByRole('heading', { name: 'Lab và hàng chờ duyệt' }),
-    ).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
+    expect(await screen.findByRole('heading', { name: 'Lớp của tôi' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/ta/classes');
 
     fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
   });
 
-  it('sends a TA to the lab list after sign-in', async () => {
+  it('sends a TA to the class list after sign-in', async () => {
     stubFetch(() => json({ token: fakeToken('TA'), role: 'TA', displayName: 'Thay Ta' }));
     const router = renderAt('/login');
     fireEvent.change(await screen.findByLabelText('Email'), {
@@ -105,21 +103,17 @@ describe('app shell routes', () => {
     fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'x' } });
     fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
 
-    expect(
-      await screen.findByRole('heading', { name: 'Lab và hàng chờ duyệt' }),
-    ).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
-    expect(screen.getByRole('link', { name: 'LeeTKOB' })).toHaveAttribute('href', '/ta/labs');
+    expect(await screen.findByRole('heading', { name: 'Lớp của tôi' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/ta/classes');
+    expect(screen.getByRole('link', { name: 'LeeTKOB' })).toHaveAttribute('href', '/ta/classes');
   });
 
-  it('redirects the old TA home /ta/classes to /ta/labs', async () => {
+  it('redirects the old TA home /ta/labs to /ta/classes', async () => {
     stubFetch(() => json({}));
     storeSession('ta', fakeToken('TA'));
-    const router = renderAt('/ta/classes');
-    expect(
-      await screen.findByRole('heading', { name: 'Lab và hàng chờ duyệt' }),
-    ).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
+    const router = renderAt('/ta/labs');
+    expect(await screen.findByRole('heading', { name: 'Lớp của tôi' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/ta/classes');
   });
 
   it('keeps students on their own home: / and /ta/classes lead to /student/submit', async () => {
@@ -224,7 +218,7 @@ describe('app shell routes', () => {
 
   it.each([
     [null, '/'],
-    ['ta' as const, '/ta/labs'],
+    ['ta' as const, '/ta/classes'],
     ['student' as const, '/student/labs'],
   ])('the 404 page (signed in as %s) links back to the lab list at %s', async (role, href) => {
     stubFetch(() => json({}));

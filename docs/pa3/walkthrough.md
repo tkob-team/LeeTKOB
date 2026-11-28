@@ -38,8 +38,12 @@ give each solution its own student and read the queue once.
 ### 1. ta1 creates the lab
 
 1. Open https://tkob-leetkob.duckdns.org. The login page appears; **ta1@leetkob.test signs
-   in**. The TA home is "Lab và hàng chờ duyệt" (`01-ta1-lab-list.jpg`).
-2. Click **Tạo lab** next to "Lớp thử nghiệm 1".
+   in**. The TA home is "Lớp của tôi" (`/ta/classes`): each class with its number of
+   students and labs and its invite code (`01-ta1-lab-list.jpg`; runs 1 and 2 showed the
+   former home "Lab và hàng chờ duyệt").
+2. Click **Lớp thử nghiệm 1**. The class page shows the class name with **Tạo lab** on the
+   same row at the right, the invite code, the TA and student counts, and the lab table.
+   Click **Tạo lab**.
 3. Click **Nhập từ file** and select all 16 files of `eval/dev/problems/sort-merge/` at once.
    Wait for the panel "Đã nhập từ file". It should read: statement.md filled the statement
    and title, constraints.json gave 2 constraints (C1 −3, C2 −4), and tests gave 7
@@ -49,9 +53,10 @@ give each solution its own student and read the queue once.
    send) when one is empty or Hạn nộp is not after Mở lúc. Set **Thời gian CPU (ms)** to
    **2000**, matching "Time limit: 2 seconds" in `statement.md`, and keep **Bộ nhớ (MB)** at 256
    (`02-ta1-create-lab-imported.jpg`; runs 1 and 2 kept the default 1000 ms).
-5. Click **Tạo lab** at the bottom. The lab list shows "Đã tạo lab …" and the new row with
-   7 tests and 2 constraints (`03-ta1-lab-created.jpg`). The row's button **Hàng chờ duyệt:
-   <lab title>** opens the queue URL `/ta/labs/<labId>/review`.
+5. Click **Tạo lab** at the bottom. The page returns to the class page of "Lớp thử nghiệm
+   1" with "Đã tạo lab …"; the new lab is the top row (labs are listed latest opening first)
+   with 7 tests and 2 constraints (`03-ta1-lab-created.jpg`). The row's button **Hàng chờ
+   duyệt: <lab title>** opens the queue URL `/ta/labs/<labId>/review`.
 6. Click **Đăng xuất**.
 
 Run 1: lab `PA3 walkthrough 2026-11-27 14:07`, created 14:08, id
@@ -85,7 +90,8 @@ s09. All were AC, but only s09 stayed counted, which is why the order above was 
 
 ### 4. ta1 reads the queue (s09, s01)
 
-1. **ta1 signs in**. Click **Hàng chờ duyệt: <lab title>** on the lab row. The note says
+1. **ta1 signs in** and lands on "Lớp của tôi". Click **Lớp thử nghiệm 1**, then
+   **Hàng chờ duyệt: <lab title>** on the lab row of the class page. The note says
    "Tạm tính: lab chưa hết hạn, hàng chờ đổi khi sinh viên nộp lại. Tự làm mới mỗi 15 giây.
    Bài cần duyệt (violation, unsure) xếp trước."
 2. Each counted submission is a block headed "Sinh viên XXXX" (an anonymous label, never the

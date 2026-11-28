@@ -19,7 +19,7 @@ function renderPage() {
   const router = createMemoryRouter(
     [
       { path: '/ta/classes/:classId/labs/new', element: <CreateLabPage /> },
-      { path: '/ta/labs', element: <p>Lab list</p> },
+      { path: '/ta/classes/:classId', element: <p>Lab list</p> },
     ],
     { initialEntries: [`/ta/classes/${classId}/labs/new`] },
   );

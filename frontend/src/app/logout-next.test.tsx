@@ -87,7 +87,7 @@ describe('Đăng xuất forgets where the user was', () => {
     const server = { nextRole: 'STUDENT' as const, unauthorized: false };
     stubServer(server);
     storeSession('ta');
-    const router = renderAt('/ta/labs');
+    const router = renderAt('/ta/classes');
     fireEvent.click(await screen.findByRole('button', { name: 'Đăng xuất' }));
 
     await screen.findByRole('heading', { name: 'Đăng nhập' });
@@ -107,13 +107,13 @@ describe('Đăng xuất forgets where the user was', () => {
     await screen.findByRole('heading', { name: 'Đăng nhập' });
 
     signIn('ta2@leetkob.test');
-    await waitForPath(router, '/ta/labs');
+    await waitForPath(router, '/ta/classes');
   });
 
   it('going back after signing out does not bring next back', async () => {
     stubServer({ nextRole: 'TA', unauthorized: false });
     storeSession('ta');
-    const router = renderAt('/ta/labs');
+    const router = renderAt('/ta/classes');
     await screen.findByRole('button', { name: 'Đăng xuất' });
     await act(async () => {
       await router.navigate('/ta/review-queue');
@@ -134,9 +134,9 @@ describe('next after an expired session', () => {
     const server = { nextRole: 'STUDENT' as const, unauthorized: true };
     stubServer(server);
     storeSession('ta');
-    const router = renderAt('/ta/labs');
+    const router = renderAt('/ta/classes');
     expect(await screen.findByText(EXPIRED, {}, { timeout: 5000 })).toBeInTheDocument();
-    expect(new URLSearchParams(router.state.location.search).get('next')).toBe('/ta/labs');
+    expect(new URLSearchParams(router.state.location.search).get('next')).toBe('/ta/classes');
 
     server.unauthorized = false;
     signIn('sv1@leetkob.test');
