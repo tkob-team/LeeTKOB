@@ -22,6 +22,8 @@ public class BackendApplication {
       SandboxProxy.start();
     } else if (args.length > 0 && "judge-worker".equals(args[0])) {
       JudgeWorkerApplication.start(Arrays.copyOfRange(args, 1, args.length));
+    } else if (args.length > 0 && "seed-load".equals(args[0])) {
+      SeedApplication.startLoad();
     } else if (args.length > 0 && "seed".equals(args[0])) {
       SeedApplication.start(Arrays.copyOfRange(args, 1, args.length));
     } else {

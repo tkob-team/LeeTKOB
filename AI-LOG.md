@@ -418,6 +418,14 @@
 - Rejected: patching `crypto.randomUUID` in the browser console to finish the walkthrough (not what a real user can do); falling back to `Math.random` (not a cryptographic source).
 - Validation: the new page test (`SubmitJudgePage.http.test.tsx`) stubs `crypto` without `randomUUID`; it failed on the old code and passes now. `uuid.test.ts` checks 200 unique v4 keys without `randomUUID` and the version/variant bits. In WSL `make lint`, `make format-check`, `make typecheck`, `make test` each exited 0.
 
+## 2026-11-28 - T102 synthetic load and receipt reconciliation (B, Hoa)
+
+- Tool: OpenAI Codex.
+- Kept: the existing local load mode and authenticated submission contract.
+- Changed: one-shot seed for 80 synthetic students and a receipt manifest audited against
+  individual submissions, jobs and verdicts. The audit accepts the pre-V5 schema.
+- Rejected: inventing grading p95 on a schema without grading duration.
+
 ## 2026-11-27 — PA#3 UI walkthrough script (A, Hiep)
 
 - Tool: Claude Code (Claude Opus 5.5) driving Chrome through Claude in Chrome on http://tkob-leetkob.duckdns.org. No SSH, database edit or seed; every account (`ta1`, `sv1`, `sv2`, `ta2`) was signed in by the user, and no password was typed or read by the agent.
