@@ -9,6 +9,7 @@ export const TOAST_MAX = 3;
 interface ToastItem {
   id: number;
   message: string;
+  tone: 'success' | 'warning';
 }
 
 /**
@@ -35,7 +36,7 @@ function Toast({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) =
 
   return (
     <div
-      className="lk-toast"
+      className={item.tone === 'warning' ? 'lk-toast lk-toast--warning' : 'lk-toast'}
       onMouseEnter={() => {
         setHovered(true);
       }}
@@ -49,7 +50,10 @@ function Toast({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) =
         if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       }}
     >
-      <p className="lk-toast__message">{item.message}</p>
+      <p className="lk-toast__message">
+        {item.tone === 'warning' ? <strong className="lk-toast__tone">Lưu ý: </strong> : null}
+        {item.message}
+      </p>
       <button
         type="button"
         className="lk-toast__close"
@@ -76,15 +80,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setItems((current) => current.filter((item) => item.id !== id));
   }, []);
 
-  const api = useMemo<ToastApi>(
-    () => ({
+  const api = useMemo<ToastApi>(() => {
+    const add = (message: string, tone: ToastItem['tone']) => {
+      const id = nextId.current++;
+      setItems((current) => [...current, { id, message, tone }].slice(-TOAST_MAX));
+    };
+    return {
       show: (message: string) => {
-        const id = nextId.current++;
-        setItems((current) => [...current, { id, message }].slice(-TOAST_MAX));
+        add(message, 'success');
       },
-    }),
-    [],
-  );
+      warn: (message: string) => {
+        add(message, 'warning');
+      },
+    };
+  }, []);
 
   return (
     <ToastContext value={api}>

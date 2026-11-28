@@ -689,6 +689,13 @@ a.lk-btn {
   font-family: var(--font-sans);
   pointer-events: auto;
 }
+/* A warning says "Lưu ý:" in words; the thicker ink edge only repeats it. */
+.lk-toast--warning {
+  border-left: 4px solid var(--ink);
+}
+.lk-toast__tone {
+  font-weight: var(--label-font-weight);
+}
 .lk-toast__message {
   flex: 1;
   margin: 0;

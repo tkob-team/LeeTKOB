@@ -3,6 +3,11 @@ import { createContext, useContext } from 'react';
 export interface ToastApi {
   /** Shows a success message ("Đã …" plus its object). Errors stay next to their cause. */
   show: (message: string) => void;
+  /**
+   * Shows a warning: the action ran, but part of it was left unchanged ("…; test hiện có được
+   * giữ nguyên."). Never an error, which stays next to its cause.
+   */
+  warn: (message: string) => void;
 }
 
 /**
@@ -11,6 +16,7 @@ export interface ToastApi {
  */
 export const ToastContext = createContext<ToastApi>({
   show: () => undefined,
+  warn: () => undefined,
 });
 
 export function useToast(): ToastApi {
