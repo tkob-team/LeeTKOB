@@ -48,11 +48,20 @@ give each solution its own student and read the queue once.
    Click **Tạo lab**. The page first checks the class ("Đang tải lớp…"), then shows the link
    "← Lớp thử nghiệm 1" and the title "Tạo lab cho Lớp thử nghiệm 1". A class the TA does not
    teach shows "Không tìm thấy lớp" instead of the form.
-3. Click **Nhập từ file** and select all 16 files of `eval/dev/problems/sort-merge/` at once.
-   Wait for the toast "Đã nhập từ file: …" (bottom right, hides after 5 s). It should read:
-   statement.md filled the statement and title, constraints.json gave 2 constraints, and tests
-   gave 7 input/output pairs; the form shows C1 −3 and C2 −4. A file the import could not use
-   is listed in the panel "Cần xem lại sau khi nhập file", which stays on the page.
+3. Click **Nhập thư mục** and choose the folder `eval/dev/problems/sort-merge/` (the browser
+   asks to confirm uploading its 16 files). On the empty form there is no question; wait for
+   the toast "Đã nhập thư mục sort-merge: đề bài, 2 ràng buộc, 7 test." (bottom right, hides
+   after 5 s). The form shows the title "Sorting with merge sort", C1 −3 and C2 −4, and
+   "Test (7)", each test numbered from its file ("Test 1 (01)"). A file outside the layout
+   (`statement.md`, `constraints.json`, `tests/NN.in`, `tests/NN.out`) is listed in the panel
+   "Cần xem lại sau khi nhập file", which stays on the page.
+   Without folder picking, use **Nhập từ file** twice: first `statement.md` and
+   `constraints.json` (toast "Đã nhập từ file: đề bài và tiêu đề, 2 ràng buộc."), then the 14
+   files of `tests/` (toast "Đã thêm 7 test (01–07), tổng 7 test."). Importing the same files
+   again says "Không có gì thay đổi."; test numbers already on the form with other content
+   (tests of another problem) open a dialog "Ghi đè test trùng số?" with "Ghi đè …, giữ …",
+   "Thay toàn bộ bằng N test mới" and "Huỷ", and a different statement or constraints ask
+   "Thay đề bài đang có?" / "Thay 2 ràng buộc đang có?" first.
 4. Change **Tiêu đề** to `PA3 walkthrough <date time>`. Set **Mở lúc** to now and **Hạn nộp**
    to now + 7 days. Before sending, the form checks every required field at once (title,
    statement, both dates with Hạn nộp after Mở lúc, CPU 1000–5000, memory 64–512, an expected
