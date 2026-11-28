@@ -531,3 +531,12 @@ a.lk-btn {
   flex: 1 1 280px;
   min-width: 0;
 }
+/* The TA picker is a design-system field: same font, line height, padding, border, radius and
+ * focus ring as a text input (ui.css `.lk-field select`), so the same height; full field width. */
+.lk-assign .lk-field {
+  max-width: none;
+}
+.lk-assign .lk-field select {
+  box-sizing: border-box;
+  width: 100%;
+}

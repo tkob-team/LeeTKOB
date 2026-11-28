@@ -17,6 +17,18 @@ function isActive(item: NavItem, pathname: string): boolean {
   );
 }
 
+/**
+ * "Name · Role", or only the name when it already says the role ("Quản trị viên" for the
+ * role "Quản trị"), so the role is never written twice.
+ */
+function whoLabel(displayName: string | undefined, roleLabel: string): string {
+  if (!displayName) return roleLabel;
+  if (displayName.toLocaleLowerCase('vi').includes(roleLabel.toLocaleLowerCase('vi'))) {
+    return displayName;
+  }
+  return `${displayName} · ${roleLabel}`;
+}
+
 export interface AppLayoutProps {
   /** `wide` for dense TA screens (max 1280px), `narrow` for one-column student screens (max 760px). */
   width: 'wide' | 'narrow';
@@ -50,9 +62,7 @@ export function AppLayout({ width, roleLabel, nav, children }: AppLayoutProps) {
             ))}
           </nav>
           <div className="lk-shell__user">
-            <span className="lk-shell__who">
-              {session?.displayName} · {roleLabel}
-            </span>
+            <span className="lk-shell__who">{whoLabel(session?.displayName, roleLabel)}</span>
             <ThemeToggle />
             <Button
               onClick={() => {

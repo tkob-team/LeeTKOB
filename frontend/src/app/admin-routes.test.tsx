@@ -77,6 +77,25 @@ describe('admin routes', () => {
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
   });
 
+  it('writes the admin role once when the name already says it ("Quản trị viên")', async () => {
+    stubFetch();
+    localStorage.setItem(
+      'leetkob.session',
+      JSON.stringify({
+        token: fakeToken('ADMIN'),
+        role: 'admin',
+        email: 'admin@leetkob.test',
+        displayName: 'Quản trị viên',
+      }),
+    );
+    renderAt('/admin/classes');
+    await screen.findByRole('heading', { name: 'Lớp học', level: 1 });
+    const banner = document.querySelector<HTMLElement>('.lk-shell__header');
+    if (!banner) throw new Error('expected the app header');
+    expect(within(banner).getByText('Quản trị viên')).toHaveClass('lk-shell__who');
+    expect(banner).not.toHaveTextContent('Quản trị viên · Quản trị');
+  });
+
   it('opens a class page from the list, inside the admin layout', async () => {
     const id = '1b2c3d4e-0000-4000-8000-000000000001';
     vi.stubGlobal(
