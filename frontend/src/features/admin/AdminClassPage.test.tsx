@@ -158,8 +158,8 @@ describe('admin class page', () => {
           .map((c) => c.textContent),
       ),
     ).toEqual([
-      ['An', 'an@truong.edu.vn', '0', 'Gỡ'],
-      ['Chi', 'chi@truong.edu.vn', '2', 'Đã có bài nộpGỡ'],
+      ['', 'An', 'an@truong.edu.vn', '0', 'Gỡ'],
+      ['', 'Chi', 'chi@truong.edu.vn', '2', 'Đã có bài nộpGỡ'],
     ]);
   });
 

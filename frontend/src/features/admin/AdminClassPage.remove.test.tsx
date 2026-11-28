@@ -211,7 +211,7 @@ describe('removing class members (admin)', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveAccessibleDescription('Đã có bài nộp');
     const row = screen.getByRole('row', { name: /Dũng/ });
-    expect(within(row).getAllByRole('cell')[2]).toHaveTextContent(/^3$/);
+    expect(within(row).getAllByRole('cell')[3]).toHaveTextContent(/^3$/);
   });
 
   it('keeps the dialog open on 409 with the reason and only "Đóng"', async () => {

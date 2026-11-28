@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
@@ -14,6 +14,7 @@ import {
 } from '../../components/ui';
 import type { Classroom } from '../lab-authoring/lab-api';
 import { PersonName } from './AdminClassesPage';
+import { BulkRemoveDialog, type BulkResult } from './BulkRemoveDialog';
 import {
   HAS_SUBMISSIONS,
   personName,
@@ -210,6 +211,14 @@ export function AdminClassPage() {
   const [tas, setTas] = useState<TaAccount[]>([]);
   const [problem, setProblem] = useState<ProblemDetails>();
   const [removal, setRemoval] = useState<RemovalState>();
+  /** Ids of the selected students (B1); kept across reloads for the students still listed. */
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  /** Index of the last row whose checkbox was clicked, for Shift+click ranges. */
+  const lastClicked = useRef<number>(undefined);
+  const [bulkTargets, setBulkTargets] = useState<AdminMember[]>();
+  /** Bumped to focus the students heading after the next render. */
+  const [focusStudents, setFocusStudents] = useState(0);
+  const selectAll = useRef<HTMLInputElement>(null);
   const taHeading = useRef<HTMLHeadingElement>(null);
   const studentHeading = useRef<HTMLHeadingElement>(null);
 
@@ -257,8 +266,40 @@ export function AdminClassPage() {
   const onRemoved = useCallback(
     async (member: AdminMember) => {
       toast.show(`Đã gỡ ${personName(member)} khỏi lớp.`);
+      setSelected((current) => {
+        const next = new Set(current);
+        next.delete(member.id);
+        return next;
+      });
       await reloadMembers();
       (member.role === 'TA' ? taHeading : studentHeading).current?.focus();
+    },
+    [reloadMembers, toast],
+  );
+
+  const studentsNow = members?.filter((m) => m.role === 'STUDENT') ?? [];
+  const selectable = studentsNow.filter((m) => m.submissionCount === 0);
+  const selectedCount = selectable.filter((m) => selected.has(m.id)).length;
+
+  useEffect(() => {
+    if (selectAll.current) {
+      selectAll.current.indeterminate = selectedCount > 0 && selectedCount < selectable.length;
+    }
+  });
+
+  useEffect(() => {
+    if (focusStudents > 0) studentHeading.current?.focus();
+  }, [focusStudents]);
+
+  /** After the bulk requests: reload, keep the failed students selected, toast the summary. */
+  const onBulkFinished = useCallback(
+    async (results: BulkResult[]) => {
+      const removed = results.filter((r) => r.outcome.kind === 'removed').length;
+      setSelected(
+        new Set(results.filter((r) => r.outcome.kind !== 'removed').map((r) => r.member.id)),
+      );
+      toast.show(`Đã gỡ ${String(removed)}/${String(results.length)} sinh viên.`);
+      await reloadMembers();
     },
     [reloadMembers, toast],
   );
@@ -290,6 +331,28 @@ export function AdminClassPage() {
   function askRemove(member: AdminMember) {
     setRemoval({ member, pending: false, blocked: false });
   }
+
+  /** A row checkbox; with Shift held, every selectable row between it and the last click follows. */
+  function toggleRow(index: number, event: ChangeEvent<HTMLInputElement>) {
+    const on = event.target.checked;
+    const shift = 'shiftKey' in event.nativeEvent && (event.nativeEvent as MouseEvent).shiftKey;
+    const from = shift && lastClicked.current !== undefined ? lastClicked.current : index;
+    const [lo, hi] = from < index ? [from, index] : [index, from];
+    const next = new Set(selected);
+    students.slice(lo, hi + 1).forEach((m) => {
+      if (m.submissionCount > 0) return;
+      if (on) next.add(m.id);
+      else next.delete(m.id);
+    });
+    lastClicked.current = index;
+    setSelected(next);
+  }
+
+  function toggleAll(event: ChangeEvent<HTMLInputElement>) {
+    setSelected(event.target.checked ? new Set(selectable.map((m) => m.id)) : new Set());
+  }
+
+  const idle = selectedCount === 0;
 
   return (
     <section className="lk-section" aria-labelledby="admin-class-title">
@@ -353,55 +416,102 @@ export function AdminClassPage() {
         {students.length === 0 ? (
           <p className="lk-page__note">Chưa có sinh viên. Gửi mã mời để sinh viên tự vào lớp.</p>
         ) : (
-          <div className="lk-table-wrap" role="region" aria-label="Sinh viên" tabIndex={0}>
-            <table className="lk-table">
-              <thead>
-                <tr>
-                  <th scope="col">Tên</th>
-                  <th scope="col">Email</th>
-                  <th scope="col" className="lk-col-num">
-                    Bài nộp
-                  </th>
-                  <th scope="col" className="lk-col-actions">
-                    <span className="lk-sr-only">Thao tác</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student) => {
-                  const name = personName(student);
-                  const locked = student.submissionCount > 0;
-                  const reasonId = `submitted-${student.id}`;
-                  return (
-                    <tr key={student.id}>
-                      <td className="lk-wrap">{name}</td>
-                      <td className="lk-wrap">{student.email ?? '—'}</td>
-                      <td className="lk-col-num">{student.submissionCount}</td>
-                      <td className="lk-col-actions">
-                        <span className="lk-row-actions">
-                          {locked ? (
-                            <span id={reasonId} className="lk-btn-reason">
-                              Đã có bài nộp
-                            </span>
-                          ) : null}
-                          <Button
-                            aria-label={`Gỡ ${name}`}
+          <>
+            {/* Always in the page, hidden with visibility, so the table never moves. */}
+            <div
+              className={idle ? 'lk-bulkbar lk-bulkbar--idle' : 'lk-bulkbar'}
+              aria-hidden={idle || undefined}
+              inert={idle}
+            >
+              <span className="lk-bulkbar__count">Đã chọn {selectedCount} sinh viên</span>
+              <Button
+                onClick={() => {
+                  setSelected(new Set());
+                }}
+              >
+                Bỏ chọn
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setBulkTargets(selectable.filter((m) => selected.has(m.id)));
+                }}
+              >
+                {`Gỡ ${String(selectedCount)} sinh viên`}
+              </Button>
+            </div>
+            <div className="lk-table-wrap" role="region" aria-label="Sinh viên" tabIndex={0}>
+              <table className="lk-table">
+                <thead>
+                  <tr>
+                    <th scope="col" className="lk-col-check">
+                      <input
+                        ref={selectAll}
+                        type="checkbox"
+                        aria-label={`Chọn tất cả ${String(selectable.length)} sinh viên đang hiện`}
+                        checked={selectable.length > 0 && selectedCount === selectable.length}
+                        disabled={selectable.length === 0}
+                        onChange={toggleAll}
+                      />
+                    </th>
+                    <th scope="col">Tên</th>
+                    <th scope="col">Email</th>
+                    <th scope="col" className="lk-col-num">
+                      Bài nộp
+                    </th>
+                    <th scope="col" className="lk-col-actions">
+                      <span className="lk-sr-only">Thao tác</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((student, index) => {
+                    const name = personName(student);
+                    const locked = student.submissionCount > 0;
+                    const reasonId = `submitted-${student.id}`;
+                    return (
+                      <tr key={student.id}>
+                        <td className="lk-col-check">
+                          <input
+                            type="checkbox"
+                            aria-label={`Chọn ${name}`}
+                            checked={!locked && selected.has(student.id)}
                             disabled={locked}
                             aria-describedby={locked ? reasonId : undefined}
-                            onClick={() => {
-                              askRemove(student);
+                            onChange={(event) => {
+                              toggleRow(index, event);
                             }}
-                          >
-                            Gỡ
-                          </Button>
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          />
+                        </td>
+                        <td className="lk-wrap">{name}</td>
+                        <td className="lk-wrap">{student.email ?? '—'}</td>
+                        <td className="lk-col-num">{student.submissionCount}</td>
+                        <td className="lk-col-actions">
+                          <span className="lk-row-actions">
+                            {locked ? (
+                              <span id={reasonId} className="lk-btn-reason">
+                                Đã có bài nộp
+                              </span>
+                            ) : null}
+                            <Button
+                              aria-label={`Gỡ ${name}`}
+                              disabled={locked}
+                              aria-describedby={locked ? reasonId : undefined}
+                              onClick={() => {
+                                askRemove(student);
+                              }}
+                            >
+                              Gỡ
+                            </Button>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
 
@@ -412,6 +522,18 @@ export function AdminClassPage() {
         onChange={setRemoval}
         onRemoved={onRemoved}
       />
+      {bulkTargets ? (
+        <BulkRemoveDialog
+          targets={bulkTargets}
+          className={classroom.name}
+          classId={classroom.id}
+          onFinished={onBulkFinished}
+          onClose={() => {
+            setBulkTargets(undefined);
+            if (selectable.every((m) => !selected.has(m.id))) setFocusStudents((n) => n + 1);
+          }}
+        />
+      ) : null}
     </section>
   );
 }

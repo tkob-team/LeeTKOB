@@ -62,3 +62,28 @@ export function removalPath(classId: string, member: AdminMember) {
   const kind = member.role === 'TA' ? 'tas' : 'students';
   return `/admin/classes/${encodeURIComponent(classId)}/${kind}/${encodeURIComponent(member.id)}`;
 }
+
+/**
+ * Runs `task` on every item with at most `limit` running at once and resolves, in item order,
+ * once all have settled; `onSettled` gets the number settled so far after each one.
+ */
+export async function runLimited<T, R>(
+  items: readonly T[],
+  limit: number,
+  task: (item: T) => Promise<R>,
+  onSettled?: (settled: number) => void,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  let settled = 0;
+  async function worker() {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await task(items[index] as T);
+      settled += 1;
+      onSettled?.(settled);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return results;
+}

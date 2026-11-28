@@ -721,3 +721,34 @@ a.lk-btn {
     padding: var(--space-2);
   }
 }
+
+/* Bulk actions above a selectable table: the bar always takes its place (hidden with visibility
+ * when nothing is selected), so selecting a row never moves the table. */
+.lk-bulkbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: calc(var(--body-line-height) + 2 * var(--space-2) + 2px);
+}
+.lk-bulkbar--idle {
+  visibility: hidden;
+}
+.lk-bulkbar__count {
+  margin-right: auto;
+  font-family: var(--font-sans);
+  font-size: var(--body-font-size);
+  line-height: var(--body-line-height);
+  color: var(--ink);
+}
+.lk-table input[type='checkbox'] {
+  margin: 0;
+  vertical-align: middle;
+}
+.lk-table input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.lk-dialog__list {
+  padding-left: var(--space-6);
+}
