@@ -70,6 +70,14 @@ export function AppLayout({ width, roleLabel, nav, children }: AppLayoutProps) {
   );
 }
 
+export function AdminLayout({ children }: { children?: ReactNode }) {
+  return (
+    <AppLayout width="wide" roleLabel="Quản trị" nav={[{ to: '/admin/classes', label: 'Lớp học' }]}>
+      {children}
+    </AppLayout>
+  );
+}
+
 export function TaLayout({ children }: { children?: ReactNode }) {
   return (
     <AppLayout

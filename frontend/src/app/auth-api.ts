@@ -10,7 +10,7 @@ interface LoginResponse {
   displayName: string | null;
 }
 
-const ROLES: Partial<Record<LoginResponse['role'], Role>> = { TA: 'ta', STUDENT: 'student' };
+const ROLES: Partial<Record<string, Role>> = { ADMIN: 'admin', TA: 'ta', STUDENT: 'student' };
 
 function invalid(errors: ProblemFieldError[]): ApiProblemError {
   return new ApiProblemError({
@@ -80,7 +80,7 @@ export async function apiLogin(
       type: `${CLIENT_PREFIX}role-not-supported`,
       title: 'Chưa có giao diện cho vai trò này',
       status: 403,
-      detail: 'Tài khoản quản trị chưa dùng được trên giao diện web.',
+      detail: 'Tài khoản này chưa dùng được trên giao diện web.',
     });
   }
   return {

@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-export type Role = 'ta' | 'student';
+export type Role = 'admin' | 'ta' | 'student';
 
 export interface Session {
   token: string;
@@ -38,6 +38,7 @@ export function useAuth(): AuthState {
 }
 
 export function homePath(role: Role): string {
+  if (role === 'admin') return '/admin/classes';
   return role === 'ta' ? '/ta/labs' : '/student/submit';
 }
 

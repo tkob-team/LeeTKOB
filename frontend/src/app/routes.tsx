@@ -1,11 +1,12 @@
 import { Navigate, type RouteObject } from 'react-router';
+import { AdminClassesPage } from '../features/admin/AdminClassesPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { CreateLabPage } from '../features/lab-authoring/CreateLabPage';
 import { TaLabsPage } from '../features/lab-authoring/TaLabsPage';
 import { StudentLabPage, StudentLabsPage } from '../features/lab-view/StudentLabPage';
 import { ReviewQueuePage } from '../features/review-queue/ReviewQueuePage';
 import { SubmitJudgePage } from '../features/submit-judge/SubmitJudgePage';
-import { StudentLayout, TaLayout } from './AppLayout';
+import { AdminLayout, StudentLayout, TaLayout } from './AppLayout';
 import { NotFoundRoute } from './NotFoundPage';
 import { PublicLayout } from './PublicLayout';
 import { HomeRedirect, RequireRole } from './RequireRole';
@@ -19,6 +20,18 @@ export const routes: RouteObject[] = [
         <LoginPage />
       </PublicLayout>
     ),
+  },
+  {
+    path: '/admin',
+    element: (
+      <RequireRole role="admin">
+        <AdminLayout />
+      </RequireRole>
+    ),
+    children: [
+      { index: true, element: <HomeRedirect /> },
+      { path: 'classes', element: <AdminClassesPage /> },
+    ],
   },
   {
     path: '/ta',

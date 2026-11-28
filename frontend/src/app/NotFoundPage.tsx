@@ -1,11 +1,12 @@
 import { Link } from 'react-router';
-import { StudentLayout, TaLayout } from './AppLayout';
-import { useAuth } from './auth-context';
+import { AdminLayout, StudentLayout, TaLayout } from './AppLayout';
+import { useAuth, type Role } from './auth-context';
 import { EmptyState } from './EmptyState';
 import { PublicLayout } from './PublicLayout';
 
-/** Lab list of the signed-in role; signed-out users go through / to the login page. */
-function labListPath(role: 'ta' | 'student' | undefined): string {
+/** Lab (or, for an admin, class) list of the signed-in role; signed-out users go through /. */
+function labListPath(role: Role | undefined): string {
+  if (role === 'admin') return '/admin/classes';
   if (role === 'ta') return '/ta/labs';
   if (role === 'student') return '/student/labs';
   return '/';
@@ -19,7 +20,7 @@ export function NotFoundPage() {
       <EmptyState title="Không tìm thấy trang">Đường dẫn này không tồn tại.</EmptyState>
       <p>
         <Link className="lk-btn lk-btn--secondary" to={labListPath(session?.role)}>
-          Về danh sách lab
+          {session?.role === 'admin' ? 'Về danh sách lớp' : 'Về danh sách lab'}
         </Link>
       </p>
     </div>
@@ -32,6 +33,13 @@ export function NotFoundPage() {
  */
 export function NotFoundRoute() {
   const { session } = useAuth();
+  if (session?.role === 'admin') {
+    return (
+      <AdminLayout>
+        <NotFoundPage />
+      </AdminLayout>
+    );
+  }
   if (session?.role === 'ta') {
     return (
       <TaLayout>

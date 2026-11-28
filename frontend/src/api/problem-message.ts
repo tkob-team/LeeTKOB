@@ -35,6 +35,10 @@ const BY_TYPE: Record<string, Message> = {
     title: 'Không tìm thấy lớp',
     detail: 'Lớp không tồn tại hoặc bạn không phải TA của lớp này.',
   },
+  'class-access-denied': {
+    title: 'Bạn không có quyền thực hiện thao tác này',
+    detail: 'Thao tác này dành cho vai trò khác.',
+  },
   'lab-not-found': {
     title: 'Không tìm thấy lab',
     detail: 'Lab không tồn tại hoặc không thuộc lớp của bạn.',
@@ -104,6 +108,9 @@ const FIELD_LABEL: Record<string, string> = {
   email: 'Email',
   password: 'Mật khẩu',
   labId: 'Lab',
+  name: 'Tên lớp',
+  inviteCode: 'Mã mời',
+  userId: 'Trợ giảng',
 };
 
 /** What a valid value looks like, per field name (the last part of a path like `tests[0].input`). */
@@ -123,6 +130,9 @@ const FIELD_RULE: Record<string, string> = {
   email: 'Nhập email hợp lệ.',
   password: 'Nhập mật khẩu (tối đa 72 byte).',
   labId: 'Chọn một lab.',
+  name: 'Nhập tên lớp, tối đa 200 ký tự.',
+  inviteCode: 'Mã mời gồm đúng 32 ký tự (chữ, số, - và _).',
+  userId: 'Chọn một tài khoản trợ giảng.',
 };
 
 /** Rules for a field name that also exists outside its form (`code` is a constraint code or C++). */
