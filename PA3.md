@@ -7,16 +7,15 @@ the deployment and on their own machine. Commands are the ones in the [README](R
 
 Site: https://tkob-leetkob.duckdns.org
 
-| Account | Role | Class |
-| --- | --- | --- |
-| `admin@leetkob.test` | Administrator | — |
-| `ta1@leetkob.test` | TA | "Lớp thử nghiệm 1" |
-| `ta2@leetkob.test` | TA | "Lớp thử nghiệm 2" |
-| `sv1@leetkob.test` | Student | "Lớp thử nghiệm 1" |
-| `sv2@leetkob.test` | Student | "Lớp thử nghiệm 1" |
+| Account | Role | Class | Password |
+| --- | --- | --- | --- |
+| `admin@leetkob.test` | Administrator | — | `fNQ8K+gJLGEwgNr0RWaZYhP/` |
+| `ta1@leetkob.test` | TA | "Lớp thử nghiệm 1" | `weWxtfLug+HKwMAUauSr5idc` |
+| `ta2@leetkob.test` | TA | "Lớp thử nghiệm 2" | `weWxtfLug+HKwMAUauSr5idc` |
+| `sv1@leetkob.test` | Student | "Lớp thử nghiệm 1" | `1eg6gQwDhA46Fk2g9DHVcEQg` |
+| `sv2@leetkob.test` | Student | "Lớp thử nghiệm 1" | `1eg6gQwDhA46Fk2g9DHVcEQg` |
 
-Password for every account: `<SV điền>`. These are public test accounts with seeded data
-only; they hold no real student data.
+These are public test accounts with seeded data only; they hold no real student data.
 
 The checker calls Google Gemini on the Free tier. The key's Google project has no billing
 account, so the real cost is USD 0. The risk is running out of the daily quota: verdicts
@@ -29,8 +28,9 @@ of `eval/dev/problems/sort-merge/`, students submit, the judge grades, the check
 findings, ta1 reads the review queue, and ta2 is refused with 404.
 
 The create-lab form imports a problem in two ways. **Nhập thư mục** picks the folder
-`eval/dev/problems/sort-merge/` and reads `statement.md`, `constraints.json` and
-`tests/NN.in`/`NN.out` by path (anything else goes to "Cần xem lại"); a form that already
+`eval/dev/problems/sort-merge/` and reads `statement.md`, `constraints.json` and the tests
+`NN.in`/`NN.out` by path, either under `tests/` or at the top of the folder (anything else goes
+to "Cần xem lại"); a form that already
 holds something is replaced only after "Thay toàn bộ đề, ràng buộc và test bằng nội dung thư
 mục sort-merge?". **Nhập từ file** adds parts: tests are matched by number, new numbers are
 added ("Đã thêm 7 test (01–07), tổng 7 test."), identical files change nothing, and a number
@@ -44,10 +44,17 @@ latest opening first, so a lab just created for this week is the top row, and ea
 
 One student can show all three solutions: sv1 submits s09, s01 and s04 in turn. The queue
 then shows the last one as the counted submission and lists the two earlier AC submissions
-under "Các lần nộp cũ hơn (không tính điểm)".
+under "Các lần nộp cũ hơn (không tính điểm)". The "Nguồn" column of the queue says who
+decided each finding: "Luật cứng" (hard rule, no model), "Mô hình" (the model) or "Chặn an
+toàn" (a guardrail such as a timeout or a schema error).
 
-- Demo video: `<link video>`
-- Demo lab id on the deployment: `<id>`
+The latest run on the deployment, with an admin pass and sandbox attacks, is
+[Run 3 results](docs/pa3/walkthrough.md#run-3-results-2026-11-28).
+
+- Demo video: https://youtu.be/1j7CANdt1qI
+- Demo lab id on the deployment: `10a6d166-c4f1-45f1-bd8c-e78d5cb094a5`; its review queue is
+  https://tkob-leetkob.duckdns.org/ta/labs/10a6d166-c4f1-45f1-bd8c-e78d5cb094a5/review (sign in
+  as `ta1@leetkob.test`).
 
 ### Admin and class membership
 
