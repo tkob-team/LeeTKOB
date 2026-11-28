@@ -33,7 +33,7 @@ afterEach(() => {
 
 describe('404 page', () => {
   it.each([
-    ['ta' as const, 'Trợ giảng', ['Lab']],
+    ['ta' as const, 'Trợ giảng', ['Lớp của tôi']],
     ['student' as const, 'Sinh viên', ['Đề bài', 'Nộp bài']],
   ])(
     'signed in as %s, sits in the app layout with menu and Đăng xuất',

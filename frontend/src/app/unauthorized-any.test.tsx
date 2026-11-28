@@ -117,10 +117,10 @@ describe('the token is stored in one place', () => {
     stubBackend();
     const token = storeSession('ta');
     localStorage.setItem('leetkob.token', token);
-    const router = renderAt('/ta/labs');
+    const router = renderAt('/ta/classes');
 
     expect(await screen.findByRole('button', { name: 'Đăng xuất' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/ta/labs');
+    expect(router.state.location.pathname).toBe('/ta/classes');
     expect(localStorage.getItem('leetkob.token')).toBeNull();
     expect(storedToken()).toBe(token);
   });

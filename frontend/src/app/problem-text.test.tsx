@@ -5,10 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../api/client';
 import { LoginPage } from '../features/auth/LoginPage';
 import { CreateLabPage } from '../features/lab-authoring/CreateLabPage';
-import { TaLabsPage } from '../features/lab-authoring/TaLabsPage';
 import { StudentLabPage, StudentLabsPage } from '../features/lab-view/StudentLabPage';
 import { ReviewQueuePage } from '../features/review-queue/ReviewQueuePage';
 import { SubmitJudgePage } from '../features/submit-judge/SubmitJudgePage';
+import { TaClassesPage } from '../features/ta-classes/TaClassesPage';
+import { TaClassPage } from '../features/ta-classes/TaClassPage';
 import { AuthContext, type AuthState } from './auth-context';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
@@ -57,9 +58,15 @@ beforeEach(() => {
 });
 
 describe('every page shows problems in Vietnamese', () => {
-  it('TA lab list: internal-error', async () => {
+  it('TA class list: internal-error', async () => {
     request.mockRejectedValue(serverProblem('internal-error', 500));
-    renderRoute('/ta/labs', '/ta/labs', <TaLabsPage />);
+    renderRoute('/ta/classes', '/ta/classes', <TaClassesPage />);
+    await expectVietnameseAlert('Máy chủ đang gặp sự cố');
+  });
+
+  it('TA class page: internal-error', async () => {
+    request.mockRejectedValue(serverProblem('internal-error', 500));
+    renderRoute(`/ta/classes/${classId}`, '/ta/classes/:classId', <TaClassPage />);
     await expectVietnameseAlert('Máy chủ đang gặp sự cố');
   });
 

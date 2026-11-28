@@ -95,10 +95,10 @@ export function TaLayout({ children }: { children?: ReactNode }) {
       roleLabel="Trợ giảng"
       nav={[
         {
-          to: '/ta/labs',
-          label: 'Lab',
-          // The lab list, creating a lab and each lab's review queue belong to one menu item.
-          activeOn: ['/ta/labs', '/ta/classes/:classId/labs/new', '/ta/review-queue'],
+          to: '/ta/classes',
+          label: 'Lớp của tôi',
+          // The class list, a class, creating a lab and each lab's review queue are one menu item.
+          activeOn: ['/ta/classes', '/ta/labs', '/ta/review-queue'],
         },
       ]}
     >
