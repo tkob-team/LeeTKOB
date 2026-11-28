@@ -31,8 +31,17 @@ class ClassroomService {
   record AdminClass(
       UUID id, String name, String inviteCode, List<TaAccount> tas, int studentCount) {}
 
-  /** {@code submissionCount}: the student's submissions in the labs of this class; 0 for TAs. */
-  record AdminMember(UUID id, String role, String email, String displayName, int submissionCount) {}
+  /**
+   * {@code submissionCount}: the student's submissions in the labs of this class; {@code
+   * submittedLabCount}: how many different labs of this class they submitted to. Both 0 for TAs.
+   */
+  record AdminMember(
+      UUID id,
+      String role,
+      String email,
+      String displayName,
+      int submissionCount,
+      int submittedLabCount) {}
 
   private static final SecureRandom RANDOM = new SecureRandom();
   private final JdbcClient jdbc;
@@ -179,7 +188,12 @@ class ClassroomService {
                    case when m.role = 'STUDENT' then
                      (select count(*) from submissions s join labs l on l.id = s.lab_id
                       where l.class_id = ? and s.student_id = u.id)
-                   else 0 end as submission_count
+                   else 0 end as submission_count,
+                   case when m.role = 'STUDENT' then
+                     (select count(distinct s.lab_id) from submissions s
+                      join labs l on l.id = s.lab_id
+                      where l.class_id = ? and s.student_id = u.id)
+                   else 0 end as submitted_lab_count
             from (
               select user_id, 'TA' as role, 0 as rank from class_tas where class_id = ?
               union all
@@ -187,14 +201,15 @@ class ClassroomService {
             ) m join users u on u.id = m.user_id
             order by m.rank, u.display_name nulls last, u.email nulls last, u.id
             """)
-        .params(classId, classId, classId)
+        .params(classId, classId, classId, classId)
         .query((rs, row) ->
             new AdminMember(
                 rs.getObject("id", UUID.class),
                 rs.getString("role"),
                 rs.getString("email"),
                 rs.getString("display_name"),
-                rs.getInt("submission_count")))
+                rs.getInt("submission_count"),
+                rs.getInt("submitted_lab_count")))
         .list();
   }
 

@@ -4,18 +4,47 @@ import { api } from '../../api/client';
 import { localizedFieldErrors, problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { usePageTitle } from '../../app/usePageTitle';
-import { Button, FormField, ProblemAlert, useToast } from '../../components/ui';
+import { Button, ConfirmDialog, FormField, ProblemAlert, useToast } from '../../components/ui';
 import type { Classroom, LabDetail, NewLab } from './lab-api';
 import { toIso } from './lab-dates';
 import { errorSummary, labFormErrors } from './lab-form-check';
 import {
   importLabFiles,
+  importLabFolder,
   type DraftConstraint,
-  type DraftTest,
   type ImportResult,
 } from './lab-import';
+import {
+  formatNames,
+  isBlank,
+  mergeTests,
+  nextTestName,
+  planTests,
+  sameConstraints,
+  type FormTest,
+} from './lab-merge';
 
-const EMPTY_TEST: DraftTest = { input: '', expectedOutput: '' };
+const FIRST_TEST: FormTest = { name: '01', input: '', expectedOutput: '' };
+
+/** A question asked in the ConfirmDialog during an import. */
+interface Question {
+  title: string;
+  body: string;
+  confirmLabel: string;
+  alternativeLabel?: string;
+}
+type Answer = 'confirm' | 'alternative' | 'cancel';
+
+/** The imported tests with their numbers, in number order. */
+function numbered(result: ImportResult): FormTest[] {
+  const names = result.testNames ?? [];
+  return (result.tests ?? []).map((test, i) => ({ ...test, name: names[i] ?? String(i + 1) }));
+}
+
+/** `<input webkitdirectory>`: not in React's typings, so it is set on the element. */
+function pickDirectory(input: HTMLInputElement | null) {
+  input?.setAttribute('webkitdirectory', '');
+}
 
 /** Moves the viewer to a field with an error: focus, and scroll it to the middle of the screen. */
 function reveal(input: HTMLElement | null) {
@@ -42,6 +71,7 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
   const toast = useToast();
   const form = useRef<HTMLFormElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const folderInput = useRef<HTMLInputElement>(null);
   // Client-side errors by API field path ("title", "tests[0].expectedOutput").
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   usePageTitle(classroom ? `Tạo lab · ${classroom.name}` : 'Tạo lab');
@@ -52,11 +82,18 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
   const [cpuTimeMs, setCpuTimeMs] = useState('1000');
   const [memoryMb, setMemoryMb] = useState('256');
   const [constraints, setConstraints] = useState<DraftConstraint[]>([]);
-  const [tests, setTests] = useState<DraftTest[]>([EMPTY_TEST]);
+  const [tests, setTests] = useState<FormTest[]>([FIRST_TEST]);
   /** What the last import could not use; the form itself shows what it filled. */
   const [importWarnings, setImportWarnings] = useState<ImportResult['warnings']>([]);
   const [problem, setProblem] = useState<ProblemDetails>();
   const [pending, setPending] = useState(false);
+  /** The import's open question and the function that hands back the answer. */
+  const [question, setQuestion] = useState<{
+    id: number;
+    question: Question;
+    resolve: (answer: Answer) => void;
+  }>();
+  const questionCount = useRef(0);
   const errors: Record<string, string> = { ...localizedFieldErrors(problem), ...clientErrors };
   const errorCount = Object.keys(errors).length;
 
@@ -79,18 +116,180 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
     clearErrors('opensAt', 'dueAt');
   }
 
-  async function importFiles(event: ChangeEvent<HTMLInputElement>) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-    const result = await importLabFiles(Array.from(files));
-    if (result.statementMd !== undefined) setStatementMd(result.statementMd);
-    if (result.title !== undefined) setTitle(result.title);
-    if (result.constraints) setConstraints(result.constraints);
-    if (result.tests) setTests(result.tests);
-    // What was filled is a success: a toast. What needs a look stays on the page.
-    if (result.notes.length > 0) toast.show(`Đã nhập từ file: ${result.notes.join(' ')}`);
-    setImportWarnings(result.warnings);
+  /** Opens the ConfirmDialog with `next` and waits for the TA's answer. */
+  function ask(next: Question): Promise<Answer> {
+    return new Promise((resolve) => {
+      questionCount.current += 1;
+      setQuestion({ id: questionCount.current, question: next, resolve });
+    });
+  }
+
+  function answer(choice: Answer) {
+    const current = question;
+    setQuestion(undefined);
+    current?.resolve(choice);
+  }
+
+  /** Test errors are keyed by position, which an import changes. */
+  function clearTestErrors() {
+    setClientErrors((current) =>
+      Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith('tests'))),
+    );
+  }
+
+  /** The picked files, read once; the input is emptied so the same files can be picked again. */
+  function takeFiles(event: ChangeEvent<HTMLInputElement>): File[] {
+    const files = Array.from(event.target.files ?? []);
     event.target.value = '';
+    return files;
+  }
+
+  /**
+   * Adds what the files hold to the form, part by part. New test numbers are added; a test
+   * number already on the form with other content, a different statement or different
+   * constraints are replaced only after a ConfirmDialog. What changed is one toast; what could
+   * not be used stays in the "Cần xem lại" panel.
+   */
+  async function importFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = takeFiles(event);
+    if (files.length === 0) return;
+    const result = await importLabFiles(files);
+    setImportWarnings(result.warnings);
+    const filled: string[] = [];
+    const sentences: string[] = [];
+    let readSomething = false;
+
+    if (result.statementMd !== undefined) {
+      readSomething = true;
+      const incoming = result.statementMd;
+      if (incoming !== statementMd) {
+        const go =
+          statementMd.trim() === '' ||
+          (await ask({
+            title: 'Thay đề bài đang có?',
+            body: 'Đề bài và tiêu đề trên form sẽ được thay bằng nội dung statement.md vừa chọn.',
+            confirmLabel: 'Thay đề bài',
+          })) === 'confirm';
+        if (go) {
+          setStatementMd(incoming);
+          if (result.title !== undefined) setTitle(result.title);
+          clearErrors('statementMd', 'title');
+          filled.push(result.title !== undefined ? 'đề bài và tiêu đề' : 'đề bài');
+        }
+      }
+    }
+
+    if (result.constraints) {
+      readSomething = true;
+      const incoming = result.constraints;
+      if (!sameConstraints(incoming, constraints)) {
+        const count = String(constraints.length);
+        const go =
+          constraints.length === 0 ||
+          (await ask({
+            title: `Thay ${count} ràng buộc đang có?`,
+            body: `constraints.json có ${String(incoming.length)} ràng buộc; ${count} ràng buộc trên form sẽ bị thay toàn bộ.`,
+            confirmLabel: 'Thay ràng buộc',
+          })) === 'confirm';
+        if (go) {
+          setConstraints(incoming);
+          filled.push(`${String(incoming.length)} ràng buộc`);
+        }
+      }
+    }
+
+    const incomingTests = numbered(result);
+    if (incomingTests.length > 0) {
+      readSomething = true;
+      const plan = planTests(tests, incomingTests);
+      const added = plan.added.map((t) => t.name);
+      const addedText = `${String(added.length)} test (${formatNames(added)})`;
+      if (plan.conflicts.length === 0) {
+        if (added.length > 0) {
+          const next = mergeTests(tests, incomingTests);
+          setTests(next);
+          clearTestErrors();
+          sentences.push(`Đã thêm ${addedText}, tổng ${String(next.length)} test.`);
+        }
+      } else {
+        const overlap = [...plan.conflicts, ...plan.same];
+        const kept = plan.kept;
+        const choice = await ask({
+          title: 'Ghi đè test trùng số?',
+          body:
+            `${String(overlap.length)} test trùng số (${formatNames(overlap)}) sẽ bị ghi đè; ` +
+            (kept.length > 0
+              ? `${String(kept.length)} test cũ (${formatNames(kept)}) vẫn giữ.`
+              : 'không còn test cũ nào khác.') +
+            (added.length > 0 ? ` ${addedText} mới sẽ được thêm.` : ''),
+          confirmLabel:
+            `Ghi đè ${formatNames(overlap, 2)}` +
+            (kept.length > 0 ? `, giữ ${formatNames(kept, 2)}` : ''),
+          alternativeLabel: `Thay toàn bộ bằng ${String(incomingTests.length)} test mới`,
+        });
+        if (choice === 'confirm') {
+          const next = mergeTests(tests, incomingTests);
+          setTests(next);
+          clearTestErrors();
+          sentences.push(
+            `Đã ghi đè ${String(overlap.length)} test (${formatNames(overlap)})` +
+              (added.length > 0 ? `, thêm ${addedText}` : '') +
+              `, tổng ${String(next.length)} test.`,
+          );
+        } else if (choice === 'alternative') {
+          setTests(mergeTests([], incomingTests));
+          clearTestErrors();
+          sentences.push(`Đã thay toàn bộ bằng ${String(incomingTests.length)} test mới.`);
+        }
+      }
+    }
+
+    if (filled.length > 0) sentences.unshift(`Đã nhập từ file: ${filled.join(', ')}.`);
+    if (sentences.length > 0) toast.show(sentences.join(' '));
+    else if (readSomething) toast.show('Không có gì thay đổi.');
+  }
+
+  /**
+   * Loads one problem folder (statement, constraints, tests). A form that already holds
+   * something is replaced only after a ConfirmDialog; an empty form is filled at once.
+   */
+  async function importFolder(event: ChangeEvent<HTMLInputElement>) {
+    const files = takeFiles(event);
+    if (files.length === 0) return;
+    const result = await importLabFolder(files);
+    setImportWarnings(result.warnings);
+    const incomingTests = numbered(result);
+    if (result.statementMd === undefined && !result.constraints && incomingTests.length === 0) {
+      return;
+    }
+    const folder = result.folder ?? 'đã chọn';
+    const hasContent =
+      title.trim() !== '' ||
+      statementMd.trim() !== '' ||
+      constraints.length > 0 ||
+      tests.some((t) => !isBlank(t));
+    if (
+      hasContent &&
+      (await ask({
+        title: `Thay toàn bộ đề, ràng buộc và test bằng nội dung thư mục ${folder}?`,
+        body: 'Tiêu đề, đề bài, mọi ràng buộc và mọi test trên form sẽ được thay. Hai mốc giờ, thời gian CPU và bộ nhớ giữ nguyên.',
+        confirmLabel: `Thay bằng thư mục ${folder}`,
+      })) !== 'confirm'
+    ) {
+      return;
+    }
+    setTitle(result.title ?? '');
+    setStatementMd(result.statementMd ?? '');
+    setConstraints(result.constraints ?? []);
+    setTests(incomingTests.length > 0 ? mergeTests([], incomingTests) : [FIRST_TEST]);
+    clearErrors('title', 'statementMd');
+    clearTestErrors();
+    const parts = [
+      ...(result.statementMd !== undefined ? ['đề bài'] : []),
+      `${String(result.constraints?.length ?? 0)} ràng buộc`,
+      `${String(incomingTests.length)} test`,
+    ];
+    toast.show(`Đã nhập thư mục ${folder}: ${parts.join(', ')}.`);
   }
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
@@ -119,7 +318,7 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
       dueAt: toIso(dueAt),
       cpuTimeMs: Number(cpuTimeMs),
       memoryMb: Number(memoryMb),
-      tests,
+      tests: tests.map(({ input, expectedOutput }) => ({ input, expectedOutput })),
       constraints: constraints.map((c) => ({
         code: c.code.trim(),
         text: c.text,
@@ -182,6 +381,25 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
             tabIndex={-1}
             onChange={(e) => void importFiles(e)}
           />
+          <Button
+            onClick={() => {
+              folderInput.current?.click();
+            }}
+          >
+            Nhập thư mục
+          </Button>
+          <input
+            ref={(element) => {
+              folderInput.current = element;
+              pickDirectory(element);
+            }}
+            className="lk-sr-only"
+            type="file"
+            multiple
+            aria-label="Chọn thư mục bài"
+            tabIndex={-1}
+            onChange={(e) => void importFolder(e)}
+          />
           <Link
             className="lk-btn lk-btn--secondary"
             to={`/ta/classes/${encodeURIComponent(classId)}`}
@@ -189,6 +407,10 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
             Huỷ
           </Link>
         </div>
+        <p className="lk-page__note">
+          Có thể nhập từng phần. Test trùng số sẽ được hỏi trước khi ghi đè. Nên nhập cả thư mục bài
+          để tránh lẫn test của bài khác.
+        </p>
       </header>
 
       {importWarnings.length > 0 ? (
@@ -377,12 +599,14 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
         {errors.tests ? <p className="lk-field__error">{errors.tests}</p> : null}
         {tests.map((test, index) => {
           const path = `tests[${String(index)}]`;
-          const update = (next: Partial<DraftTest>) => {
+          const update = (next: Partial<FormTest>) => {
             setTests(replaceAt(tests, index, { ...test, ...next }));
           };
           return (
-            <fieldset key={index} className="lk-fieldset">
-              <legend>Test {index + 1}</legend>
+            <fieldset key={test.name} className="lk-fieldset">
+              <legend>
+                Test {index + 1} <span className="lk-mono">({test.name})</span>
+              </legend>
               <div className="lk-cols">
                 <FormField label={`Đầu vào ${String(index + 1)}`} error={errors[`${path}.input`]}>
                   <textarea
@@ -428,7 +652,7 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
         <div>
           <Button
             onClick={() => {
-              setTests([...tests, EMPTY_TEST]);
+              setTests([...tests, { name: nextTestName(tests), input: '', expectedOutput: '' }]);
             }}
           >
             Thêm test
@@ -444,6 +668,24 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
           {errorSummary(errorCount)}
         </p>
       </div>
+
+      <ConfirmDialog
+        key={question?.id}
+        open={question !== undefined}
+        title={question?.question.title ?? ''}
+        body={question?.question.body}
+        confirmLabel={question?.question.confirmLabel}
+        alternativeLabel={question?.question.alternativeLabel}
+        onAlternative={() => {
+          answer('alternative');
+        }}
+        onConfirm={() => {
+          answer('confirm');
+        }}
+        onCancel={() => {
+          answer('cancel');
+        }}
+      />
     </form>
   );
 }

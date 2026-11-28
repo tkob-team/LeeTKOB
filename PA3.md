@@ -28,6 +28,16 @@ Follow [docs/pa3/walkthrough.md](docs/pa3/walkthrough.md): ta1 creates a lab fro
 of `eval/dev/problems/sort-merge/`, students submit, the judge grades, the checker proposes
 findings, ta1 reads the review queue, and ta2 is refused with 404.
 
+The create-lab form imports a problem in two ways. **Nhập thư mục** picks the folder
+`eval/dev/problems/sort-merge/` and reads `statement.md`, `constraints.json` and
+`tests/NN.in`/`NN.out` by path (anything else goes to "Cần xem lại"); a form that already
+holds something is replaced only after "Thay toàn bộ đề, ràng buộc và test bằng nội dung thư
+mục sort-merge?". **Nhập từ file** adds parts: tests are matched by number, new numbers are
+added ("Đã thêm 7 test (01–07), tổng 7 test."), identical files change nothing, and a number
+already on the form with other content opens a dialog to overwrite those and keep the rest,
+replace every test, or cancel; a different statement or constraints ask before replacing.
+Each test can be deleted on its own.
+
 The TA works from "Lớp của tôi" (`/ta/classes`): a class page lists its labs with the
 latest opening first, so a lab just created for this week is the top row, and each row has
 **Hàng chờ duyệt: <lab title>**.
@@ -49,14 +59,17 @@ under "Các lần nộp cũ hơn (không tính điểm)".
   class is confirmed by a toast at the bottom right ("Đã tạo lớp <tên>.", hides after
   5 seconds). The list comes from one call, `GET /admin/classes`.
 - `/admin/classes/<id>` (class page): the invite code with "Sao chép", "Trợ giảng (n)" by name
-  and email, and "Sinh viên (n)" as a table with a checkbox, name, email, "Bài nộp" (the
-  student's submissions in this class) and a right-aligned "Gỡ". To assign a TA, pick one
+  and email, and "Sinh viên (n)" as a table with a checkbox, name, email, "Đã nộp" ("4 lab · 14 lần":
+  the labs of this class the student submitted to and every attempt, or "Chưa nộp") and a
+  right-aligned "Gỡ". A line under the heading says "Chỉ gỡ được sinh viên chưa nộp bài trong
+  lớp.". To assign a TA, pick one
   in "Gán thêm trợ giảng" (only TAs not yet in this class, shown as "Tên — email") and press
   "Gán" (pressed with nothing chosen it says "Chọn một trợ giảng." under the field): a toast
   says "Đã gán <tên>.", the TA appears in the list and leaves the picker. When every TA is
   in the class the form is replaced by "Mọi trợ giảng đã được gán cho lớp này.". Members
   come from `GET /admin/classes/<id>/members`, the picker from `GET /admin/tas`
-  ([class API contract](docs/contract/classes.md), 1.2.0; `submissionCount` since 1.4.0). The TA's own roster
+  ([class API contract](docs/contract/classes.md), 1.2.0; `submissionCount` since 1.4.0,
+  `submittedLabCount` since 1.5.0). The TA's own roster
   (`GET /classes/<id>/members`) still returns ids and roles only, so the review queue stays
   anonymous.
 - Each TA and each student on the class page has **Gỡ**. Pressing it opens a dialog (a
@@ -68,13 +81,15 @@ under "Các lần nộp cũ hơn (không tính điểm)".
   the focus moves to the section heading. A removed TA loses access to the class's labs and
   review queue at once (404, as for a TA of another class) and returns to the picker. A
   student who has submitted in the class cannot be removed: their "Gỡ" and checkbox are
-  locked with "Đã có bài nộp" beside them, so the admin knows before trying; if a
+  locked, with "Đã có bài nộp, không gỡ được." as their tooltip and "Đã có bài nộp" as their
+  accessible description, so the admin knows before trying; if a
   submission arrives meanwhile the dialog stays open with "<tên> đã có bài nộp trong lớp nên
   chưa gỡ được." and only "Đóng" (409 `member-has-submissions`, class API contract 1.3.0:
   `DELETE /admin/classes/<id>/tas/<userId>`, `DELETE /admin/classes/<id>/students/<userId>`).
 - **Bulk removal**: tick students (the header checkbox selects every removable row, Shift+click
   a range); a bar above the table, whose space is always reserved so the table does not move,
-  says "Đã chọn N sinh viên" with "Bỏ chọn" and "Gỡ N sinh viên". The dialog lists up to five
+  says "Chọn sinh viên để gỡ nhiều người cùng lúc." while nothing is ticked, then "Đã chọn N
+  sinh viên" with "Bỏ chọn" and "Gỡ N sinh viên". The dialog lists up to five
   names and "và N khác"; confirming shows "Đang gỡ i/N…" while at most four requests run at
   once, then the result of each student ("Đã gỡ", "Đã có bài nộp, chưa gỡ", "Lỗi: …") and
   "Đóng". Removed rows leave the table, rows that failed stay ticked, and a toast sums up

@@ -26,6 +26,12 @@ export interface ConfirmDialogProps {
   /** "Huỷ" while the action has not run; "Đóng" once there is nothing left to confirm. */
   cancelLabel?: string;
   tone?: 'danger' | 'primary';
+  /**
+   * A second way to go ahead, between "Huỷ" and the confirm button ("Thay toàn bộ bằng 5 test
+   * mới"); shown only together with `onAlternative`.
+   */
+  alternativeLabel?: string;
+  onAlternative?: () => void;
   /** While true both buttons are locked and Esc or the backdrop do not close the dialog. */
   pending?: boolean;
   /** The failure of the last attempt, shown inside the dialog. */
@@ -51,6 +57,8 @@ export function ConfirmDialog({
   pendingLabel,
   cancelLabel = 'Huỷ',
   tone = 'danger',
+  alternativeLabel,
+  onAlternative,
   pending = false,
   problem,
   onConfirm,
@@ -151,6 +159,11 @@ export function ConfirmDialog({
           <Button ref={cancel} disabled={pending} onClick={requestCancel}>
             {cancelLabel}
           </Button>
+          {alternativeLabel && onAlternative ? (
+            <Button disabled={pending} onClick={onAlternative}>
+              {alternativeLabel}
+            </Button>
+          ) : null}
           {confirmLabel ? (
             <Button variant={tone} disabled={pending} onClick={onConfirm}>
               {pending && pendingLabel ? pendingLabel : confirmLabel}

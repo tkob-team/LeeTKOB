@@ -42,6 +42,7 @@ const studentChi: AdminMember = {
   email: 'chi@truong.edu.vn',
   displayName: 'Chi',
   submissionCount: 2,
+  submittedLabCount: 1,
 };
 
 const auth: AuthState = {
@@ -158,8 +159,8 @@ describe('admin class page', () => {
           .map((c) => c.textContent),
       ),
     ).toEqual([
-      ['', 'An', 'an@truong.edu.vn', '0', 'Gỡ'],
-      ['', 'Chi', 'chi@truong.edu.vn', '2', 'Đã có bài nộpGỡ'],
+      ['', 'An', 'an@truong.edu.vn', 'Chưa nộp', 'Gỡ'],
+      ['', 'Chi', 'chi@truong.edu.vn', '1 lab · 2 lần', 'Gỡ'],
     ]);
   });
 

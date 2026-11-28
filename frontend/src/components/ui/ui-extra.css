@@ -722,14 +722,29 @@ a.lk-btn {
   }
 }
 
-/* Bulk actions above a selectable table: the bar always takes its place (hidden with visibility
- * when nothing is selected), so selecting a row never moves the table. */
+/* Bulk actions above a selectable table: the bar always takes its place, so selecting a row
+ * never moves the table. The hint and the actions share one grid cell; the actions are hidden
+ * with visibility while nothing is selected, so the bar keeps the height of the taller one. */
 .lk-bulkbar {
+  display: grid;
+  align-items: center;
+  min-height: calc(var(--body-line-height) + 2 * var(--space-2) + 2px);
+}
+.lk-bulkbar > * {
+  grid-area: 1 / 1;
+}
+.lk-bulkbar__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  min-height: calc(var(--body-line-height) + 2 * var(--space-2) + 2px);
+}
+.lk-bulkbar__hint {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--body-font-size);
+  line-height: var(--body-line-height);
+  color: var(--ink-muted);
 }
 .lk-bulkbar--idle {
   visibility: hidden;
