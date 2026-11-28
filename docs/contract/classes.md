@@ -1,4 +1,4 @@
-# Class management API — 1.0.0 (T29)
+# Class management API — 1.1.0 (T29)
 
 All endpoints require the existing valid HS256 Bearer JWT (`sub`, `role`, `exp`).
 The user must exist and the signed global role must equal `users.role`; a missing
@@ -17,6 +17,7 @@ add a login screen or an alternative token issuer. User provisioning must set
 | POST `/classes/{classId}/tas` | ADMIN | `{"userId":"<existing TA UUID>"}` | 204, also on repeat |
 | POST `/classes/join` | STUDENT | `{"inviteCode":"<32-character code>"}` | 200 class object, also on repeat |
 | GET `/classes/{classId}/members` | ADMIN or assigned TA | — | 200 array of `{id, role}`; role is TA or STUDENT |
+| GET `/admin/tas` | ADMIN | — | 200 array of `{id, email}` for every TA account, sorted by email (1.1.0) |
 
 Class objects contain `id`, `name`, `inviteCode`. For students, inviteCode is null
 (or omitted by JSON serialization), never the actual code. ADMIN and the assigned
@@ -48,3 +49,9 @@ remain unchanged. ClassroomContractTest exercises real signed JWTs through HTTP
 and real PostgreSQL: role boundaries, database role changes, cross-class access,
 unknown/invalid input, duplicate and concurrent joins, spoofed identity fields,
 and submission access before/after joining.
+
+1.1.0 adds GET `/admin/tas` so the admin screen can pick a TA to assign. It lists
+accounts whose `users.role` is TA, sorted by email (accounts without an email last,
+then by id), and returns only `id` and `email`. TA and STUDENT receive 403
+class-access-denied; a missing token, unknown user or changed role receives 401.
+AdminTasContractTest covers these cases.
