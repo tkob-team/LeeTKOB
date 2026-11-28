@@ -4,12 +4,25 @@ import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
-import { ProblemAlert } from '../../components/ui';
+import { CopyButton, ProblemAlert } from '../../components/ui';
 import { formatDateTime, labTitle, type Classroom, type LabSummary } from './lab-api';
 
 interface ClassLabs {
   classroom: Classroom;
   labs: LabSummary[];
+}
+
+/** "Mã mời" of a class with a copy button; legacy classes have no code (classes.md). */
+function InviteCode({ code }: { code: string | null | undefined }) {
+  if (!code) return <p className="lk-page__note">Lớp này chưa có mã mời.</p>;
+  return (
+    <div className="lk-row">
+      <span>
+        Mã mời: <code className="lk-mono">{code}</code>
+      </span>
+      <CopyButton getText={() => code} label="Sao chép mã mời" />
+    </div>
+  );
 }
 
 /** Every lab of the TA's classes; each row opens that lab's review queue. */
@@ -74,6 +87,7 @@ export function TaLabsPage() {
               Tạo lab
             </Link>
           </div>
+          <InviteCode code={classroom.inviteCode} />
           {labs.length === 0 ? (
             <p className="lk-page__note">Lớp này chưa có lab.</p>
           ) : (
