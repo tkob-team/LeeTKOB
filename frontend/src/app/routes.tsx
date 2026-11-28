@@ -10,7 +10,6 @@ import { TaClassesPage } from '../features/ta-classes/TaClassesPage';
 import { TaClassPage } from '../features/ta-classes/TaClassPage';
 import { AdminLayout, StudentLayout, TaLayout } from './AppLayout';
 import { NotFoundRoute } from './NotFoundPage';
-import { PageTitle } from './PageTitle';
 import { PublicLayout } from './PublicLayout';
 import { HomeRedirect, RequireRole } from './RequireRole';
 
@@ -33,23 +32,9 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <HomeRedirect /> },
-      // Admin pages are titled here; their files are out of this change's scope.
-      {
-        path: 'classes',
-        element: (
-          <PageTitle title="Lớp học">
-            <AdminClassesPage />
-          </PageTitle>
-        ),
-      },
-      {
-        path: 'classes/:classId',
-        element: (
-          <PageTitle title="Lớp học">
-            <AdminClassPage />
-          </PageTitle>
-        ),
-      },
+      // Admin pages set their own tab title (usePageTitle).
+      { path: 'classes', element: <AdminClassesPage /> },
+      { path: 'classes/:classId', element: <AdminClassPage /> },
     ],
   },
   {

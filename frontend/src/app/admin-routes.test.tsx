@@ -165,3 +165,51 @@ describe('admin routes', () => {
     expect(router.state.location.search).toBe(`?next=${encodeURIComponent('/admin/classes')}`);
   });
 });
+
+describe('admin tab titles through the router', () => {
+  const classId = '1b2c3d4e-0000-4000-8000-000000000001';
+
+  /** GET /classes/{id} answers `classroom`; every other request answers an empty list. */
+  function stubClass(classroom: () => Response) {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) =>
+        Promise.resolve(input === `/classes/${classId}` ? classroom() : json([])),
+      ),
+    );
+  }
+
+  it('names the list "Lớp học" and a class page after the class', async () => {
+    storeSession('admin', fakeToken('ADMIN'));
+    stubClass(() => json({ id: classId, name: 'Web nâng cao', inviteCode: null }));
+    renderAt('/admin/classes');
+    await screen.findByRole('heading', { name: 'Lớp học', level: 1 });
+    expect(document.title).toBe('Lớp học · LeeTKOB');
+
+    renderAt(`/admin/classes/${classId}`);
+    await screen.findByRole('heading', { name: 'Web nâng cao', level: 1 });
+    expect(document.title).toBe('Web nâng cao · LeeTKOB');
+  });
+
+  it('keeps the 404 title of a missing class instead of the list title', async () => {
+    storeSession('admin', fakeToken('ADMIN'));
+    stubClass(() =>
+      json(
+        {
+          type: 'urn:leetkob:problem:class-not-found',
+          title: 'Class not found',
+          status: 404,
+        },
+        404,
+      ),
+    );
+    renderAt(`/admin/classes/${classId}`);
+    expect(await screen.findByRole('heading', { name: 'Không tìm thấy lớp' })).toBeInTheDocument();
+    expect(screen.getByText('Lớp không tồn tại hoặc đã bị xoá.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Về danh sách lớp' })).toHaveAttribute(
+      'href',
+      '/admin/classes',
+    );
+    expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
+  });
+});
