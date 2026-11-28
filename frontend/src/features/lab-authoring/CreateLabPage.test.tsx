@@ -35,7 +35,7 @@ function renderPage() {
 
 /** The toast after importing `sortMerge`. */
 const IMPORTED =
-  'Đã nhập từ file: statement.md: đã điền đề bài và tiêu đề. constraints.json: 2 ràng buộc. tests: 2 cặp input/output.';
+  'Đã nhập từ file: đề bài và tiêu đề, 2 ràng buộc. Đã thêm 2 test (01, 02), tổng 2 test.';
 
 function chooseFiles(files: File[]) {
   fireEvent.change(screen.getByLabelText('Chọn file đề, ràng buộc và test'), {

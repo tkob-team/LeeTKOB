@@ -169,3 +169,45 @@ describe('ConfirmDialog', () => {
     expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus();
   });
 });
+
+describe('ConfirmDialog with a second way to go ahead', () => {
+  it('puts the alternative between "Huỷ" and the confirm button and locks it while pending', () => {
+    const onAlternative = vi.fn();
+    const onConfirm = vi.fn();
+    const props = {
+      open: true,
+      title: 'Ghi đè test trùng số?',
+      body: <p>5 test trùng số (01–05) sẽ bị ghi đè; 2 test cũ (06, 07) vẫn giữ.</p>,
+      confirmLabel: 'Ghi đè 01–05, giữ 06–07',
+      alternativeLabel: 'Thay toàn bộ bằng 5 test mới',
+      onAlternative,
+      onConfirm,
+      onCancel: vi.fn(),
+    };
+    const { rerender } = render(<ConfirmDialog {...props} />);
+    const dialog = screen.getByRole('dialog', { name: 'Ghi đè test trùng số?' });
+    const labels = Array.from(dialog.querySelectorAll('button')).map((b) => b.textContent);
+    expect(labels).toEqual(['Huỷ', 'Thay toàn bộ bằng 5 test mới', 'Ghi đè 01–05, giữ 06–07']);
+    fireEvent.click(screen.getByRole('button', { name: 'Thay toàn bộ bằng 5 test mới' }));
+    expect(onAlternative).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    rerender(<ConfirmDialog {...props} pending />);
+    expect(screen.getByRole('button', { name: 'Thay toàn bộ bằng 5 test mới' })).toBeDisabled();
+  });
+
+  it('shows no alternative without its handler', () => {
+    render(
+      <ConfirmDialog
+        open
+        title="Thay đề bài đang có?"
+        body="Đề bài sẽ bị thay."
+        confirmLabel="Thay đề bài"
+        alternativeLabel="Không dùng"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Không dùng' })).toBeNull();
+  });
+});
