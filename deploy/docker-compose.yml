@@ -5,7 +5,7 @@
 #
 # Values come from deploy/.env (copy deploy/.env.example; never commit it). Every service lists
 # its variables explicitly; no service loads the whole file, so GEMINI_API_KEY reaches only
-# checker-worker and the Docker socket is mounted only in judge-worker.
+# checker-worker. Only sandbox-proxy mounts the Docker socket.
 # Only caddy publishes ports (80, 443) and terminates TLS; it proxies to web (nginx) over the
 # `edge` network. PostgreSQL, the API and the workers stay on the internal network.
 
@@ -60,16 +60,34 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # The socket lets the worker start sandbox containers on the host daemon. It is
-    # root-equivalent on the host: only this service gets it, and the sandbox containers
-    # receive neither the socket nor this environment (see DockerSandbox).
-    group_add:
-      - ${DOCKER_GID:?set DOCKER_GID in deploy/.env (stat -c %g /var/run/docker.sock)}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      sandbox-proxy:
+        condition: service_started
+    networks: [default, sandbox-control]
     environment:
       <<: *database
+      JUDGE_SANDBOX_PROXY: http://sandbox-proxy:8091
+
+  sandbox-proxy:
+    image: leetkob-sandbox-proxy:latest
+    build:
+      context: ../backend
+      dockerfile: ../deploy/backend.Dockerfile
+      target: sandbox-proxy
+    command: ['sandbox-proxy']
+    restart: unless-stopped
+    networks: [sandbox-control]
+    group_add:
+      - ${DOCKER_GID:?set DOCKER_GID to the Docker socket group}
+    volumes:
+      - type: bind
+        source: ${JUDGE_DOCKER_SOCKET:-/var/run/docker.sock}
+        target: /var/run/docker.sock
+        bind:
+          create_host_path: false
+    environment:
       JUDGE_SANDBOX_IMAGE: ${JUDGE_SANDBOX_IMAGE:-leetkob-sandbox:pa3}
+      JUDGE_SANDBOX_PROXY_BIND: 0.0.0.0
+      JUDGE_SANDBOX_SCOPE: ${COMPOSE_PROJECT_NAME:-leetkob}
 
   checker-worker:
     image: leetkob-checker:latest
@@ -142,14 +160,14 @@ services:
       SEED_STUDENT_PASSWORD: ${SEED_STUDENT_PASSWORD:-}
 
   sandbox:
-    image: leetkob-sandbox:pa3
+    image: ${JUDGE_SANDBOX_IMAGE:-leetkob-sandbox:pa3}
     profiles: ['build']
     build:
       context: ../sandbox
     network_mode: none
     entrypoint: ['true']
 
-  # Pre-launch check: the nine sandbox probes against this VM's Docker daemon.
+  # Pre-launch check: sandbox probes through the worker's proxy.
   sandbox-check:
     image: leetkob-sandbox-check:latest
     profiles: ['check']
@@ -158,11 +176,18 @@ services:
       dockerfile: ../deploy/backend.Dockerfile
       target: sandbox-check
     restart: 'no'
+    depends_on:
+      - sandbox-proxy
+    networks: [default, sandbox-control]
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - m2:/root/.m2
+    environment:
+      JUDGE_SANDBOX_PROXY: http://sandbox-proxy:8091
 
 networks:
+  sandbox-control:
+    internal: true
+
   # caddy <-> web only. The subnet is fixed because deploy/nginx.conf trusts it by address.
   edge:
     ipam:

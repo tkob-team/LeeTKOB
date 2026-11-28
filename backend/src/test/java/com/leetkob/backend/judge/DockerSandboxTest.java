@@ -11,7 +11,9 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 @EnabledIfEnvironmentVariable(named = "JUDGE_SANDBOX_TESTS", matches = "1")
 class DockerSandboxTest {
 
-  private final DockerSandbox sandbox = new DockerSandbox(DockerSandbox.DEFAULT_IMAGE);
+  private final DockerSandbox sandbox =
+      new DockerSandbox(
+          System.getenv().getOrDefault("JUDGE_SANDBOX_IMAGE", DockerSandbox.DEFAULT_IMAGE));
 
   @Test
   void submissionHasOnlyLoopbackAndCannotConnectOrResolveExternally() {
@@ -78,8 +80,7 @@ class DockerSandboxTest {
             """);
 
     assertThat(result.outcome()).isEqualTo(Outcome.WALL);
-    var inspection = new ProcessBuilder("docker", "inspect", result.containerName()).start();
-    assertThat(inspection.waitFor()).isNotZero();
+    assertThat(sandbox.containerGone(result.containerName())).isTrue();
   }
 
   @Test

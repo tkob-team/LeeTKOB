@@ -56,3 +56,14 @@ select count(*) filter (
 from judge_jobs
 where finished_at is null;
 ```
+
+## Sandbox proxy
+
+The deployment worker uses a dedicated proxy on a private Compose network. Only the
+proxy mounts the daemon socket. It owns compile and run settings, rejects unsupported
+operations and reports an infrastructure failure if the operation cannot complete.
+
+The deployed worker checks proxy readiness before taking work. Readiness requires the
+configured sandbox image to be present on the daemon. After readiness or grading
+fails, the worker waits five seconds before probing again. The lease still protects
+any job already in progress when the dependency fails.

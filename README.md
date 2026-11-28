@@ -251,13 +251,14 @@ no published port.
 | --- | --- | --- |
 | `postgres` | `postgres:17-alpine` | `DB_USER`, `DB_PASSWORD` |
 | `api` | `leetkob-api` (backend jar) | database, `JWT_SECRET` |
-| `judge-worker` | `leetkob-judge-worker` (same jar + Docker CLI), `judge-worker` | database, `/var/run/docker.sock`; no `GEMINI_API_KEY` |
+| `judge-worker` | `leetkob-judge-worker` (same backend jar), `judge-worker` | database and private sandbox proxy |
 | `checker-worker` | `leetkob-checker`, `worker` | database, Gemini variables; the only service with `GEMINI_API_KEY` |
 | `caddy` | `caddy:2.10.2-alpine` + [deploy/Caddyfile](deploy/Caddyfile) | `LEETKOB_DOMAIN`, optional `ACME_EMAIL`; volumes `caddy_data` (certificates) and `caddy_config` |
 | `web` | `leetkob-web` (nginx + `frontend/dist`) | nothing |
 | `seed` (profile `seed`) | `leetkob-api`, `seed` | database, `SEED_*_PASSWORD` |
 | `sandbox` (profile `build`) | `leetkob-sandbox:pa3` from `sandbox/` | build only |
-| `sandbox-check` (profile `check`) | JDK + Docker CLI + backend sources | Docker socket |
+| `sandbox-proxy` | backend jar and Docker CLI | host Docker socket |
+| `sandbox-check` (profile `check`) | JDK + backend sources | private sandbox proxy |
 
 Each service lists its variables explicitly; none loads the whole `deploy/.env`.
 HSTS is not enabled yet, so the site can still go back to plain HTTP if the certificate fails
@@ -318,13 +319,14 @@ nano deploy/.env                              # LEETKOB_DOMAIN, ACME_EMAIL, DB_*
 docker compose -f deploy/docker-compose.yml --profile build build
 ```
 
-`--profile build` also builds `leetkob-sandbox:pa3` from `sandbox/` on the VM's daemon, which
-is where `judge-worker` starts sandbox containers.
+`--profile build` builds the configured sandbox image (default `leetkob-sandbox:pa3`) from
+`sandbox/` on the VM's existing daemon. The private proxy starts sandbox containers
+and is the only service that mounts the daemon socket. It checks that the selected image
+is available before the worker takes jobs.
 
 ### 3. Mandatory check before opening the site
 
-Run the sandbox probes (`DockerSandboxTest` with `JUDGE_SANDBOX_TESTS=1`) against this VM's
-daemon. Do not give the URL to anyone until it reports `Tests run: 11, Failures: 0, Errors: 0,
+Run the sandbox probes (`DockerSandboxTest` with `JUDGE_SANDBOX_TESTS=1`) through the VM's proxy on the existing daemon. Do not give the URL to anyone until it reports `Tests run: 11, Failures: 0, Errors: 0,
 Skipped: 0`.
 
 ```sh
