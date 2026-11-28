@@ -413,8 +413,8 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
           {classroom ? `Tạo lab cho ${classroom.name}` : 'Tạo lab'}
         </h1>
         <p className="lk-page__note">
-          Chọn cùng lúc file đề (.md), file ràng buộc (.json) và các file test (NN.in, NN.out). Sau
-          khi nhập vẫn sửa tay được.
+          Chọn cùng lúc file đề (.md), file ràng buộc (.json) và các file test (NN.in, NN.out). Hoặc
+          chọn cả thư mục bài bằng “Nhập thư mục”. Sau khi nhập vẫn sửa tay được.
         </p>
         <div className="lk-row">
           <Button
@@ -463,6 +463,10 @@ export function CreateLabPage({ classroom }: CreateLabPageProps) {
         <p className="lk-page__note">
           Có thể nhập từng phần. Test trùng số sẽ được hỏi trước khi ghi đè. Nên nhập cả thư mục bài
           để tránh lẫn test của bài khác.
+        </p>
+        <p className="lk-page__note">
+          Thư mục cần có 1 file đề .md, 1 file ràng buộc .json và các file test NN.in/NN.out (ở gốc
+          hay trong tests/ đều được).
         </p>
       </header>
 
