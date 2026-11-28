@@ -4,6 +4,7 @@ import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
+import { usePageTitle } from '../../app/usePageTitle';
 import { Button, FormField, InviteCode, ProblemAlert, useToast } from '../../components/ui';
 import type { Classroom } from '../lab-authoring/lab-api';
 import { adminClassPath, classNameError, personName, type AdminClass } from './admin-api';
@@ -95,6 +96,7 @@ export function AdminClassesPage() {
   const [classes, setClasses] = useState<AdminClass[]>();
   const [problem, setProblem] = useState<ProblemDetails>();
   const toast = useToast();
+  usePageTitle('Lớp học');
 
   useEffect(() => {
     const abort = new AbortController();

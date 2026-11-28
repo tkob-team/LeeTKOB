@@ -239,12 +239,28 @@ describe('admin class page', () => {
   it('shows the 404 page for an unknown class', async () => {
     serve({ members: [], tas: [], classStatus: 404 });
     renderPage();
-    expect(await screen.findByText('Không tìm thấy trang')).toBeInTheDocument();
+    expect(await screen.findByText('Không tìm thấy lớp')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Về danh sách lớp' })).toHaveAttribute(
       'href',
       '/admin/classes',
     );
     expect(screen.queryByText('Class not found')).toBeNull();
+  });
+
+  it('names the tab after the class', async () => {
+    serve({ members: [], tas: [] });
+    renderPage();
+    await screen.findByRole('heading', { name: 'Web nâng cao', level: 1 });
+    expect(document.title).toBe('Web nâng cao · LeeTKOB');
+  });
+
+  it('says the class does not exist or was deleted, under a tab named after it', async () => {
+    serve({ members: [], tas: [], classStatus: 404 });
+    renderPage();
+    expect(await screen.findByRole('heading', { name: 'Không tìm thấy lớp' })).toBeInTheDocument();
+    expect(screen.getByText('Lớp không tồn tại hoặc đã bị xoá.')).toBeInTheDocument();
+    expect(screen.queryByText('Không tìm thấy trang')).toBeNull();
+    expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
   });
 
   it('shows the 404 page for an id that is not a UUID (400)', async () => {
@@ -256,7 +272,7 @@ describe('admin class page', () => {
       }),
     );
     renderPage('not-a-uuid');
-    expect(await screen.findByText('Không tìm thấy trang')).toBeInTheDocument();
+    expect(await screen.findByText('Không tìm thấy lớp')).toBeInTheDocument();
   });
 
   it('shows an assignment error in Vietnamese', async () => {
