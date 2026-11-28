@@ -49,9 +49,10 @@ give each solution its own student and read the queue once.
    "← Lớp thử nghiệm 1" and the title "Tạo lab cho Lớp thử nghiệm 1". A class the TA does not
    teach shows "Không tìm thấy lớp" instead of the form.
 3. Click **Nhập từ file** and select all 16 files of `eval/dev/problems/sort-merge/` at once.
-   Wait for the panel "Đã nhập từ file". It should read: statement.md filled the statement
-   and title, constraints.json gave 2 constraints (C1 −3, C2 −4), and tests gave 7
-   input/output pairs.
+   Wait for the toast "Đã nhập từ file: …" (bottom right, hides after 5 s). It should read:
+   statement.md filled the statement and title, constraints.json gave 2 constraints, and tests
+   gave 7 input/output pairs; the form shows C1 −3 and C2 −4. A file the import could not use
+   is listed in the panel "Cần xem lại sau khi nhập file", which stays on the page.
 4. Change **Tiêu đề** to `PA3 walkthrough <date time>`. Set **Mở lúc** to now and **Hạn nộp**
    to now + 7 days. Before sending, the form checks every required field at once (title,
    statement, both dates with Hạn nộp after Mở lúc, CPU 1000–5000, memory 64–512, an expected

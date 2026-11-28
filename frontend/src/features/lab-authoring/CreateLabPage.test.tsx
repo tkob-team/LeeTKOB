@@ -33,6 +33,10 @@ function renderPage() {
   return router;
 }
 
+/** The toast after importing `sortMerge`. */
+const IMPORTED =
+  'Đã nhập từ file: statement.md: đã điền đề bài và tiêu đề. constraints.json: 2 ràng buộc. tests: 2 cặp input/output.';
+
 function chooseFiles(files: File[]) {
   fireEvent.change(screen.getByLabelText('Chọn file đề, ràng buộc và test'), {
     target: { files },
@@ -65,7 +69,7 @@ describe('create lab form', () => {
     const router = renderPage();
     chooseFiles(sortMerge);
 
-    expect(await screen.findByRole('heading', { name: 'Đã nhập từ file' })).toBeInTheDocument();
+    expect(await screen.findByText(IMPORTED)).toBeInTheDocument();
     expect(screen.getByLabelText('Tiêu đề')).toHaveValue('Sorting with merge sort');
     expect(screen.getByLabelText('Đề bài (Markdown)')).toHaveValue(
       '# Sorting with merge sort\n\nRead `n` integers.\n',
@@ -104,10 +108,32 @@ describe('create lab form', () => {
     });
   });
 
+  it('confirms an import with a toast, not a status panel left in the page', async () => {
+    renderPage();
+    chooseFiles(sortMerge);
+    const toast = await screen.findByText(IMPORTED);
+    expect(toast.closest('.lk-toasts')).not.toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Đã nhập từ file' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Cần xem lại sau khi nhập file' })).toBeNull();
+  });
+
+  it('keeps what an import could not use on the page, and no toast when nothing was filled', async () => {
+    renderPage();
+    chooseFiles([new File(['x'], 'notes.txt')]);
+    const panel = await screen.findByRole('region', { name: 'Cần xem lại sau khi nhập file' });
+    expect(panel).not.toHaveAttribute('role', 'status');
+    expect(panel).toHaveTextContent('Bỏ qua notes.txt');
+    expect(screen.queryByText(/^Đã nhập từ file/)).toBeNull();
+
+    chooseFiles(sortMerge);
+    await screen.findByText(IMPORTED);
+    expect(screen.queryByRole('region', { name: 'Cần xem lại sau khi nhập file' })).toBeNull();
+  });
+
   it('shows field errors from the API next to the field they name, in Vietnamese', async () => {
     renderPage();
     chooseFiles(sortMerge);
-    await screen.findByRole('heading', { name: 'Đã nhập từ file' });
+    await screen.findByText(IMPORTED);
     // UI-3: both dates are required before anything is sent.
     fireEvent.change(screen.getByLabelText('Mở lúc'), { target: { value: '2026-11-24T08:00' } });
     fireEvent.change(screen.getByLabelText('Hạn nộp'), { target: { value: '2026-12-01T23:59' } });
