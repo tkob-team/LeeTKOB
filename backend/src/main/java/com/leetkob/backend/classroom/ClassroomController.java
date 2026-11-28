@@ -74,6 +74,17 @@ class ClassroomController {
     return service.tas(service.actor(jwt));
   }
 
+  @GetMapping("/admin/classes")
+  List<ClassroomService.AdminClass> adminClasses(@AuthenticationPrincipal Jwt jwt) {
+    return service.adminClasses(service.actor(jwt));
+  }
+
+  @GetMapping("/admin/classes/{classId}/members")
+  List<ClassroomService.AdminMember> adminMembers(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable String classId) {
+    return service.adminMembers(service.actor(jwt), id(classId));
+  }
+
   private static UUID id(String value) {
     try {
       return UUID.fromString(value);

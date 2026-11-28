@@ -6,10 +6,12 @@ export interface CopyButtonProps {
   /** Returns the text at click time, so the button can copy what is rendered. */
   getText: () => string;
   label?: string;
+  /** Accessible name when several copy buttons share one visible label (a table of codes). */
+  ariaLabel?: string;
 }
 
 /** "Sao chép" with a short status message; works on plain HTTP too (see copyText). */
-export function CopyButton({ getText, label = 'Sao chép' }: CopyButtonProps) {
+export function CopyButton({ getText, label = 'Sao chép', ariaLabel }: CopyButtonProps) {
   const [status, setStatus] = useState<'copied' | 'failed'>();
 
   useEffect(() => {
@@ -25,6 +27,7 @@ export function CopyButton({ getText, label = 'Sao chép' }: CopyButtonProps) {
   return (
     <span className="lk-copy">
       <Button
+        aria-label={ariaLabel}
         onClick={() => {
           void copyText(getText()).then((ok) => {
             setStatus(ok ? 'copied' : 'failed');

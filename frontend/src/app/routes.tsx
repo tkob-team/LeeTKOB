@@ -1,4 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router';
+import { AdminClassPage } from '../features/admin/AdminClassPage';
 import { AdminClassesPage } from '../features/admin/AdminClassesPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { CreateLabPage } from '../features/lab-authoring/CreateLabPage';
@@ -31,6 +32,7 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <HomeRedirect /> },
       { path: 'classes', element: <AdminClassesPage /> },
+      { path: 'classes/:classId', element: <AdminClassPage /> },
     ],
   },
   {

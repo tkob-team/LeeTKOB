@@ -34,12 +34,14 @@ export function Button({
       {children}
     </button>
   );
-  if (!showReason) return button;
+  // The DOM shape depends only on whether a reason is given, never on `disabled`: switching
+  // `disabled` must not remount the <button>, which would drop the keyboard focus.
+  if (disabledReason === undefined) return button;
   return (
     <span className="lk-btn-group">
       {button}
-      <span id={reasonId} className="lk-btn-reason">
-        {disabledReason}
+      <span id={reasonId} className="lk-btn-reason" hidden={!showReason}>
+        {showReason ? disabledReason : null}
       </span>
     </span>
   );

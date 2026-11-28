@@ -486,3 +486,57 @@ a.lk-btn {
   width: var(--space-6);
   height: var(--space-6);
 }
+
+/* Admin: a scrollable table frame shows the focus ring (keyboard scrolling on phones). */
+.lk-table-wrap:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* Admin: people listed by name with the email in small text below. */
+.lk-people {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lk-people li {
+  display: grid;
+}
+.lk-people__email {
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+  color: var(--ink-muted);
+  overflow-wrap: anywhere;
+}
+/* Admin: invite code with its copy button. */
+.lk-invite {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* Admin class page: back link and the TA picker beside its button. */
+.lk-back {
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+}
+.lk-assign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.lk-assign .lk-field {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+/* The TA picker is a design-system field: same font, line height, padding, border, radius and
+ * focus ring as a text input (ui.css `.lk-field select`), so the same height; full field width. */
+.lk-assign .lk-field {
+  max-width: none;
+}
+.lk-assign .lk-field select {
+  box-sizing: border-box;
+  width: 100%;
+}

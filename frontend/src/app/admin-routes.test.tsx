@@ -71,11 +71,59 @@ describe('admin routes', () => {
       'aria-current',
       'page',
     );
-    expect(fetchMock).toHaveBeenCalledWith('/classes', expect.anything());
-    expect(fetchMock).toHaveBeenCalledWith('/admin/tas', expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith('/admin/classes', expect.anything());
 
     fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
+  });
+
+  it('writes the admin role once when the name already says it ("Quản trị viên")', async () => {
+    stubFetch();
+    localStorage.setItem(
+      'leetkob.session',
+      JSON.stringify({
+        token: fakeToken('ADMIN'),
+        role: 'admin',
+        email: 'admin@leetkob.test',
+        displayName: 'Quản trị viên',
+      }),
+    );
+    renderAt('/admin/classes');
+    await screen.findByRole('heading', { name: 'Lớp học', level: 1 });
+    const banner = document.querySelector<HTMLElement>('.lk-shell__header');
+    if (!banner) throw new Error('expected the app header');
+    expect(within(banner).getByText('Quản trị viên')).toHaveClass('lk-shell__who');
+    expect(banner).not.toHaveTextContent('Quản trị viên · Quản trị');
+  });
+
+  it('opens a class page from the list, inside the admin layout', async () => {
+    const id = '1b2c3d4e-0000-4000-8000-000000000001';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) => {
+        if (input === '/admin/classes') {
+          return Promise.resolve(
+            json([{ id, name: 'Web nâng cao', inviteCode: null, tas: [], studentCount: 0 }]),
+          );
+        }
+        if (input === `/classes/${id}`) {
+          return Promise.resolve(json({ id, name: 'Web nâng cao', inviteCode: null }));
+        }
+        return Promise.resolve(json([]));
+      }),
+    );
+    storeSession('admin', fakeToken('ADMIN'));
+    const router = renderAt('/admin/classes');
+    fireEvent.click(await screen.findByRole('link', { name: 'Web nâng cao' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Web nâng cao', level: 1 }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe(`/admin/classes/${id}`);
+    const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
+    expect(within(nav).getByRole('link', { name: 'Lớp học' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('sends a signed-in admin from / and /admin to /admin/classes', async () => {
