@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { deductionLabel, evidenceLabel } from './deduction';
 import { MarkdownInline } from './Markdown';
 import { VerdictBadge, type Verdict } from './VerdictBadge';
@@ -17,11 +18,16 @@ export interface ReviewQueueRow {
   unsureCause?: string;
 }
 
-export interface ReviewQueueTableProps {
-  rows: ReviewQueueRow[];
+/** What the table reads from a row; a feature may pass its own row type with more fields. */
+export type ReviewQueueTableRow = Omit<ReviewQueueRow, 'source'> & { source: string };
+
+export interface ReviewQueueTableProps<Row extends ReviewQueueTableRow = ReviewQueueRow> {
+  rows: Row[];
   selectedId?: string;
   /** Opens the row's EvidenceBlock beside the table. */
-  onSelect?: (row: ReviewQueueRow) => void;
+  onSelect?: (row: Row) => void;
+  /** Renders the Nguồn cell (for example a translated label); defaults to `row.source`. */
+  renderSource?: (row: Row) => ReactNode;
   /** False when the table sits under a block header that already names the submission. */
   showSubmission?: boolean;
   /** Accessible name of the table. */
@@ -32,13 +38,14 @@ export interface ReviewQueueTableProps {
  * The constraint text wraps (never clipped) and renders inline code; the other columns keep
  * their width so Khoản trừ, Nguồn and Kết luận stay in view.
  * No bulk action here: model `violation` rows are reviewed one by one. */
-export function ReviewQueueTable({
+export function ReviewQueueTable<Row extends ReviewQueueTableRow = ReviewQueueRow>({
   rows,
   selectedId,
   onSelect,
+  renderSource,
   showSubmission = true,
   label,
-}: ReviewQueueTableProps) {
+}: ReviewQueueTableProps<Row>) {
   return (
     <div className="lk-table-wrap">
       <table className="lk-table" aria-label={label}>
@@ -81,7 +88,7 @@ export function ReviewQueueTable({
                   <MarkdownInline>{row.constraint}</MarkdownInline>
                 </td>
                 <td>{deductionLabel(row.verdict, row.deduction)}</td>
-                <td>{row.source}</td>
+                <td>{renderSource ? renderSource(row) : row.source}</td>
                 <td>
                   <VerdictBadge verdict={row.verdict} />
                   {row.unsureCause ? <p className="lk-cause">{row.unsureCause}</p> : null}

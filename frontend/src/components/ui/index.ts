@@ -15,6 +15,7 @@ export {
   ReviewQueueTable,
   type ReviewQueueRow,
   type ReviewQueueTableProps,
+  type ReviewQueueTableRow,
 } from './ReviewQueueTable';
 export { ToastProvider } from './Toast';
 export { useToast, type ToastApi } from './toast-context';
