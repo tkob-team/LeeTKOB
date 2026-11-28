@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { AuthProvider } from './app/AuthProvider';
 import { routes } from './app/routes';
 import { applyStoredTheme } from './app/theme';
+import { ToastProvider } from './components/ui';
 import './styles/tokens.css';
 import './styles/ui.css';
 import './components/ui/ui-extra.css';
@@ -18,7 +19,9 @@ if (!root) throw new Error('#root element missing from index.html');
 createRoot(root).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={createBrowserRouter(routes)} />
+      <ToastProvider>
+        <RouterProvider router={createBrowserRouter(routes)} />
+      </ToastProvider>
     </AuthProvider>
   </StrictMode>,
 );

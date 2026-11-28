@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { CLASS_NOT_FOUND } from '../../app/not-found-text';
 import { NotFoundPage } from '../../app/NotFoundPage';
 import { usePageTitle } from '../../app/usePageTitle';
-import { CopyButton, ProblemAlert } from '../../components/ui';
+import { InviteCode, ProblemAlert, useToast } from '../../components/ui';
 import type { Classroom, LabSummary } from '../lab-authoring/lab-api';
 import { LabTable } from '../lab-authoring/LabTable';
 import { countRole, type RosterEntry } from './ta-classes-api';
@@ -27,9 +27,21 @@ interface Loaded {
 export function TaClassPage() {
   const { classId = '' } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const toast = useToast();
   const created = (location.state as { created?: string } | null)?.created;
   const [data, setData] = useState<Loaded>();
   const [problem, setProblem] = useState<ProblemDetails>();
+
+  // "Đã tạo lab …" arrives in the history state from CreateLabPage: show it once as a toast,
+  // then clear the state so a reload or a return to this entry does not show it again.
+  const shownFor = useRef<string>(undefined);
+  useEffect(() => {
+    if (created === undefined || shownFor.current === location.key) return;
+    shownFor.current = location.key;
+    toast.show(`Đã tạo lab ${created}.`);
+    void navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [created, toast, navigate, location.key, location.pathname, location.search]);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -92,12 +104,9 @@ export function TaClassPage() {
           </Link>
         </div>
         {code ? (
-          <div className="lk-invite">
-            <span>
-              Mã mời: <code className="lk-mono">{code}</code>
-            </span>
-            <CopyButton getText={() => code} label="Sao chép mã mời" />
-          </div>
+          <p className="lk-page__note">
+            Mã mời: <InviteCode code={code} classLabel={classroom.name} />
+          </p>
         ) : (
           <p className="lk-page__note">Lớp này chưa có mã mời.</p>
         )}
@@ -105,11 +114,6 @@ export function TaClassPage() {
           {countRole(roster, 'TA')} trợ giảng · {countRole(roster, 'STUDENT')} sinh viên
         </p>
       </header>
-      {created !== undefined ? (
-        <p role="status" className="lk-page__note">
-          Đã tạo lab {created}.
-        </p>
-      ) : null}
       <section className="lk-panel" aria-labelledby="ta-class-labs-title">
         <h2 id="ta-class-labs-title" className="lk-panel__title">
           Lab và hàng chờ duyệt

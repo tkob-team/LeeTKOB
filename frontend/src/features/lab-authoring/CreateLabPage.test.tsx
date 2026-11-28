@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
 import { CreateLabPage } from './CreateLabPage';
 import { TaClassPage } from '../ta-classes/TaClassPage';
+import { ToastProvider } from '../../components/ui';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
 
@@ -24,7 +25,11 @@ function renderPage() {
     ],
     { initialEntries: [`/ta/classes/${classId}/labs/new`] },
   );
-  render(<RouterProvider router={router} />);
+  render(
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>,
+  );
   return router;
 }
 

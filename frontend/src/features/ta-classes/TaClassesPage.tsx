@@ -5,7 +5,7 @@ import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
 import { usePageTitle } from '../../app/usePageTitle';
-import { CopyButton, ProblemAlert } from '../../components/ui';
+import { InviteCode, ProblemAlert } from '../../components/ui';
 import type { Classroom, LabSummary } from '../lab-authoring/lab-api';
 import { countRole, taClassPath, type RosterEntry } from './ta-classes-api';
 
@@ -85,13 +85,7 @@ export function TaClassesPage() {
                     <td>{labs}</td>
                     <td>
                       {code ? (
-                        <span className="lk-invite">
-                          <code className="lk-mono">{code}</code>
-                          <CopyButton
-                            getText={() => code}
-                            ariaLabel={`Sao chép mã mời lớp ${classroom.name}`}
-                          />
-                        </span>
+                        <InviteCode code={code} classLabel={classroom.name} />
                       ) : (
                         'Chưa có mã mời'
                       )}

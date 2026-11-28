@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
+import { ToastProvider } from '../../components/ui';
 import type { AdminClass } from './admin-api';
 import { AdminClassesPage } from './AdminClassesPage';
 
@@ -53,9 +54,11 @@ function serve(handlers: Record<string, Handler>) {
 
 function renderPage() {
   render(
-    <MemoryRouter>
-      <AdminClassesPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <AdminClassesPage />
+      </MemoryRouter>
+    </ToastProvider>,
   );
 }
 
@@ -232,6 +235,23 @@ describe('creating a class', () => {
     );
     expect(row).toHaveTextContent('Zz'.repeat(16));
     expect(within(row).getAllByRole('cell')[1]).toHaveTextContent(/^Chưa có trợ giảng$/);
+  });
+
+  it('confirms a new class in a toast, not in a status line inside the page (A3)', async () => {
+    serve({
+      'GET /admin/classes': () => [],
+      'POST /classes': () => ({ id: classId, name: 'Lớp B', inviteCode: code }),
+    });
+    renderPage();
+    await screen.findByText('Chưa có lớp');
+    fireEvent.change(screen.getByLabelText('Tên lớp'), { target: { value: 'Lớp B' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo lớp' }));
+
+    const toasts = screen.getByRole('status', { name: 'Thông báo' });
+    expect(await within(toasts).findByText('Đã tạo lớp Lớp B.')).toBeInTheDocument();
+    const page = screen.getByRole('region', { name: 'Lớp học' });
+    expect(within(page).queryByText(/Đã tạo lớp/)).toBeNull();
+    expect(page.querySelector('p[role="status"]')).toBeNull();
   });
 
   it('locks the button while the request is in flight', async () => {

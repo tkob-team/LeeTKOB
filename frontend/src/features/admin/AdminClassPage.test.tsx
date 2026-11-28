@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
 import { AuthContext, type AuthState } from '../../app/auth-context';
+import { ToastProvider } from '../../components/ui';
 import type { AdminMember, TaAccount } from './admin-api';
 import { AdminClassPage } from './AdminClassPage';
 
@@ -27,18 +28,20 @@ const binh: TaAccount = {
 };
 const cuong: TaAccount = { id: 'ta-cuong', email: 'cuong.ta@truong.edu.vn', displayName: null };
 
-const asMember = (ta: TaAccount): AdminMember => ({ ...ta, role: 'TA' });
+const asMember = (ta: TaAccount): AdminMember => ({ ...ta, role: 'TA', submissionCount: 0 });
 const studentAn: AdminMember = {
   id: 'sv-an',
   role: 'STUDENT',
   email: 'an@truong.edu.vn',
   displayName: 'An',
+  submissionCount: 0,
 };
 const studentChi: AdminMember = {
   id: 'sv-chi',
   role: 'STUDENT',
   email: 'chi@truong.edu.vn',
   displayName: 'Chi',
+  submissionCount: 2,
 };
 
 const auth: AuthState = {
@@ -95,17 +98,19 @@ function serve(world: World) {
 function renderPage(id = classId) {
   render(
     <AuthContext value={auth}>
-      <MemoryRouter initialEntries={[`/admin/classes/${id}`]}>
-        <Routes>
-          <Route path="/admin/classes/:classId" element={<AdminClassPage />} />
-        </Routes>
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter initialEntries={[`/admin/classes/${id}`]}>
+          <Routes>
+            <Route path="/admin/classes/:classId" element={<AdminClassPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>
     </AuthContext>,
   );
 }
 
 function picker() {
-  return screen.getByRole('combobox', { name: 'Trợ giảng' });
+  return screen.getByRole('combobox', { name: 'Gán thêm trợ giảng' });
 }
 
 function optionLabels() {
@@ -153,8 +158,8 @@ describe('admin class page', () => {
           .map((c) => c.textContent),
       ),
     ).toEqual([
-      ['An', 'an@truong.edu.vn', 'Gỡ'],
-      ['Chi', 'chi@truong.edu.vn', 'Gỡ'],
+      ['', 'An', 'an@truong.edu.vn', '0', 'Gỡ'],
+      ['', 'Chi', 'chi@truong.edu.vn', '2', 'Đã có bài nộpGỡ'],
     ]);
   });
 
@@ -183,16 +188,21 @@ describe('admin class page', () => {
     renderPage();
     await screen.findByRole('region', { name: 'Trợ giảng (1)' });
     const gan = screen.getByRole('button', { name: 'Gán' });
-    expect(gan).toBeDisabled();
-    expect(screen.queryByText('Chọn một trợ giảng trước.')).toBeNull();
+    expect(gan).toBeEnabled();
     expect(gan.parentElement).toHaveClass('lk-assign');
+    fireEvent.click(gan);
+    expect(picker()).toHaveAccessibleDescription('Chọn một trợ giảng.');
+    expect(picker()).toHaveAttribute('aria-invalid', 'true');
+    expect(picker()).toHaveFocus();
+    expect(request).not.toHaveBeenCalledWith(`/classes/${classId}/tas`, expect.anything());
 
     fireEvent.change(picker(), { target: { value: binh.id } });
     expect(screen.getByRole('button', { name: 'Gán' })).toBe(gan);
-    expect(gan).toBeEnabled();
+    expect(picker()).not.toHaveAttribute('aria-invalid');
     fireEvent.click(gan);
 
-    expect(await screen.findByText('Đã gán Bình Trợ giảng.')).toHaveAttribute('role', 'status');
+    const toasts = screen.getByRole('status', { name: 'Thông báo' });
+    expect(await within(toasts).findByText('Đã gán Bình Trợ giảng.')).toBeInTheDocument();
     const tas = await screen.findByRole('region', { name: 'Trợ giảng (2)' });
     expect(within(tas).getByText('Bình Trợ giảng')).toBeInTheDocument();
     expect(request).toHaveBeenCalledWith(`/classes/${classId}/tas`, {

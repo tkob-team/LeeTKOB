@@ -7,6 +7,7 @@ import { ApiProblemError, type ApiClient } from '../../api/client';
 import { TaLayout } from '../../app/AppLayout';
 import { AuthContext, type AuthState } from '../../app/auth-context';
 import type { LabSummary } from '../lab-authoring/lab-api';
+import { ToastProvider } from '../../components/ui';
 import { TaClassPage } from './TaClassPage';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
@@ -61,11 +62,13 @@ function serve({
 function renderPage(state?: unknown) {
   render(
     <AuthContext value={auth}>
-      <MemoryRouter initialEntries={[{ pathname: `/ta/classes/${classId}`, state }]}>
-        <Routes>
-          <Route path="/ta/classes/:classId" element={<TaClassPage />} />
-        </Routes>
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter initialEntries={[{ pathname: `/ta/classes/${classId}`, state }]}>
+          <Routes>
+            <Route path="/ta/classes/:classId" element={<TaClassPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>
     </AuthContext>,
   );
 }
@@ -111,7 +114,9 @@ describe('TA class page', () => {
     serve();
     renderPage();
     expect(await screen.findByText(code)).toHaveClass('lk-mono');
-    expect(screen.getByRole('button', { name: 'Sao chép mã mời' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sao chép mã mời lớp CTT1' })).toHaveTextContent(
+      /^Sao chép$/,
+    );
     expect(screen.getByText('1 trợ giảng · 2 sinh viên')).toBeInTheDocument();
   });
 
@@ -134,10 +139,15 @@ describe('TA class page', () => {
   it('says which lab was just created when coming back from the create page', async () => {
     serve();
     renderPage({ created: 'Sorting with merge sort' });
-    expect(await screen.findByText('Đã tạo lab Sorting with merge sort.')).toHaveAttribute(
-      'role',
-      'status',
-    );
+    const toasts = screen.getByRole('status', { name: 'Thông báo' });
+    expect(
+      await within(toasts).findByText('Đã tạo lab Sorting with merge sort.'),
+    ).toBeInTheDocument();
+    await screen.findByRole('heading', { name: 'CTT1', level: 1 });
+    expect(within(toasts).getAllByText('Đã tạo lab Sorting with merge sort.')).toHaveLength(1);
+    expect(
+      screen.getByRole('region', { name: 'CTT1' }).querySelector('p[role="status"]'),
+    ).toBeNull();
   });
 
   it('shows the 404 page for a class the TA does not teach', async () => {

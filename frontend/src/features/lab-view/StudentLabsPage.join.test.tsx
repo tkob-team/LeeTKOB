@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
+import { ToastProvider } from '../../components/ui';
 import { StudentLabsPage } from './StudentLabPage';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
@@ -16,9 +17,11 @@ const lab = { id: 'l1', title: 'Sorting', latestSubmissionId: null };
 
 function renderPage() {
   render(
-    <MemoryRouter>
-      <StudentLabsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <StudentLabsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   );
 }
 
@@ -75,9 +78,23 @@ describe('joining a class with an invite code', () => {
     await join(code);
     expect(await screen.findByText('Đã vào lớp CTT1.')).toBeInTheDocument();
     await join(code);
-    expect(await screen.findByText('Đã vào lớp CTT1.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getAllByText('Đã vào lớp CTT1.')).toHaveLength(2);
+    });
     expect(joinCalls()).toHaveLength(2);
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('confirms the join in a toast, not in a status line of the form (A3)', async () => {
+    request.mockImplementation((path: string) =>
+      Promise.resolve(path === '/classes/join' ? { id: 'c1', name: 'CTT1' } : []),
+    );
+    renderPage();
+    await join(code);
+    const toasts = screen.getByRole('status', { name: 'Thông báo' });
+    expect(await within(toasts).findByText('Đã vào lớp CTT1.')).toBeInTheDocument();
+    const form = screen.getByRole('form', { name: 'Vào lớp bằng mã mời' });
+    expect(form.querySelector('[role="status"]')).toBeNull();
   });
 
   it('asks for a code before sending anything when the field is empty', async () => {

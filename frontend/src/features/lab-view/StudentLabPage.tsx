@@ -12,6 +12,7 @@ import {
   MarkdownInline,
   ProblemAlert,
   type JudgeCode,
+  useToast,
 } from '../../components/ui';
 import {
   formatDateTime,
@@ -79,13 +80,12 @@ function JoinClassForm({ onJoined }: { onJoined: () => void }) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string>();
   const [problem, setProblem] = useState<ProblemDetails>();
-  const [joined, setJoined] = useState<string>();
+  const toast = useToast();
   const [pending, setPending] = useState(false);
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const inviteCode = code.trim();
-    setJoined(undefined);
     setProblem(undefined);
     // Empty and malformed codes are both reported under the field, before anything is sent;
     // only a server answer (no class with this code) uses the alert below the button.
@@ -99,7 +99,7 @@ function JoinClassForm({ onJoined }: { onJoined: () => void }) {
         body: JSON.stringify({ inviteCode }),
       });
       setCode('');
-      setJoined(classroom.name);
+      toast.show(`Đã vào lớp ${classroom.name}.`);
       onJoined();
     } catch (cause) {
       setProblem(joinProblem(cause));
@@ -147,9 +147,6 @@ function JoinClassForm({ onJoined }: { onJoined: () => void }) {
           Vào lớp
         </Button>
       </div>
-      <p role="status" className="lk-page__note">
-        {joined ? `Đã vào lớp ${joined}.` : ''}
-      </p>
       {problem ? <ProblemAlert problem={problem} /> : null}
     </form>
   );

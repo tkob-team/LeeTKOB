@@ -9,6 +9,9 @@
   --ink-muted: #56606A;
   --brand: #0B5D6B;
   --on-brand: #FFFFFF;
+  --danger: #B42318;
+  --on-danger: #FFFFFF;
+  --danger-soft: #FDECEA;
   --focus: #0B5D6B;
   --pass: #1F5FA8;
   --pass-soft: #E3EEFA;
@@ -62,6 +65,9 @@
     --ink-muted: #9BA6AF;
     --brand: #4FB3C2;
     --on-brand: #062A30;
+    --danger: #FF8A80;
+    --on-danger: #2A0B08;
+    --danger-soft: #3D1614;
     --focus: #7FD3DF;
     --pass: #7DB4F0;
     --pass-soft: #14273D;
@@ -83,6 +89,9 @@
   --ink-muted: #9BA6AF;
   --brand: #4FB3C2;
   --on-brand: #062A30;
+  --danger: #FF8A80;
+  --on-danger: #2A0B08;
+  --danger-soft: #3D1614;
   --focus: #7FD3DF;
   --pass: #7DB4F0;
   --pass-soft: #14273D;

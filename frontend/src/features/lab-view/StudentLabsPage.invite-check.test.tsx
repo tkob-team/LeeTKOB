@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApiClient } from '../../api/client';
 import { inviteCodeError } from './invite-code';
 import { StudentLabsPage } from './StudentLabPage';
+import { ToastProvider } from '../../components/ui';
 
 const { request } = vi.hoisted(() => ({ request: vi.fn<ApiClient['request']>() }));
 
@@ -16,9 +17,11 @@ const code = 'AbCdEfGhIjKlMnOpQrStUvWxYz012-_9';
 
 function renderPage() {
   render(
-    <MemoryRouter>
-      <StudentLabsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <StudentLabsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   );
 }
 

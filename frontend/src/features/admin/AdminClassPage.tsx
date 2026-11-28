@@ -1,13 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { NotFoundPage } from '../../app/NotFoundPage';
-import { Button, FormField, ProblemAlert } from '../../components/ui';
+import {
+  Button,
+  ConfirmDialog,
+  FormField,
+  InviteCode,
+  ProblemAlert,
+  useToast,
+} from '../../components/ui';
 import type { Classroom } from '../lab-authoring/lab-api';
-import { InviteCode, PersonName } from './AdminClassesPage';
-import { personName, taOptionLabel, type AdminMember, type TaAccount } from './admin-api';
+import { PersonName } from './AdminClassesPage';
+import { BulkRemoveDialog, type BulkResult } from './BulkRemoveDialog';
+import {
+  HAS_SUBMISSIONS,
+  personName,
+  removalPath,
+  taOptionLabel,
+  type AdminMember,
+  type TaAccount,
+} from './admin-api';
 
 /** An unknown class (404) or an id that is not a UUID (400) both mean "no such class". */
 const NOT_FOUND_TYPES = new Set([
@@ -15,9 +30,19 @@ const NOT_FOUND_TYPES = new Set([
   'urn:leetkob:problem:invalid-request',
 ]);
 
+/** What removing a member does, by role (A1). */
+function consequence(member: AdminMember) {
+  const name = personName(member);
+  return member.role === 'TA'
+    ? `${name} sẽ không còn xem được lab và hàng chờ duyệt của lớp này. Có thể gán lại sau.`
+    : `${name} sẽ không còn thấy lab của lớp này. Chỉ gỡ được khi sinh viên chưa nộp bài nào trong lớp.`;
+}
+
 /**
- * Picker of the TAs not yet in this class and "Gán". After an assignment the TA leaves the
- * picker and the focus returns to it; with nobody left to assign, a sentence replaces the form.
+ * Picker of the TAs not yet in this class and "Gán". "Gán" is always enabled: pressed with
+ * nothing chosen it says so under the field. After an assignment the TA leaves the picker, a
+ * toast confirms it and the focus returns to the picker; with nobody left, a sentence replaces
+ * the form.
  */
 function AssignTaForm({
   classId,
@@ -31,15 +56,16 @@ function AssignTaForm({
   onAssigned: (account: TaAccount) => Promise<void>;
 }) {
   const [userId, setUserId] = useState('');
+  const [error, setError] = useState<string>();
   const [problem, setProblem] = useState<ProblemDetails>();
   const [pending, setPending] = useState(false);
-  /** Bumped after each assignment; the effect then puts the focus back on the picker. */
-  const [assignedCount, setAssignedCount] = useState(0);
+  /** Bumped after each assignment or empty press; the effect then focuses the picker. */
+  const [focusCount, setFocusCount] = useState(0);
   const select = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
-    if (assignedCount > 0) select.current?.focus();
-  }, [assignedCount]);
+    if (focusCount > 0) select.current?.focus();
+  }, [focusCount]);
 
   if (!hasAccounts) return <p className="lk-page__note">Chưa có tài khoản trợ giảng.</p>;
   if (candidates.length === 0) {
@@ -47,8 +73,13 @@ function AssignTaForm({
   }
 
   async function assign() {
+    if (pending) return;
     const account = candidates.find((ta) => ta.id === userId);
-    if (!account || pending) return;
+    if (!account) {
+      setError('Chọn một trợ giảng.');
+      setFocusCount((n) => n + 1);
+      return;
+    }
     setPending(true);
     setProblem(undefined);
     try {
@@ -58,7 +89,7 @@ function AssignTaForm({
       });
       setUserId('');
       await onAssigned(account);
-      setAssignedCount((n) => n + 1);
+      setFocusCount((n) => n + 1);
     } catch (cause) {
       setProblem(problemFrom(cause));
     } finally {
@@ -70,12 +101,14 @@ function AssignTaForm({
     <div className="lk-section">
       {problem ? <ProblemAlert problem={problem} /> : null}
       <div className="lk-assign">
-        <FormField label="Trợ giảng">
+        <FormField label="Gán thêm trợ giảng" error={error}>
           <select
             ref={select}
             value={userId}
             onChange={(e) => {
               setUserId(e.target.value);
+              setError(undefined);
+              setProblem(undefined);
             }}
           >
             <option value="">Chọn trợ giảng…</option>
@@ -86,118 +119,106 @@ function AssignTaForm({
             ))}
           </select>
         </FormField>
-        <Button variant="primary" onClick={() => void assign()} disabled={pending || userId === ''}>
-          Gán
+        <Button variant="primary" onClick={() => void assign()} aria-disabled={pending}>
+          {pending ? 'Đang gán…' : 'Gán'}
         </Button>
       </div>
     </div>
   );
 }
 
-const HAS_SUBMISSIONS = 'urn:leetkob:problem:member-has-submissions';
-
-/** What removing a member ended with: the removed member, or a problem to show. */
-type RemoveOutcome = { removed: AdminMember } | { problem: ProblemDetails };
+/** State of the one-member removal dialog. */
+interface RemovalState {
+  member: AdminMember;
+  pending: boolean;
+  problem?: ProblemDetails;
+  /** 409: the student has submissions; nothing is left to confirm. */
+  blocked: boolean;
+}
 
 /**
- * "Gỡ" for one member. A press shows, in place, "Xác nhận gỡ <tên>?" and "Huỷ" (never a
- * browser dialog); confirming sends DELETE and reports the outcome to the page.
+ * Removing one member: a ConfirmDialog naming the consequence for the role. Success closes it
+ * with a toast; 409 keeps it open with the reason and only "Đóng"; another error keeps
+ * "Thử lại".
  */
-function RemoveMember({
-  member,
+function RemoveMemberDialog({
+  state,
+  className,
   classId,
-  onDone,
+  onChange,
+  onRemoved,
 }: {
-  member: AdminMember;
+  state: RemovalState | undefined;
+  className: string;
   classId: string;
-  onDone: (outcome: RemoveOutcome) => Promise<void>;
+  onChange: (next: RemovalState | undefined) => void;
+  onRemoved: (member: AdminMember) => Promise<void>;
 }) {
-  const [confirming, setConfirming] = useState(false);
-  const [pending, setPending] = useState(false);
-  const confirmRef = useRef<HTMLButtonElement>(null);
-  const removeRef = useRef<HTMLButtonElement>(null);
-  /** Bumped to move the focus after the next render: to the confirm button, or back to "Gỡ". */
-  const [focusTarget, setFocusTarget] = useState<{ to: 'confirm' | 'remove' }>();
+  if (!state) return null;
+  const { member } = state;
   const name = personName(member);
-  const kind = member.role === 'TA' ? 'tas' : 'students';
 
-  useEffect(() => {
-    if (focusTarget?.to === 'confirm') confirmRef.current?.focus();
-    if (focusTarget?.to === 'remove') removeRef.current?.focus();
-  }, [focusTarget]);
-
-  async function remove() {
-    if (pending) return;
-    setPending(true);
-    let outcome: RemoveOutcome;
+  async function confirm() {
+    if (!state || state.pending) return;
+    onChange({ ...state, pending: true, problem: undefined });
     try {
-      await api.request<undefined>(
-        `/admin/classes/${encodeURIComponent(classId)}/${kind}/${encodeURIComponent(member.id)}`,
-        { method: 'DELETE' },
-      );
-      outcome = { removed: member };
+      await api.request<undefined>(removalPath(classId, member), { method: 'DELETE' });
+      onChange(undefined);
+      await onRemoved(member);
     } catch (cause) {
       const problem = problemFrom(cause);
-      outcome = {
-        problem:
-          problem.type === HAS_SUBMISSIONS
-            ? {
-                type: problem.type,
-                status: problem.status,
-                title: `${name} đã có bài nộp, chưa gỡ được.`,
-              }
-            : problem,
-      };
-      setPending(false);
-      setConfirming(false);
-      setFocusTarget({ to: 'remove' });
+      if (problem.type === HAS_SUBMISSIONS) {
+        onChange({
+          member,
+          pending: false,
+          blocked: true,
+          problem: {
+            type: problem.type,
+            status: problem.status,
+            title: `${name} đã có bài nộp trong lớp nên chưa gỡ được.`,
+          },
+        });
+      } else {
+        onChange({ member, pending: false, blocked: false, problem });
+      }
     }
-    await onDone(outcome);
   }
 
-  if (!confirming) {
-    return (
-      <Button
-        ref={removeRef}
-        aria-label={`Gỡ ${name}`}
-        onClick={() => {
-          setConfirming(true);
-          setFocusTarget({ to: 'confirm' });
-        }}
-      >
-        Gỡ
-      </Button>
-    );
-  }
   return (
-    <span className="lk-confirm">
-      <Button ref={confirmRef} variant="danger" disabled={pending} onClick={() => void remove()}>
-        {`Xác nhận gỡ ${name}?`}
-      </Button>
-      <Button
-        disabled={pending}
-        onClick={() => {
-          setConfirming(false);
-          setFocusTarget({ to: 'remove' });
-        }}
-      >
-        Huỷ
-      </Button>
-    </span>
+    <ConfirmDialog
+      open
+      title={`Gỡ ${name} khỏi ${className}?`}
+      body={<p>{consequence(member)}</p>}
+      confirmLabel={state.blocked ? undefined : state.problem ? 'Thử lại' : `Gỡ ${name}`}
+      pendingLabel="Đang gỡ…"
+      cancelLabel={state.blocked ? 'Đóng' : 'Huỷ'}
+      pending={state.pending}
+      problem={state.problem}
+      onConfirm={() => void confirm()}
+      onCancel={() => {
+        onChange(undefined);
+      }}
+    />
   );
 }
 
 /** One class for the admin: invite code, TAs (and assigning one), students with name and email. */
 export function AdminClassPage() {
   const { classId = '' } = useParams();
+  const toast = useToast();
   const [classroom, setClassroom] = useState<Classroom>();
   const [members, setMembers] = useState<AdminMember[]>();
   const [tas, setTas] = useState<TaAccount[]>([]);
   const [problem, setProblem] = useState<ProblemDetails>();
-  const [taStatus, setTaStatus] = useState('');
-  const [studentStatus, setStudentStatus] = useState('');
-  const [taProblem, setTaProblem] = useState<ProblemDetails>();
-  const [studentProblem, setStudentProblem] = useState<ProblemDetails>();
+  const [removal, setRemoval] = useState<RemovalState>();
+  /** Ids of the selected students (B1); kept across reloads for the students still listed. */
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  /** Index of the last row whose checkbox was clicked, for Shift+click ranges. */
+  const lastClicked = useRef<number>(undefined);
+  const [bulkTargets, setBulkTargets] = useState<AdminMember[]>();
+  /** Bumped to focus the students heading after the next render. */
+  const [focusStudents, setFocusStudents] = useState(0);
+  const selectAll = useRef<HTMLInputElement>(null);
   const taHeading = useRef<HTMLHeadingElement>(null);
   const studentHeading = useRef<HTMLHeadingElement>(null);
 
@@ -235,29 +256,52 @@ export function AdminClassPage() {
 
   const onAssigned = useCallback(
     async (account: TaAccount) => {
-      setTaProblem(undefined);
-      setTaStatus(`Đã gán ${personName(account)}.`);
+      toast.show(`Đã gán ${personName(account)}.`);
       await reloadMembers();
     },
-    [reloadMembers],
+    [reloadMembers, toast],
   );
 
-  /** After a removal: the sentence, the reloaded list, and the focus on the section heading. */
-  const onRemoveDone = useCallback(
-    async (role: AdminMember['role'], outcome: RemoveOutcome) => {
-      const setStatus = role === 'TA' ? setTaStatus : setStudentStatus;
-      const setSectionProblem = role === 'TA' ? setTaProblem : setStudentProblem;
-      if ('problem' in outcome) {
-        setStatus('');
-        setSectionProblem(outcome.problem);
-        return;
-      }
-      setSectionProblem(undefined);
-      setStatus(`Đã gỡ ${personName(outcome.removed)}.`);
+  /** After a removal: the toast, the reloaded list, and the focus on the section heading. */
+  const onRemoved = useCallback(
+    async (member: AdminMember) => {
+      toast.show(`Đã gỡ ${personName(member)} khỏi lớp.`);
+      setSelected((current) => {
+        const next = new Set(current);
+        next.delete(member.id);
+        return next;
+      });
       await reloadMembers();
-      (role === 'TA' ? taHeading : studentHeading).current?.focus();
+      (member.role === 'TA' ? taHeading : studentHeading).current?.focus();
     },
-    [reloadMembers],
+    [reloadMembers, toast],
+  );
+
+  const studentsNow = members?.filter((m) => m.role === 'STUDENT') ?? [];
+  const selectable = studentsNow.filter((m) => m.submissionCount === 0);
+  const selectedCount = selectable.filter((m) => selected.has(m.id)).length;
+
+  useEffect(() => {
+    if (selectAll.current) {
+      selectAll.current.indeterminate = selectedCount > 0 && selectedCount < selectable.length;
+    }
+  });
+
+  useEffect(() => {
+    if (focusStudents > 0) studentHeading.current?.focus();
+  }, [focusStudents]);
+
+  /** After the bulk requests: reload, keep the failed students selected, toast the summary. */
+  const onBulkFinished = useCallback(
+    async (results: BulkResult[]) => {
+      const removed = results.filter((r) => r.outcome.kind === 'removed').length;
+      setSelected(
+        new Set(results.filter((r) => r.outcome.kind !== 'removed').map((r) => r.member.id)),
+      );
+      toast.show(`Đã gỡ ${String(removed)}/${String(results.length)} sinh viên.`);
+      await reloadMembers();
+    },
+    [reloadMembers, toast],
   );
 
   if (!classroom && problem && NOT_FOUND_TYPES.has(problem.type)) return <NotFoundPage />;
@@ -283,6 +327,32 @@ export function AdminClassPage() {
   const classTas = members.filter((m) => m.role === 'TA');
   const students = members.filter((m) => m.role === 'STUDENT');
   const taIds = new Set(classTas.map((m) => m.id));
+
+  function askRemove(member: AdminMember) {
+    setRemoval({ member, pending: false, blocked: false });
+  }
+
+  /** A row checkbox; with Shift held, every selectable row between it and the last click follows. */
+  function toggleRow(index: number, event: ChangeEvent<HTMLInputElement>) {
+    const on = event.target.checked;
+    const shift = 'shiftKey' in event.nativeEvent && (event.nativeEvent as MouseEvent).shiftKey;
+    const from = shift && lastClicked.current !== undefined ? lastClicked.current : index;
+    const [lo, hi] = from < index ? [from, index] : [index, from];
+    const next = new Set(selected);
+    students.slice(lo, hi + 1).forEach((m) => {
+      if (m.submissionCount > 0) return;
+      if (on) next.add(m.id);
+      else next.delete(m.id);
+    });
+    lastClicked.current = index;
+    setSelected(next);
+  }
+
+  function toggleAll(event: ChangeEvent<HTMLInputElement>) {
+    setSelected(event.target.checked ? new Set(selectable.map((m) => m.id)) : new Set());
+  }
+
+  const idle = selectedCount === 0;
 
   return (
     <section className="lk-section" aria-labelledby="admin-class-title">
@@ -312,19 +382,20 @@ export function AdminClassPage() {
             {classTas.map((ta) => (
               <li key={ta.id}>
                 <PersonName person={ta} />
-                <RemoveMember
-                  member={ta}
-                  classId={classroom.id}
-                  onDone={(outcome) => onRemoveDone('TA', outcome)}
-                />
+                <span className="lk-row-actions">
+                  <Button
+                    aria-label={`Gỡ ${personName(ta)}`}
+                    onClick={() => {
+                      askRemove(ta);
+                    }}
+                  >
+                    Gỡ
+                  </Button>
+                </span>
               </li>
             ))}
           </ul>
         )}
-        <p role="status" className="lk-page__note">
-          {taStatus}
-        </p>
-        {taProblem ? <ProblemAlert problem={taProblem} /> : null}
         <AssignTaForm
           classId={classroom.id}
           candidates={tas.filter((ta) => !taIds.has(ta.id))}
@@ -342,43 +413,127 @@ export function AdminClassPage() {
         >
           Sinh viên ({students.length})
         </h2>
-        <p role="status" className="lk-page__note">
-          {studentStatus}
-        </p>
-        {studentProblem ? <ProblemAlert problem={studentProblem} /> : null}
         {students.length === 0 ? (
           <p className="lk-page__note">Chưa có sinh viên. Gửi mã mời để sinh viên tự vào lớp.</p>
         ) : (
-          <div className="lk-table-wrap" role="region" aria-label="Sinh viên" tabIndex={0}>
-            <table className="lk-table">
-              <thead>
-                <tr>
-                  <th scope="col">Tên</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">
-                    <span className="lk-sr-only">Thao tác</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student) => (
-                  <tr key={student.id}>
-                    <td className="lk-wrap">{personName(student)}</td>
-                    <td className="lk-wrap">{student.email ?? '—'}</td>
-                    <td>
-                      <RemoveMember
-                        member={student}
-                        classId={classroom.id}
-                        onDone={(outcome) => onRemoveDone('STUDENT', outcome)}
+          <>
+            {/* Always in the page, hidden with visibility, so the table never moves. */}
+            <div
+              className={idle ? 'lk-bulkbar lk-bulkbar--idle' : 'lk-bulkbar'}
+              aria-hidden={idle || undefined}
+              inert={idle}
+            >
+              <span className="lk-bulkbar__count">Đã chọn {selectedCount} sinh viên</span>
+              <Button
+                onClick={() => {
+                  setSelected(new Set());
+                }}
+              >
+                Bỏ chọn
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setBulkTargets(selectable.filter((m) => selected.has(m.id)));
+                }}
+              >
+                {`Gỡ ${String(selectedCount)} sinh viên`}
+              </Button>
+            </div>
+            <div className="lk-table-wrap" role="region" aria-label="Sinh viên" tabIndex={0}>
+              <table className="lk-table">
+                <thead>
+                  <tr>
+                    <th scope="col" className="lk-col-check">
+                      <input
+                        ref={selectAll}
+                        type="checkbox"
+                        aria-label={`Chọn tất cả ${String(selectable.length)} sinh viên đang hiện`}
+                        checked={selectable.length > 0 && selectedCount === selectable.length}
+                        disabled={selectable.length === 0}
+                        onChange={toggleAll}
                       />
-                    </td>
+                    </th>
+                    <th scope="col">Tên</th>
+                    <th scope="col">Email</th>
+                    <th scope="col" className="lk-col-num">
+                      Bài nộp
+                    </th>
+                    <th scope="col" className="lk-col-actions">
+                      <span className="lk-sr-only">Thao tác</span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {students.map((student, index) => {
+                    const name = personName(student);
+                    const locked = student.submissionCount > 0;
+                    const reasonId = `submitted-${student.id}`;
+                    return (
+                      <tr key={student.id}>
+                        <td className="lk-col-check">
+                          <input
+                            type="checkbox"
+                            aria-label={`Chọn ${name}`}
+                            checked={!locked && selected.has(student.id)}
+                            disabled={locked}
+                            aria-describedby={locked ? reasonId : undefined}
+                            onChange={(event) => {
+                              toggleRow(index, event);
+                            }}
+                          />
+                        </td>
+                        <td className="lk-wrap">{name}</td>
+                        <td className="lk-wrap">{student.email ?? '—'}</td>
+                        <td className="lk-col-num">{student.submissionCount}</td>
+                        <td className="lk-col-actions">
+                          <span className="lk-row-actions">
+                            {locked ? (
+                              <span id={reasonId} className="lk-btn-reason">
+                                Đã có bài nộp
+                              </span>
+                            ) : null}
+                            <Button
+                              aria-label={`Gỡ ${name}`}
+                              disabled={locked}
+                              aria-describedby={locked ? reasonId : undefined}
+                              onClick={() => {
+                                askRemove(student);
+                              }}
+                            >
+                              Gỡ
+                            </Button>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
+
+      <RemoveMemberDialog
+        state={removal}
+        className={classroom.name}
+        classId={classroom.id}
+        onChange={setRemoval}
+        onRemoved={onRemoved}
+      />
+      {bulkTargets ? (
+        <BulkRemoveDialog
+          targets={bulkTargets}
+          className={classroom.name}
+          classId={classroom.id}
+          onFinished={onBulkFinished}
+          onClose={() => {
+            setBulkTargets(undefined);
+            if (selectable.every((m) => !selected.has(m.id))) setFocusStudents((n) => n + 1);
+          }}
+        />
+      ) : null}
     </section>
   );
 }

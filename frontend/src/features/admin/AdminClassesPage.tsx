@@ -4,7 +4,7 @@ import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
-import { Button, CopyButton, FormField, ProblemAlert } from '../../components/ui';
+import { Button, FormField, InviteCode, ProblemAlert, useToast } from '../../components/ui';
 import type { Classroom } from '../lab-authoring/lab-api';
 import { adminClassPath, classNameError, personName, type AdminClass } from './admin-api';
 
@@ -90,21 +90,11 @@ export function PeopleList({ people }: { people: AdminClass['tas'] }) {
   );
 }
 
-/** The invite code in mono with "Sao chép" ("Đã sao chép" for 2 s, see CopyButton). */
-export function InviteCode({ code, classLabel }: { code: string; classLabel: string }) {
-  return (
-    <span className="lk-invite">
-      <code className="lk-mono">{code}</code>
-      <CopyButton getText={() => code} ariaLabel={`Sao chép mã mời lớp ${classLabel}`} />
-    </span>
-  );
-}
-
 /** Admin home: every class (GET /admin/classes) with its TAs, student count and invite code. */
 export function AdminClassesPage() {
   const [classes, setClasses] = useState<AdminClass[]>();
   const [problem, setProblem] = useState<ProblemDetails>();
-  const [created, setCreated] = useState<string>();
+  const toast = useToast();
 
   useEffect(() => {
     const abort = new AbortController();
@@ -122,7 +112,7 @@ export function AdminClassesPage() {
   }, []);
 
   function onCreated(classroom: Classroom) {
-    setCreated(classroom.name);
+    toast.show(`Đã tạo lớp ${classroom.name}.`);
     const row: AdminClass = {
       id: classroom.id,
       name: classroom.name,
@@ -146,9 +136,6 @@ export function AdminClassesPage() {
         </p>
       </header>
       <CreateClassForm onCreated={onCreated} />
-      <p role="status" className="lk-page__note">
-        {created ? `Đã tạo lớp ${created}.` : ''}
-      </p>
       {problem ? <ProblemAlert problem={problem} /> : null}
       {!classes && !problem ? <p className="lk-page__note">Đang tải danh sách lớp…</p> : null}
       {classes?.length === 0 ? (

@@ -45,23 +45,40 @@ under "Các lần nộp cũ hơn (không tính điểm)".
   a class (empty or longer than 200 characters is refused under the field before sending)
   and one row per class with the class name linking to its page, every TA by name with the
   email below (or "Chưa có trợ giảng"), the number of students, and the invite code with
-  "Sao chép". The list comes from one call, `GET /admin/classes`.
+  "Sao chép" (the button reads "Đã sao chép" for 2 seconds without changing width). A new
+  class is confirmed by a toast at the bottom right ("Đã tạo lớp <tên>.", hides after
+  5 seconds). The list comes from one call, `GET /admin/classes`.
 - `/admin/classes/<id>` (class page): the invite code with "Sao chép", "Trợ giảng (n)" by name
-  and email, and "Sinh viên (n)" as a name and email table. To assign a TA, pick one in the
-  list (only TAs not yet in this class, shown as "Tên — email") and press "Gán": the page
+  and email, and "Sinh viên (n)" as a table with a checkbox, name, email, "Bài nộp" (the
+  student's submissions in this class) and a right-aligned "Gỡ". To assign a TA, pick one
+  in "Gán thêm trợ giảng" (only TAs not yet in this class, shown as "Tên — email") and press
+  "Gán" (pressed with nothing chosen it says "Chọn một trợ giảng." under the field): a toast
   says "Đã gán <tên>.", the TA appears in the list and leaves the picker. When every TA is
   in the class the form is replaced by "Mọi trợ giảng đã được gán cho lớp này.". Members
   come from `GET /admin/classes/<id>/members`, the picker from `GET /admin/tas`
-  ([class API contract](docs/contract/classes.md), 1.2.0). The TA's own roster
+  ([class API contract](docs/contract/classes.md), 1.2.0; `submissionCount` since 1.4.0). The TA's own roster
   (`GET /classes/<id>/members`) still returns ids and roles only, so the review queue stays
   anonymous.
-- Each TA and each student on the class page has **Gỡ**. Pressing it asks in place
-  ("Xác nhận gỡ <tên>?" and "Huỷ", no browser dialog); confirming removes the member and the
-  page says "Đã gỡ <tên>.". A removed TA loses access to the class's labs and review queue at
-  once (404, as for a TA of another class) and returns to the picker. A student can be
-  removed only while they have no submission in the class; otherwise the page says "<tên>
-  đã có bài nộp, chưa gỡ được." (409 `member-has-submissions`, class API contract 1.3.0:
+- Each TA and each student on the class page has **Gỡ**. Pressing it opens a dialog (a
+  native modal `<dialog>`, not a browser confirm): "Gỡ <tên> khỏi <lớp>?" with what happens
+  for that role (a TA "sẽ không còn xem được lab và hàng chờ duyệt của lớp này. Có thể gán
+  lại sau."; a student "sẽ không còn thấy lab của lớp này…"), "Huỷ" focused and "Gỡ <tên>"
+  in red. Esc or a click outside cancels; while the request runs the buttons are locked and
+  read "Đang gỡ…". On success the dialog closes, a toast says "Đã gỡ <tên> khỏi lớp." and
+  the focus moves to the section heading. A removed TA loses access to the class's labs and
+  review queue at once (404, as for a TA of another class) and returns to the picker. A
+  student who has submitted in the class cannot be removed: their "Gỡ" and checkbox are
+  locked with "Đã có bài nộp" beside them, so the admin knows before trying; if a
+  submission arrives meanwhile the dialog stays open with "<tên> đã có bài nộp trong lớp nên
+  chưa gỡ được." and only "Đóng" (409 `member-has-submissions`, class API contract 1.3.0:
   `DELETE /admin/classes/<id>/tas/<userId>`, `DELETE /admin/classes/<id>/students/<userId>`).
+- **Bulk removal**: tick students (the header checkbox selects every removable row, Shift+click
+  a range); a bar above the table, whose space is always reserved so the table does not move,
+  says "Đã chọn N sinh viên" with "Bỏ chọn" and "Gỡ N sinh viên". The dialog lists up to five
+  names and "và N khác"; confirming shows "Đang gỡ i/N…" while at most four requests run at
+  once, then the result of each student ("Đã gỡ", "Đã có bài nộp, chưa gỡ", "Lỗi: …") and
+  "Đóng". Removed rows leave the table, rows that failed stay ticked, and a toast sums up
+  ("Đã gỡ 9/12 sinh viên.").
 - A TA sees the invite code of their own classes on "Lớp của tôi" and on each class page.
 - A student joins a class by entering the invite code on the student lab list.
 
@@ -214,7 +231,9 @@ Tokens and the cost of one lab: [Model and cost](README.md#model-and-cost).
   is not available yet (PA4).
 - The admin can remove a TA, and a student only while the student has no submission in the
   class. Removing a student who has submitted, deleting a class and deleting a lab are not
-  available (PA4). A TA cannot see or remove students by name.
+  available (PA4). A TA cannot see or remove students by name. Bulk removal sends one
+  `DELETE` per student (at most four at once), not one transaction: an interrupted run leaves
+  the students already removed removed, and the result dialog says who.
 - UI problems moved to PA4: #4, #6/#16, #9, #10, #14, #15, #17, described in
   [docs/pa3/walkthrough.md](docs/pa3/walkthrough.md#moved-to-pa4).
 
