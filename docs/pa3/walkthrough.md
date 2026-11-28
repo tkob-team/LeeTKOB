@@ -37,6 +37,31 @@ solutions in the queue, submit in this order: sv1 submits s09, sv2 submits s01, 
 the queue, then sv1 submits s04, and TA reads it again. If the seed gains a third student,
 give each solution its own student and read the queue once.
 
+### 0. admin manages classes and teaching assistants (optional, read-only for the main flow)
+
+This step is not needed to grade the main flow (the seed already has the classes and TAs);
+it documents the admin UI as it stands.
+
+1. **admin@leetkob.test signs in** and lands on "Lớp học" (`/admin/classes`). The list has the
+   columns Lớp, Trợ giảng, Sinh viên and Mã mời; every TA shows name and email (or "Chưa có trợ
+   giảng"), and every row has one **Sao chép** button (accessible name "Sao chép mã mời lớp
+   <tên>"). "Tạo lớp" refuses an empty name, a whitespace-only name and a name over 200 characters
+   under the field, before any request; a valid name creates the class and a toast "Đã tạo lớp
+   <tên>." shows at the bottom right.
+2. Open a class. The page shows "← Lớp học", the class name, the invite code with **Sao chép**,
+   "Trợ giảng (n)" with a **Gỡ <tên>** button per TA, "Gán thêm trợ giảng" (only TAs not in the
+   class; **Gán** is never disabled and, pressed with nothing chosen, shows "Chọn một trợ giảng."
+   under the field), and "Sinh viên (n)" as a table with a header checkbox, Tên, Email, **Đã nộp**
+   ("N lab · M lần" or "Chưa nộp") and Thao tác. A student who has submitted has a locked **Gỡ**
+   button and checkbox with the tooltip "Đã có bài nộp, không gỡ được.". Assigning a TA shows a
+   toast "Đã gán <tên>."; the picker reads "Mọi trợ giảng đã được gán cho lớp này." when every TA
+   is in the class.
+3. **Gỡ** opens a modal `<dialog>` ("Gỡ <tên> khỏi <lớp>?" with the role consequence, "Huỷ"
+   focused and a red "Gỡ <tên>"); Huỷ, Esc or a click outside cancels and returns focus to the
+   button; confirming shows "Đã gỡ <tên> khỏi lớp." and the TA returns to the picker.
+4. A class id that is not a UUID (`/admin/classes/abc`) or an unknown UUID shows "Không tìm thấy
+   lớp" / "Lớp không tồn tại hoặc đã bị xoá." with **Về danh sách lớp**, inside the admin layout.
+
 ### 1. ta1 creates the lab
 
 1. Open https://tkob-leetkob.duckdns.org. The login page appears; **ta1@leetkob.test signs
@@ -326,3 +351,84 @@ Still open after `ui-3`, carried over to PA4:
 | 14 | Back then Forward on the submit page empties the code | Keep a draft per lab in `sessionStorage` |
 | 15 | The scrollable table frame takes focus without a focus ring | `:focus-visible` style for the frame, or no focus |
 | 17 | The statement says "constraints are in constraints.json" to students | The TA edits the statement after importing |
+
+## Run 3 results (2026-11-28)
+
+Run 3 followed the script on https://tkob-leetkob.duckdns.org (bundle `index-Cobfuw9I.js`) from
+about 19:15 to 20:20 (UTC+7), with Claude in Chrome driving the UI. Each account signed in by
+itself; no code was changed. Screenshots are kept in `out/walkthrough/2026-11-28-run3/`
+(git-ignored); the full report is `out/walkthrough/2026-11-28-run3/REPORT.md`. Test data carries
+the prefix `[test] run3`. Run 3 added an **admin** pass and a **sandbox attack** pass to the
+error, keyboard and narrow-screen cases of run 2.
+
+Walkthrough lab `[test] run3 2026-11-28 19:29` (id `6f1fe87d-122a-45c7-9051-cb791f2b0e9b`), opens
+28/11/2026 19:29, due 05/12/2026 19:29, 7 tests, 2 constraints, **CPU 2000 ms**, 256 MB. The
+attack lab `[test] run3 attacks` (id `752ad1b4-0840-4789-9b3d-e2573ce4f84a`) uses the same problem.
+Both were imported with **Nhập thư mục** (the folder picker drove from a flat-layout copy because
+Claude in Chrome sets the files but not `webkitRelativePath`, so the folder-name in the toast read
+`statement.md`; the import still read the statement, 2 constraints and 7 tests).
+
+### Judge and checker times
+
+Judge: every AC was shown within a few seconds of submitting (≤ ~15 s). Checker: findings were in
+the queue within a few minutes (upper bound; the UI shows no checker time). s09 was submitted at
+19:34:16, s04 at 19:41:50 (from the queue block headers).
+
+| Solution | Student | Submission | C1 (Luật cứng) | C2 (Mô hình) |
+| --- | --- | --- | --- | --- |
+| s09 | sv1 (0D59) | `85362211` | pass | violation, dòng 10, 11 ("named mergeSort … insertion sort", English reason) |
+| s01 | sv2 (E141) | `07eb299f` | pass | pass |
+| s04 | sv1 (0D59) | `3db82555` | violation, dòng 11 `sort(a.begin(), a.end());` ("Dùng hàm bị cấm `std::sort`.") | violation, dòng 11 |
+
+### Steps
+
+| Step | Result | Note |
+| --- | --- | --- |
+| 0 admin: class list, create `[test] run3`, assign/remove ta1+ta2, bad routes | PASS | Validation, toast, modal dialog (Huỷ/Esc/confirm), A6 all as described |
+| 1 ta1 creates the lab (Nhập thư mục, CPU 2000) | PASS | Top row, "Đang mở · còn 7 ngày", 7 tests, 2 constraints; toast "Đã tạo lab …" |
+| 2 sv1 reads the statement, submits s09 | PASS | AC 7/7; double-click sent one submission; statement back link and limits as described |
+| 3 sv2 submits s01 | PASS | AC 7/7 |
+| 4 ta1 reads the queue (s09, s01) | PASS | Back "← Lớp thử nghiệm 1", Nguồn in Vietnamese, pass row "0 (−N nếu vi phạm)" |
+| 5 sv1 submits s04, ta1 reads again | PASS | s04 counted and first; s09 under "Các lần nộp cũ hơn (không tính điểm)" |
+| 6 ta2 opens the queue URL | PASS | "Không tìm thấy lab"; `GET …/review-queue` → 404 `urn:leetkob:problem:lab-not-found` |
+
+Also PASS: tab titles per screen ("<page> · LeeTKOB"); A5 (ta1 opening another class's create-lab
+form shows "Không tìm thấy lớp", no form); cross-class and cross-role guards (ta1 on Lớp 2 and on
+`/admin/classes` leak no data); the invite-code join form (empty → "Nhập mã mời.", `abc` → "Mã mời
+gồm đúng 32 ký tự (chữ, số, - và _).", client-side); create-lab validation (5 fields at once, "Còn
+N trường cần sửa."); file import 01 then 02 ("Đã thêm 1 test (02), tổng 2 test."), identical
+re-import ("Không có gì thay đổi."), a different problem's test 01 (dialog "Ghi đè test trùng số?"
+with Huỷ / "Thay toàn bộ bằng N test mới" / "Ghi đè NN, giữ …", Huỷ keeps the old test), and a
+flat-layout folder (7 tests); token tampering sends the user to `/login?next=…` with "Phiên đăng
+nhập đã hết hạn. Vui lòng đăng nhập lại."; full-keyboard admin → assign → dialog. At 375/768/1280 px
+(same-origin iframe, overflow in JS) only the admin pages (≤ 375 px) and the TA class-detail lab
+table (≤ 768 px) scroll the whole page sideways; every other page fits.
+
+### Attacks (sandbox)
+
+sv1 submitted eleven escape attempts to `[test] run3 attacks`, each printing the correct answer
+**only if** the attempt succeeded and `0` otherwise, then one honest solution. **No attempt was
+accepted.**
+
+| # | Attempt | Expected | Actual | Submission |
+| --- | --- | --- | --- | --- |
+| a | TCP to 1.1.1.1:53 | WA | WA | `1536beea` |
+| b | getenv contains KEY/SECRET/JWT/PASSWORD | WA | WA | `4c70b87f` |
+| c | read /proc/1/environ, /app/.env, /run/secrets for KEY | WA | WA | `e6307503` |
+| d | access /var/run/docker.sock | WA | WA | `19902b3d` |
+| e | getuid() == 0 | WA | WA | `ae5455d8` |
+| f | /proc/mounts has /home, /var/lib/docker, /root | WA | WA | `d09e0a4e` |
+| g | `#include "/proc/self/environ"` | CE | WA | `90b608b6` |
+| h | fork bomb | not AC | TLE | `409ec03f` |
+| i | touch 1 GiB | not AC | MLE | `e74f7bde` |
+| j | print > 2 MiB | not AC | RE | `132dfef9` |
+| k | sleep forever | not AC | TLE | `49f4677b` |
+| — | s01 (honest) | AC ≤ 10 s | AC | `099e9d93` |
+
+Case **g** was the only deviation: it compiled and ran instead of failing to compile. The compiler
+runs with an empty environment, so including `/proc/self/environ` pulls in nothing, the file is
+effectively empty, the program compiles, prints `0` and is WA. The attempt still leaked nothing and
+was not accepted, which is the secure outcome (sandbox minimum #9,
+`compilerCannotIncludeEnvironmentOrSecretFiles`). Every other attempt failed exactly as the nine
+sandbox minimums require: no network, no service environment, no secret files, no Docker socket, not
+root, no host mounts, and the process, memory, output and time caps all held.
