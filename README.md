@@ -105,8 +105,8 @@ socket only in the judge worker service. Its sandbox containers receive neither 
 socket nor the service environment. `JUDGE_SANDBOX_IMAGE` can select a trusted image
 already available to that daemon.
 
-The `sandbox` job runs on PRs, `main`, and the `pa3` tag. Reproduce its nine sandbox
-checks and the worker restart test after building the image.
+The `sandbox` job runs on PRs, `main`, and the `pa3` tag. Reproduce its sandbox
+checks (nine minimums, 11 tests) and the worker restart test after building the image.
 
 ```sh
 (cd backend && JUDGE_SANDBOX_TESTS=1 sh ./mvnw -B -ntp \
