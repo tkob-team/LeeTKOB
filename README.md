@@ -416,3 +416,6 @@ command. HSTS is off, so no browser is forced to use HTTPS, but caddy's redirect
 Permanent Redirect` that browsers cache: a browser that already followed it keeps going to
 `https://` until its cache is cleared (or open the site in a private window). The frontend's
 submission key works on HTTP since #39.
+
+See the [private operations dashboard](deploy/OPERATIONS.md) and the
+[Gemini region incident report](docs/incidents/2026-11-24-gemini-region.md).

@@ -47,7 +47,14 @@ class ProblemAdvice {
     if (exception instanceof ErrorResponse) {
       throw exception;
     }
-    LOG.error("Unexpected failure on {}", request.getRequestURI(), exception);
+    if (request.getRequestURI().contains("/submissions")) {
+      LOG.atError()
+          .addKeyValue("event", "submission_request_failed")
+          .addKeyValue("error_type", exception.getClass().getSimpleName())
+          .log("Submission request failed");
+    } else {
+      LOG.error("Unexpected failure on {}", request.getRequestURI(), exception);
+    }
     return problems.response(
         new ApiException(ProblemType.INTERNAL_ERROR, "The server could not process the request."),
         request.getRequestURI());

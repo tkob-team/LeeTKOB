@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import threading
 import time
+import uuid
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Literal, Protocol
@@ -19,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from checker.hard_rules import Evidence, RuleResult
 from checker.redact import sanitize
 from checker.semantic import Judgement, SemanticCase
+from checker.trace import log_event
 
 # USD per 1M tokens (input text, output including thinking), paid tier, Standard (not Batch).
 # Source: https://ai.google.dev/gemini-api/docs/pricing (now served at
@@ -203,6 +205,7 @@ class GeminiJudge:
             "cost_note": COST_NOTE,
             "attempts": 0,
         }
+        call_id = str(uuid.uuid4())
         outcome = "quota_exhausted"
         for model in self._models:
             call["model"] = model
@@ -214,10 +217,26 @@ class GeminiJudge:
                 try:
                     answer = self._generate_within_deadline(model, prompt)
                 except TimeoutError:
+                    log_event(
+                        "model_attempt",
+                        model_call_id=call_id,
+                        model=model,
+                        outcome="timeout",
+                        attempt=call["attempts"],
+                        latency_ms=round((self._clock() - started) * 1000),
+                    )
                     return self._unsure(
                         call, "timeout", f"no answer within {self._timeout_s:g} s", "timeout"
                     )
                 except RateLimited as limit:
+                    log_event(
+                        "model_attempt",
+                        model_call_id=call_id,
+                        model=model,
+                        outcome="rate_limited",
+                        attempt=call["attempts"],
+                        latency_ms=round((self._clock() - started) * 1000),
+                    )
                     if limit.daily:
                         outcome = "quota_exhausted"
                         break
@@ -229,6 +248,14 @@ class GeminiJudge:
                         call, "rate_limited", "rate limited after 3 retries", "model"
                     )
                 except ServerUnavailable:
+                    log_event(
+                        "model_attempt",
+                        model_call_id=call_id,
+                        model=model,
+                        outcome="server_error",
+                        attempt=call["attempts"],
+                        latency_ms=round((self._clock() - started) * 1000),
+                    )
                     if retries < len(BACKOFF_S):
                         self._sleep(BACKOFF_S[retries])
                         retries += 1
@@ -237,10 +264,27 @@ class GeminiJudge:
                         call, "server_error", "provider server error after 3 retries", "model"
                     )
                 except Exception as error:
+                    log_event(
+                        "model_attempt",
+                        model_call_id=call_id,
+                        model=model,
+                        outcome="error",
+                        attempt=call["attempts"],
+                        latency_ms=round((self._clock() - started) * 1000),
+                    )
                     reason = f"model call failed: {type(error).__name__}"
                     return self._unsure(call, "error", reason, "model")
                 call["latency_ms"] = round((self._clock() - started) * 1000)
                 self._record_reply(call, model, answer)
+                log_event(
+                    "model_attempt",
+                    model_call_id=call_id,
+                    model=model,
+                    outcome="answered",
+                    attempt=call["attempts"],
+                    latency_ms=call["latency_ms"],
+                    cost_usd=call["cost_usd"],
+                )
                 return self._decide(call, answer, case.source, clean)
         return self._unsure(call, outcome, "daily quota exhausted on every model", "model")
 

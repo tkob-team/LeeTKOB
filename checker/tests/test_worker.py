@@ -13,6 +13,7 @@ import psycopg
 import pytest
 
 from checker.model_judge import GeminiJudge, ModelReply
+from checker.operations import Monitor
 from checker.semantic import Judgement, SemanticCase
 from checker.worker import CheckWorker, conninfo_from_env
 
@@ -134,12 +135,22 @@ def findings(db: psycopg.Connection[tuple[object, ...]], submission: uuid.UUID) 
 
 
 def test_ac_job_writes_one_finding_per_constraint_and_finishes(
-    database: dict[str, object], db: psycopg.Connection[tuple[object, ...]]
+    database: dict[str, object],
+    db: psycopg.Connection[tuple[object, ...]],
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     submission = seed(db)
     client = RecordingClient(violation_answer())
 
     assert worker(database, client).run_once() == "completed"
+    trace = capsys.readouterr().err
+    assert str(submission) in trace
+    assert '"constraint_code": "C1"' in trace
+    assert '"event": "model_attempt"' in trace
+    assert "std::sort" not in trace
+    assert db.execute(
+        "select submission_id, attempt, model, outcome from checker_model_attempts"
+    ).fetchall() == [(submission, 1, "fake-model", "answered")]
 
     rows = findings(db, submission)
     assert [r[0] for r in rows] == ["C1", "C2"]
@@ -162,6 +173,20 @@ def test_ac_job_writes_one_finding_per_constraint_and_finishes(
         (submission,),
     ).fetchone()
     assert finished == (True, True)
+
+
+def test_model_telemetry_lock_does_not_prevent_findings(
+    database: dict[str, object],
+    db: psycopg.Connection[tuple[object, ...]],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    submission = seed(db)
+    with db.transaction():
+        db.execute("lock table checker_model_attempts in access exclusive mode")
+        assert worker(database, RecordingClient(violation_answer())).run_once() == "completed"
+    assert len(findings(db, submission)) == 2
+    assert db.execute("select count(*) from checker_model_attempts").fetchone() == (0,)
+    assert '"error_type": "LockNotAvailable"' in capsys.readouterr().err
 
 
 def test_ban_list_pair_never_calls_the_model(
@@ -188,6 +213,9 @@ def test_judge_timeout_is_an_unsure_guardrail_finding(
     assert c2[5] == "timeout"
     outcome = db.execute("select outcome from model_calls where id = %s", (c2[6],)).fetchone()
     assert outcome == ("timeout",)
+    assert db.execute(
+        "select submission_id, attempt, outcome from checker_model_attempts"
+    ).fetchall() == [(submission, 1, "timeout")]
 
 
 def test_running_twice_on_the_same_job_keeps_one_set_of_findings(
@@ -295,3 +323,57 @@ def test_non_jdbc_url_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DB_URL", "postgres://x/y")
     with pytest.raises(ValueError, match="jdbc:postgresql://"):
         conninfo_from_env()
+
+
+def test_operations_alert_fires_and_recovers(
+    db: psycopg.Connection[tuple[object, ...]],
+    database: dict[str, object],
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    submission = seed(db)
+    monitor = Monitor(database)
+    monitor.sample()
+    assert monitor.state == "no_data"
+    db.execute(
+        "insert into judge_jobs (submission_id, enqueued_at) "
+        "values (%s, now() - interval '60 seconds')",
+        (submission,),
+    )
+    monitor.sample()
+    assert monitor.state == "firing"
+    assert monitor.metrics is not None
+    assert monitor.metrics["judge_overdue_unfinished_15m"] == 1
+    db.execute("update judge_jobs set enqueued_at = statement_timestamp() - interval '20 minutes'")
+    monitor.sample()
+    assert monitor.state == "firing"
+    assert monitor.metrics is not None
+    assert monitor.metrics["judge_overdue_unfinished_15m"] == 1
+    db.execute(
+        "update judge_jobs set finished_at = enqueued_at + interval '60 seconds', result = '{}'"
+    )
+    monitor.sample()
+    assert monitor.state == "no_data"
+    log = capsys.readouterr().err
+    assert log.count('"transition": "firing"') == 1
+    assert '"transition": "resolved"' not in log
+
+    def unavailable(*args: object, **kw: object) -> None:
+        raise psycopg.OperationalError("fixture DB offline")
+
+    with monkeypatch.context() as patch:
+        patch.setattr("checker.operations.psycopg.connect", unavailable)
+        monitor.sample_once()
+        assert monitor.state == "unknown"
+        assert monitor.metrics is None
+        assert '"transition": "resolved"' not in capsys.readouterr().err
+
+    db.execute(
+        "update judge_jobs set enqueued_at = statement_timestamp() - interval '60 seconds', "
+        "finished_at = statement_timestamp() - interval '59 seconds'"
+    )
+    monitor.sample()
+    assert monitor.state == "ok"
+    log = capsys.readouterr().err
+    assert '"transition": "resolved"' in log
+    assert '"ratio": 1.0' in log

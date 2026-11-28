@@ -9,7 +9,6 @@ NOTHING; model_calls never stores the prompt, the code or a key).
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import time
@@ -25,6 +24,7 @@ from psycopg.types.json import Jsonb
 
 from checker.cli import Constraint, Pair, decide, semantic_judge
 from checker.semantic import Judgement, SemanticJudge
+from checker.trace import log_event, trace_constraint, trace_submission
 
 Outcome = Literal["idle", "completed", "lost"]
 Source = Literal["hard_rule", "model", "guardrail"]
@@ -135,7 +135,14 @@ class CheckWorker:
         for code, text in constraints:
             # The pair label stays local; SemanticCase never carries the submission id.
             pair = Pair("submission", Constraint(str(code), str(text)), statement, claim.code)
-            found.append(Finding(str(code), decide(pair, self._judge)))
+            with trace_constraint(str(claim.submission_id), str(code)):
+                finding = Finding(str(code), decide(pair, self._judge))
+                log_event(
+                    "constraint_decided",
+                    source=finding.source,
+                    verdict=finding.judgement.result.verdict,
+                )
+            found.append(finding)
         return found
 
     def complete(self, claim: Claim, found: Sequence[Finding]) -> bool:
@@ -207,23 +214,54 @@ class CheckWorker:
         )
         return call_id
 
+    def _persist_model_attempt(self, entry: dict[str, object]) -> None:
+        options = (
+            f"{self._conninfo.get('options', '')} -c statement_timeout=1000 -c lock_timeout=750"
+        ).strip()
+        telemetry_conninfo = {**self._conninfo, "connect_timeout": 2, "options": options}
+        try:
+            with psycopg.connect(**telemetry_conninfo, autocommit=True) as conn:
+                conn.execute(
+                    """
+                    insert into checker_model_attempts
+                        (call_id, attempt, submission_id, model, outcome, latency_ms,
+                         estimated_cost_usd)
+                    values (%s, %s, %s, %s, %s, %s, %s)
+                    on conflict (call_id, attempt) do nothing
+                    """,
+                    (
+                        entry["model_call_id"],
+                        entry["attempt"],
+                        entry["submission_id"],
+                        entry["model"],
+                        entry["outcome"],
+                        entry["latency_ms"],
+                        entry.get("cost_usd"),
+                    ),
+                )
+        except psycopg.Error as error:
+            log_event("model_telemetry_unavailable", level="WARN", error_type=type(error).__name__)
+
     def run_once(self) -> Outcome:
         claim = self.claim()
         if claim is None:
             return "idle"
-        started = time.monotonic()
-        found = self.grade(claim)
-        outcome: Outcome = "completed" if self.complete(claim, found) else "lost"
-        log = {
-            "event": "check_job",
-            "submission_id": str(claim.submission_id),
-            "outcome": outcome,
-            "findings": len(found),
-            "model_calls": sum(1 for f in found if f.judgement.call.get("called") is True),
-            "seconds": round(time.monotonic() - started, 3),
-        }
-        print(json.dumps(log), file=sys.stderr, flush=True)
-        return outcome
+        with trace_submission(str(claim.submission_id), self._persist_model_attempt):
+            started = time.monotonic()
+            log_event("checker_claimed")
+            try:
+                found = self.grade(claim)
+                outcome: Outcome = "completed" if self.complete(claim, found) else "lost"
+            except Exception as error:
+                log_event("checker_failed", level="WARN", error_type=type(error).__name__)
+                raise
+            log_event(
+                "checker_finished",
+                outcome=outcome,
+                findings=len(found),
+                duration_ms=round((time.monotonic() - started) * 1000),
+            )
+            return outcome
 
 
 def _int(value: object) -> int:

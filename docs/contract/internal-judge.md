@@ -44,6 +44,10 @@ The submission POST returns a receipt with status `queued` for both creation and
 
 ## Observability handoff
 
+The queue stores the first claim timestamp and the successful attempt's grading
+duration for operational measurements. The verdict and checker enqueue remain atomic.
+Historical rows may lack timing fields.
+
 The worker emits the submission ID, outcome and time in the grading adapter as key-value log fields. The queue timestamps support later end-to-end measurements from submission receipt to result commit. For T57, this query measures jobs ready to claim and jobs currently leased as separate counts.
 
 ```sql
