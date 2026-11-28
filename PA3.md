@@ -40,9 +40,24 @@ under "Các lần nộp cũ hơn (không tính điểm)".
 
 [CI runs for the `pa3` tag](https://github.com/tkob-team/LeeTKOB/actions/workflows/ci.yml?query=branch%3Apa3).
 The `sandbox` job builds the sandbox image and runs `DockerSandboxTest` (the nine sandbox
-minimums) and `JudgeWorkerRestartTest`; the other jobs run `make lint`, `make format-check`,
-`make typecheck` and `make test`. To reproduce the sandbox job, see
+minimums, 11 tests) and `JudgeWorkerRestartTest`; the other jobs run `make lint`,
+`make format-check`, `make typecheck` and `make test`. To reproduce the sandbox job, see
 [PA#03 submission and judge](README.md#pa03-submission-and-judge).
+
+Tests in
+[DockerSandboxTest](backend/src/test/java/com/leetkob/backend/judge/DockerSandboxTest.java):
+
+| # | Minimum | Test |
+| --- | --- | --- |
+| 1 | No network | `submissionHasOnlyLoopbackAndCannotConnectOrResolveExternally` |
+| 2 | CPU time limit | `busySubmissionHitsCpuBudgetBeforeWallTime` |
+| 3 | Wall time limit, no container left | `waitingSubmissionHitsWallLimitAndLeavesNoContainer` |
+| 4 | Memory limit | `memoryCapKillsAllocationAfterTheSubmissionReadsPagesBack` |
+| 5 | Process limit | `creatingMoreThanSixteenTasksIsDenied` |
+| 6 | Output limit | `outputOverOneMebibyteEndsExecution` |
+| 7 | Not root | `nonRootSubmissionRunsUnderAnIsolatedSupervisor` |
+| 8 | No host workspace or Docker socket | `hostWorkspaceAndDockerSocketAreNotMounted` |
+| 9 | No secrets | `submissionCannotReadServiceEnvironment`, `submissionCannotFindSecretFilesOrKeyMarkers`, `compilerCannotIncludeEnvironmentOrSecretFiles` |
 
 ## Checker command
 
@@ -82,8 +97,11 @@ The committed dev-set run with `gemini-3.5-flash-lite` (`--no-fallback`):
 
 - [predictions.jsonl](eval/runs/2026-11-23-gemini-3.5-flash-lite/predictions.jsonl)
 - [eval-report.txt](eval/runs/2026-11-23-gemini-3.5-flash-lite/eval-report.txt):
-  0 wrongful deductions, recall 100.0% (37/37), unsure rate 0.0% (0/102). Scoring the
-  committed predictions again on 2026-11-28 gives the same report.
+  0 wrongful deductions, recall 100.0% (37/37), unsure rate 0.0% (0/102).
+  eval-report.txt was produced from a local copy before it was committed as
+  predictions.jsonl; re-scoring the committed file on 2026-11-28 gives the same body (only
+  the path line differs). sha256 of the committed predictions.jsonl:
+  `a3a042dcbe3537fbf4513197670febb7a6fd752ddd6a21bf2a3360ddae2122aa`.
 - [calls.jsonl](eval/runs/2026-11-23-gemini-3.5-flash-lite/calls.jsonl): one line per pair;
   each of the 47 model calls carries its `provider_request_id`, model, prompt, tokens,
   latency and a cost estimate.
@@ -98,15 +116,17 @@ Tokens and the cost of one lab: [Model and cost](README.md#model-and-cost).
   `checker/tests/test_model_limits.py::test_slow_model_is_unsure_timeout` and
   `checker/tests/test_model_limits.py::test_client_timeout_error_is_unsure_timeout`.
 - There is no Publish action. Before publication a student sees only the judge result, as
-  FAQ-08 (LeeTKOB-FAQ) says: "Trước khi công bố: không. Sinh viên chỉ thấy kết quả chấm test
-  (FAQ-02). Kết quả của cả luật cứng lẫn mô hình đều ẩn." See
+  [FAQ-08](https://github.com/tkob-team/LeeTKOB-FAQ/blob/main/FAQ.md#faq-08) says: "Trước khi
+  công bố: không. Sinh viên chỉ thấy kết quả chấm test
+  ([FAQ-02](https://github.com/tkob-team/LeeTKOB-FAQ/blob/main/FAQ.md#faq-02)). Kết quả của
+  cả luật cứng lẫn mô hình đều ẩn." See
   [get-review-queue](docs/contract/get-review-queue.md) and
   [get-student-judge-status](docs/contract/get-student-judge-status.md).
 
 ## Known limitations
 
-- The JWT lives 8 hours, has no refresh and cannot be revoked, and the frontend keeps it in
-  `localStorage`.
+- The JWT lives 8 hours and has no refresh. There is no server-side revocation; sign-out
+  only clears the browser copy. The frontend keeps it in `localStorage`.
 - There is no per-lab cap on model calls yet (planned: 800 calls per lab, FAQ-09).
 - Students join a class with an invitation code, as in Google Classroom. Changing the code
   and removing a student are not available yet (PA4).
