@@ -1,4 +1,4 @@
-# Class management API — 1.4.0 (T29)
+# Class management API — 1.5.0 (T29)
 
 All endpoints require the existing valid HS256 Bearer JWT (`sub`, `role`, `exp`).
 The user must exist and the signed global role must equal `users.role`; a missing
@@ -24,6 +24,7 @@ add a login screen or an alternative token issuer. User provisioning must set
 | DELETE `/admin/classes/{classId}/tas/{userId}` | ADMIN | — | 204, also on repeat or when the user is not a TA of the class (1.3.0) |
 | DELETE `/admin/classes/{classId}/students/{userId}` | ADMIN | — | 204, also on repeat; 409 member-has-submissions when the student has a submission in a lab of the class (1.3.0) |
 | GET `/admin/classes/{classId}/members` | ADMIN | — | each item also carries `submissionCount` (1.4.0) |
+| GET `/admin/classes/{classId}/members` | ADMIN | — | each item also carries `submittedLabCount` (1.5.0) |
 
 Class objects contain `id`, `name`, `inviteCode`. For students, inviteCode is null
 (or omitted by JSON serialization), never the actual code. ADMIN and the assigned
@@ -110,3 +111,14 @@ always 0. The change only adds a field: ordering, the other fields, the error ca
 and the TA roster GET `/classes/{classId}/members` (still `{id, role}`) are
 unchanged. AdminMemberSubmissionCountContractTest covers the count per class, the
 zero for TAs and for a class without labs, and that the TA roster has no count.
+
+1.5.0 lets the admin screen say how far a student got, not only whether they submitted.
+Each item of GET `/admin/classes/{classId}/members` gains `submittedLabCount`, an
+integer: for a STUDENT, the number of different labs of this class they have at least
+one submission in (so `submittedLabCount` ≤ `submissionCount`, and both are 0 or both
+above 0); labs of other classes do not count. For a TA it is always 0. The change only
+adds a field: `submissionCount`, ordering, the other fields, the error cases and the TA
+roster GET `/classes/{classId}/members` are unchanged.
+AdminMemberSubmittedLabCountContractTest covers the distinct-lab count per class (two
+submissions in one lab count once), the zero for TAs and for a class without labs, and
+that the TA roster has no count.
