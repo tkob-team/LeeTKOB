@@ -34,7 +34,15 @@ under "Các lần nộp cũ hơn (không tính điểm)".
 
 - Demo video: `<link video>`
 - Demo lab id on the deployment: `<id>`
-- Admin: `<sau PR admin-ui>`
+
+### Admin and class membership
+
+- `admin@leetkob.test` signs in and lands on `/admin/classes`: the list of classes with the
+  invite code, the number of TAs and the number of students; a form to create a class; and
+  a TA picker per class to assign a TA. The picker reads `GET /admin/tas`
+  ([class API contract](docs/contract/classes.md), 1.1.0).
+- A TA sees the invite code of their own classes on the TA lab page.
+- A student joins a class by entering the invite code on the student lab list.
 
 ## Continuous integration
 
@@ -185,6 +193,9 @@ Tokens and the cost of one lab: [Model and cost](README.md#model-and-cost).
   and removing a student are not available yet (PA4).
 - UI problems moved to PA4: #4, #6/#16, #9, #10, #14, #15, #17, described in
   [docs/pa3/walkthrough.md](docs/pa3/walkthrough.md#moved-to-pa4).
+- A button with a `disabledReason` loses keyboard focus when its state changes, because the
+  button is rendered alone or inside a wrapper with the reason
+  (`frontend/src/components/ui/Button.tsx:37`); moved to PA4.
 
 ## AI log
 
