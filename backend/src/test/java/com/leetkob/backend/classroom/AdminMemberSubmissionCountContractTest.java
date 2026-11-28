@@ -62,10 +62,10 @@ class AdminMemberSubmissionCountContractTest {
   void countsEachStudentsSubmissionsInTheLabsOfThisClassOnly() throws Exception {
     UUID lab1 = lab(web, "Lab 1");
     UUID lab2 = lab(web, "Lab 2");
-    UUID otherLab = lab(other, "Other lab");
     submit(lab1, studentAn, "count-an-lab1-key-a");
     submit(lab1, studentAn, "count-an-lab1-key-b");
     submit(lab2, studentAn, "count-an-lab2-key-a");
+    UUID otherLab = lab(other, "Other lab");
     submit(otherLab, studentAn, "count-an-other-key-a");
 
     call("/admin/classes/" + web + "/members")
