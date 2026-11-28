@@ -11,7 +11,7 @@ Site: https://tkob-leetkob.duckdns.org
 | --- | --- | --- |
 | `admin@leetkob.test` | Administrator | — |
 | `ta1@leetkob.test` | TA | "Lớp thử nghiệm 1" |
-| `ta2@leetkob.test` | TA | a second class, not "Lớp thử nghiệm 1" |
+| `ta2@leetkob.test` | TA | "Lớp thử nghiệm 2" |
 | `sv1@leetkob.test` | Student | "Lớp thử nghiệm 1" |
 | `sv2@leetkob.test` | Student | "Lớp thử nghiệm 1" |
 
@@ -91,6 +91,55 @@ Exit 1 is expected with the model off: every semantic pair is `unsure`, so recal
 unsure rate miss their thresholds. Wrongful deductions stay 0 and every ban-list pair gets
 `pass` or `violation` from the hard rules.
 
+## Hard rules first
+
+A ban-list constraint ("Do not use" / "Do not call") is decided from the C++ syntax tree
+built by tree-sitter in
+[checker/src/checker/hard_rules.py](checker/src/checker/hard_rules.py), never by a text
+search and never by the model. Trap tests in
+[checker/tests/test_hard_rules.py](checker/tests/test_hard_rules.py):
+
+- `test_own_sort_in_a_namespace_is_not_the_library_sort`
+- `test_banned_name_in_comment_or_string_is_ignored`
+- `test_algorithm_header_used_only_for_swap`
+- `test_prompt_injection_in_a_comment_does_not_change_the_verdict`
+- `test_code_disabled_by_if_zero_is_never_compiled`
+
+In the committed run's `calls.jsonl`, the 55 ban-list pairs have `"called": false` and
+`"decided_by": "hard_rule"`; only the other 47 pairs called the model. The model-off results
+above (0 wrongful deductions, 0 ban-list pairs `unsure` on `eval/dev` and `eval/own`) show
+the hard rules alone take no wrongful deduction.
+
+## What the model sees
+
+One call per semantic pair carries only the problem statement, that one constraint and the
+code with comments replaced by spaces (line numbers kept) and 8-digit student IDs and email
+addresses masked ([checker/src/checker/redact.py](checker/src/checker/redact.py)). No
+solution id, file name or identity is sent. Tests:
+
+- `checker/tests/test_redact_and_prices.py::test_ids_and_emails_are_masked_inside_string_and_char_literals_only`
+- `checker/tests/test_redact_and_prices.py::test_id_in_a_comment_disappears_with_the_comment`
+- `checker/tests/test_prompt.py::test_prompt_template_names_no_dev_problem_or_solution`
+- `checker/tests/test_prompt.py::test_built_prompt_adds_only_the_given_statement_constraint_and_code`
+
+A scan of the 47 prompts in the committed `calls.jsonl` on 2026-11-28 found no `//`, no
+`/*`, no email address, no 8-digit number and no dev solution id.
+
+The model answers `verdict` (`pass`, `violation` or `unsure`), `evidence` (line and text) and
+`reason`. The response schema has no deduction field and allows no other property:
+`checker/src/checker/model_judge.py:34` (`OUTPUT_SCHEMA`).
+
+## Own eval cases
+
+[eval/own/](eval/own/README.md) has 3 new problems (`count-distinct`, `digit-sum-recursive`,
+`modpow-fast`) with 14 labelled (solution, constraint) pairs in the same layout as
+`eval/dev/`, tagged like the dev set, including `trap` and `injection` cases. Score a
+prediction file with:
+
+```sh
+node eval/dev/eval.mjs --data eval/own --predictions <predictions.jsonl>
+```
+
 ## Run with the model
 
 The committed dev-set run with `gemini-3.5-flash-lite` (`--no-fallback`):
@@ -122,6 +171,8 @@ Tokens and the cost of one lab: [Model and cost](README.md#model-and-cost).
   cả luật cứng lẫn mô hình đều ẩn." See
   [get-review-queue](docs/contract/get-review-queue.md) and
   [get-student-judge-status](docs/contract/get-student-judge-status.md).
+- Verdicts live only in the TA's review queue (`GET /labs/{labId}/review-queue`). In this
+  version no path turns a verdict into a grade.
 
 ## Known limitations
 
@@ -132,3 +183,7 @@ Tokens and the cost of one lab: [Model and cost](README.md#model-and-cost).
   and removing a student are not available yet (PA4).
 - UI problems moved to PA4: #4, #6/#16, #9, #10, #14, #15, #17, described in
   [docs/pa3/walkthrough.md](docs/pa3/walkthrough.md#moved-to-pa4).
+
+## AI log
+
+AI-assisted work on this release is recorded in [AI-LOG.md](AI-LOG.md).
