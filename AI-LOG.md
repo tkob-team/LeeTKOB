@@ -1,5 +1,31 @@
 # AI-LOG
 
+## 2026-11-28 - T89: PA#3 work summary (C, Hoang)
+
+- **Tools and roles.** Hoang used Claude Code with Claude Opus 5.5 for login, lab authoring, seed, Docker Compose and the UI follow-ups. Claude Code with Claude Sonnet 5.5 handled the AWS move and the sign-in test fix. The AWS session also used Claude in Chrome for the console. Hoang supplied the requirements, checked the UI on the VM and directed the deployment decisions.
+- **Work and evidence.**
+  - **T81** added email/password sign-in, BCrypt, signed JWTs with the server-assigned role, attempt limits and real frontend authentication. The log records 11 passing backend auth and limiter tests and all four WSL `make` targets passing. [PR #31](https://github.com/tkob-team/LeeTKOB/pull/31)
+  - **T82** added class-scoped lab APIs, the TA create form and file import, and the student statement view. Eight backend contract tests passed, and the frontend tests imported the real `sort-merge` statement, two constraints and seven test pairs. [PR #32](https://github.com/tkob-team/LeeTKOB/pull/32)
+  - **T83 and T84** added the repeatable seed for five test accounts and two classes, Docker Compose and the deployment runbook. After Gemini failed on Azure East Asia (Hong Kong), Hoang moved the deployment to AWS Singapore. On the new VM the Gemini check succeeded, sandbox checks passed 11/11, and the walkthrough reached the TA review queue and confirmed 404 for the other class's TA. [PR #33](https://github.com/tkob-team/LeeTKOB/pull/33), [PR #37](https://github.com/tkob-team/LeeTKOB/pull/37)
+  - **Follow-ups** fixed the duplicated class label, linked the header brand to the role's home, refined the light/dark switch and sent TAs to the lab list. The flaky sign-in test now reuses one generated token so the expiry cannot differ across a one-second boundary. It passed 20 consecutive local runs and the PR's Node 22 CI. [PR #34](https://github.com/tkob-team/LeeTKOB/pull/34), [PR #35](https://github.com/tkob-team/LeeTKOB/pull/35), [PR #36](https://github.com/tkob-team/LeeTKOB/pull/36), [PR #38](https://github.com/tkob-team/LeeTKOB/pull/38), [CI run](https://github.com/tkob-team/LeeTKOB/actions/runs/45571569458)
+- **Kept.** Lab creation stayed in the UI and API, and the seed created accounts and classes only. The checker worker alone received the Gemini key, and the judge worker alone had the Docker socket among the running services. The sign-in test retained its original assertions.
+- **Changed.** The deployment runbook gained the region requirement, fixed IP guidance and a model reachability check. Hoang's session kept the Compose setup during the move and reran the walkthrough on the replacement VM. [PR #37](https://github.com/tkob-team/LeeTKOB/pull/37)
+- **Rejected and corrected.**
+  - T81 rejected trusting a client-supplied `X-Forwarded-For` header for rate limiting. The Compose deployment used nginx to set the header at the trusted proxy. [PR #31](https://github.com/tkob-team/LeeTKOB/pull/31), [PR #33](https://github.com/tkob-team/LeeTKOB/pull/33)
+  - A shared `env_file` would expose the Gemini key to every service. Compose used explicit variables per service. [PR #33](https://github.com/tkob-team/LeeTKOB/pull/33)
+  - Keeping the Hong Kong VM for the walkthrough with `MODEL_OFF=1` would leave semantic checks at `unsure`. Moving only the checker would require exposing database access across hosts. Hoang moved the full stack to Singapore. [PR #37](https://github.com/tkob-team/LeeTKOB/pull/37)
+  - Rerunning the flaky test alone would leave the clock-boundary failure in place. Generating the token once removed the cause. [PR #38](https://github.com/tkob-team/LeeTKOB/pull/38)
+- **Deviation from AGENTS.md.** During the VM move, the session transferred the Gemini key between the two deployment environment files at the requester's direction. Reading the source environment file breached the repository rule. The session log records that the key value was kept out of its output and the repository. [Deployment AI log](#2026-11-25--t84-follow-up-move-the-deployment-to-aws-singapore-c-hoang)
+- **Not done or not verified.** The VM migration session left the old Azure VM untouched and left walkthrough labs on both deployments. The sign-in fix was checked locally with Node 26; the Node 22 result comes from PR CI. Backend and checker checks for that fix were left to CI. The final submission was outside the work recorded here.
+- **Summary drafted with OpenAI Codex** from the team's notes, the existing AI log and GitHub evidence.
+
+## 2026-11-28 - Fix the Create Lab tab title in PA#3 CI
+
+- **Tool.** OpenAI Codex investigated the failing CreateLabRoute test and reproduced the stale loading title on the class-not-found screen.
+- **Kept.** The existing title assertion, class access checks, loading and error states, and the default title on unmount.
+- **Changed.** The shared title hook now updates and resets the title in layout effects. A regression test checks that the class-not-found heading and its title appear in the same React commit. The regression test caught the stale title before the fix.
+- **Rejected.** Waiting longer in the existing assertion would hide the brief mismatch in the UI. The fix updates the title before paint.
+
 ## 2026-11-04 — Scaffold repo: Spring Boot backend, Python checker, make checks (A)
 - Attribution: the tracker Overview sheet maps A to Hiep; the original author label is retained.
 - Tool: Claude Code (Claude Opus 5.5)
