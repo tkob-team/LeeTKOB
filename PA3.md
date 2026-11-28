@@ -7,16 +7,15 @@ the deployment and on their own machine. Commands are the ones in the [README](R
 
 Site: https://tkob-leetkob.duckdns.org
 
-| Account | Role | Class |
-| --- | --- | --- |
-| `admin@leetkob.test` | Administrator | — |
-| `ta1@leetkob.test` | TA | "Lớp thử nghiệm 1" |
-| `ta2@leetkob.test` | TA | "Lớp thử nghiệm 2" |
-| `sv1@leetkob.test` | Student | "Lớp thử nghiệm 1" |
-| `sv2@leetkob.test` | Student | "Lớp thử nghiệm 1" |
+| Account | Role | Class | Password |
+| --- | --- | --- | --- |
+| `admin@leetkob.test` | Administrator | — | `fNQ8K+gJLGEwgNr0RWaZYhP/` |
+| `ta1@leetkob.test` | TA | "Lớp thử nghiệm 1" | `weWxtfLug+HKwMAUauSr5idc` |
+| `ta2@leetkob.test` | TA | "Lớp thử nghiệm 2" | `weWxtfLug+HKwMAUauSr5idc` |
+| `sv1@leetkob.test` | Student | "Lớp thử nghiệm 1" | `1eg6gQwDhA46Fk2g9DHVcEQg` |
+| `sv2@leetkob.test` | Student | "Lớp thử nghiệm 1" | `1eg6gQwDhA46Fk2g9DHVcEQg` |
 
-Password for every account: `<SV điền>`. These are public test accounts with seeded data
-only; they hold no real student data.
+These are public test accounts with seeded data only; they hold no real student data.
 
 The checker calls Google Gemini on the Free tier. The key's Google project has no billing
 account, so the real cost is USD 0. The risk is running out of the daily quota: verdicts
