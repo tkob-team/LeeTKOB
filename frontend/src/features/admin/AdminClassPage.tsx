@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
@@ -21,6 +21,7 @@ import {
   HAS_SUBMISSIONS,
   personName,
   removalPath,
+  submittedLabel,
   taOptionLabel,
   type AdminMember,
   type TaAccount,
@@ -223,6 +224,7 @@ export function AdminClassPage() {
   const selectAll = useRef<HTMLInputElement>(null);
   const taHeading = useRef<HTMLHeadingElement>(null);
   const studentHeading = useRef<HTMLHeadingElement>(null);
+  const lockedReasonId = useId();
 
   const membersPath = `/admin/classes/${encodeURIComponent(classId)}/members`;
 
@@ -422,28 +424,38 @@ export function AdminClassPage() {
           <p className="lk-page__note">Chưa có sinh viên. Gửi mã mời để sinh viên tự vào lớp.</p>
         ) : (
           <>
-            {/* Always in the page, hidden with visibility, so the table never moves. */}
-            <div
-              className={idle ? 'lk-bulkbar lk-bulkbar--idle' : 'lk-bulkbar'}
-              aria-hidden={idle || undefined}
-              inert={idle}
-            >
-              <span className="lk-bulkbar__count">Đã chọn {selectedCount} sinh viên</span>
-              <Button
-                onClick={() => {
-                  setSelected(new Set());
-                }}
+            <p className="lk-page__note">Chỉ gỡ được sinh viên chưa nộp bài trong lớp.</p>
+            {/* Read once by every locked checkbox and "Gỡ" button (aria-describedby). */}
+            <span id={lockedReasonId} hidden>
+              Đã có bài nộp
+            </span>
+            {/* The hint and the actions share one cell of fixed height, so the table never moves. */}
+            <div className="lk-bulkbar">
+              {idle ? (
+                <p className="lk-bulkbar__hint">Chọn sinh viên để gỡ nhiều người cùng lúc.</p>
+              ) : null}
+              <div
+                className={idle ? 'lk-bulkbar__actions lk-bulkbar--idle' : 'lk-bulkbar__actions'}
+                aria-hidden={idle || undefined}
+                inert={idle}
               >
-                Bỏ chọn
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => {
-                  setBulkTargets(selectable.filter((m) => selected.has(m.id)));
-                }}
-              >
-                {`Gỡ ${String(selectedCount)} sinh viên`}
-              </Button>
+                <span className="lk-bulkbar__count">Đã chọn {selectedCount} sinh viên</span>
+                <Button
+                  onClick={() => {
+                    setSelected(new Set());
+                  }}
+                >
+                  Bỏ chọn
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setBulkTargets(selectable.filter((m) => selected.has(m.id)));
+                  }}
+                >
+                  {`Gỡ ${String(selectedCount)} sinh viên`}
+                </Button>
+              </div>
             </div>
             <div className="lk-table-wrap" role="region" aria-label="Sinh viên" tabIndex={0}>
               <table className="lk-table">
@@ -461,9 +473,7 @@ export function AdminClassPage() {
                     </th>
                     <th scope="col">Tên</th>
                     <th scope="col">Email</th>
-                    <th scope="col" className="lk-col-num">
-                      Bài nộp
-                    </th>
+                    <th scope="col">Đã nộp</th>
                     <th scope="col" className="lk-col-actions">
                       <span className="lk-sr-only">Thao tác</span>
                     </th>
@@ -473,7 +483,6 @@ export function AdminClassPage() {
                   {students.map((student, index) => {
                     const name = personName(student);
                     const locked = student.submissionCount > 0;
-                    const reasonId = `submitted-${student.id}`;
                     return (
                       <tr key={student.id}>
                         <td className="lk-col-check">
@@ -482,7 +491,7 @@ export function AdminClassPage() {
                             aria-label={`Chọn ${name}`}
                             checked={!locked && selected.has(student.id)}
                             disabled={locked}
-                            aria-describedby={locked ? reasonId : undefined}
+                            aria-describedby={locked ? lockedReasonId : undefined}
                             onChange={(event) => {
                               toggleRow(index, event);
                             }}
@@ -490,18 +499,16 @@ export function AdminClassPage() {
                         </td>
                         <td className="lk-wrap">{name}</td>
                         <td className="lk-wrap">{student.email ?? '—'}</td>
-                        <td className="lk-col-num">{student.submissionCount}</td>
+                        <td>{submittedLabel(student)}</td>
                         <td className="lk-col-actions">
-                          <span className="lk-row-actions">
-                            {locked ? (
-                              <span id={reasonId} className="lk-btn-reason">
-                                Đã có bài nộp
-                              </span>
-                            ) : null}
+                          <span
+                            className="lk-row-actions"
+                            title={locked ? 'Đã có bài nộp, không gỡ được.' : undefined}
+                          >
                             <Button
                               aria-label={`Gỡ ${name}`}
                               disabled={locked}
-                              aria-describedby={locked ? reasonId : undefined}
+                              aria-describedby={locked ? lockedReasonId : undefined}
                               onClick={() => {
                                 askRemove(student);
                               }}

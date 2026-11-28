@@ -24,6 +24,20 @@ export interface AdminMember {
   displayName: string | null;
   /** Submissions of a student in the labs of this class (1.4.0); always 0 for a TA. */
   submissionCount: number;
+  /**
+   * Different labs of this class the student submitted to (1.5.0); always 0 for a TA. Missing
+   * from a server older than 1.5.0, then only the number of submissions is shown.
+   */
+  submittedLabCount?: number;
+}
+
+/** The "Đã nộp" cell: "4 lab · 14 lần", or "Chưa nộp". */
+export function submittedLabel(member: Pick<AdminMember, 'submissionCount' | 'submittedLabCount'>) {
+  if (member.submissionCount === 0) return 'Chưa nộp';
+  const times = `${String(member.submissionCount)} lần`;
+  return member.submittedLabCount === undefined
+    ? times
+    : `${String(member.submittedLabCount)} lab · ${times}`;
 }
 
 /** Names are stripped and must contain 1–200 characters (classes.md). */

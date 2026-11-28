@@ -211,7 +211,8 @@ describe('removing class members (admin)', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveAccessibleDescription('Đã có bài nộp');
     const row = screen.getByRole('row', { name: /Dũng/ });
-    expect(within(row).getAllByRole('cell')[3]).toHaveTextContent(/^3$/);
+    // No submittedLabCount in this fixture (a pre-1.5.0 answer): only the attempts show.
+    expect(within(row).getAllByRole('cell')[3]).toHaveTextContent(/^3 lần$/);
   });
 
   it('keeps the dialog open on 409 with the reason and only "Đóng"', async () => {
