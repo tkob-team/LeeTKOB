@@ -61,7 +61,8 @@ describe('student submission and grading', () => {
     });
     const button = screen.getByRole('button', { name: 'Nộp bài' });
     fireEvent.click(button);
-    expect(await screen.findByText(id)).toBeInTheDocument();
+    // A10 (audit 2026-11-28): the id shows as its first 8 characters, the full id in `title`.
+    expect(await screen.findByTitle(id)).toHaveTextContent(/^00000000$/);
     expect(screen.getByRole('status')).toHaveTextContent('Bài nộp đã vào hàng đợi.');
     const post = request.mock.calls.find(
       ([path, init]) => path === `/labs/${labId}/submissions` && init?.method === 'POST',

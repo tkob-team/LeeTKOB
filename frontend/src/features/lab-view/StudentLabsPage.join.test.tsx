@@ -95,7 +95,9 @@ describe('joining a class with an invite code', () => {
         : Promise.resolve([]),
     );
     renderPage();
-    await join('short');
+    // A13 (audit 2026-11-28): a code of the wrong shape never reaches the server now, so the
+    // server's 400 is reached with a 32-character code only.
+    await join('A'.repeat(32));
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Mã mời không hợp lệ');
     expect(alert).toHaveTextContent('Mã mời gồm đúng 32 ký tự');

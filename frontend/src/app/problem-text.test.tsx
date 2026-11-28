@@ -57,6 +57,13 @@ beforeEach(() => {
   request.mockReset();
 });
 
+/** Title, statement and test output of the create-lab form (A14 checks them before sending). */
+function fillRequiredText() {
+  fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Lab' } });
+  fireEvent.change(screen.getByLabelText('Đề bài (Markdown)'), { target: { value: '# Lab' } });
+  fireEvent.change(screen.getByLabelText('Đầu ra mong đợi 1'), { target: { value: '1' } });
+}
+
 describe('every page shows problems in Vietnamese', () => {
   it('TA class list: internal-error', async () => {
     request.mockRejectedValue(serverProblem('internal-error', 500));
@@ -76,7 +83,8 @@ describe('every page shows problems in Vietnamese', () => {
       '/ta/classes/:classId/labs/new',
       <CreateLabPage />,
     );
-    fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Lab' } });
+    // A14: the client checks every required field first, so the form is complete here.
+    fillRequiredText();
     fireEvent.change(screen.getByLabelText('Mở lúc'), { target: { value: '2026-12-01T08:00' } });
     fireEvent.change(screen.getByLabelText('Hạn nộp'), { target: { value: '2026-12-08T08:00' } });
     request.mockRejectedValueOnce(
@@ -103,6 +111,7 @@ describe('every page shows problems in Vietnamese', () => {
       '/ta/classes/:classId/labs/new',
       <CreateLabPage />,
     );
+    fillRequiredText();
     fireEvent.change(screen.getByLabelText('Mở lúc'), { target: { value: '2026-12-01T08:00' } });
     fireEvent.change(screen.getByLabelText('Hạn nộp'), { target: { value: '2026-12-08T08:00' } });
     request.mockRejectedValueOnce(serverProblem('class-not-found', 404));

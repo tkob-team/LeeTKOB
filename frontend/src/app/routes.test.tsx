@@ -216,16 +216,17 @@ describe('app shell routes', () => {
     expect(localStorage.getItem('leetkob.session')).toBeNull();
   });
 
+  // A6 (audit 2026-11-28): the button names where it really goes for each role.
   it.each([
-    [null, '/'],
-    ['ta' as const, '/ta/classes'],
-    ['student' as const, '/student/labs'],
-  ])('the 404 page (signed in as %s) links back to the lab list at %s', async (role, href) => {
+    [null, '/', 'Về trang đăng nhập'],
+    ['ta' as const, '/ta/classes', 'Về Lớp của tôi'],
+    ['student' as const, '/student/labs', 'Về danh sách đề bài'],
+  ])('the 404 page (signed in as %s) links back to %s', async (role, href, label) => {
     stubFetch(() => json({}));
     if (role) storeSession(role, fakeToken(role === 'ta' ? 'TA' : 'STUDENT'));
     renderAt('/no/such/page');
     expect(await screen.findByRole('heading', { name: 'Không tìm thấy trang' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Về danh sách lab' })).toHaveAttribute('href', href);
+    expect(screen.getByRole('link', { name: label })).toHaveAttribute('href', href);
     expect(screen.queryByText(/Tự làm mới/)).toBeNull();
   });
 

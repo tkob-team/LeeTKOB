@@ -10,7 +10,9 @@ the person driving the browser never types or reads a password.
 Run 1 was on 2026-11-27 and run 2 on 2026-11-28, both with Claude in Chrome driving the UI
 (times are UTC+7). Screenshots are kept locally (git-ignored): run 1 in `out/walkthrough/`,
 run 2 in `out/walkthrough/2026-11-28-ui3/`. The script below describes the UI as of branch
-`ui-3`; file names at each step are from run 1 unless marked otherwise.
+`feat/ui-ta-student` (labels and back links from the 2026-11-28 audit, items A4–A16); file
+names at each step are from run 1 unless marked otherwise, so older screenshots may show the
+earlier labels. Every page now has its own tab title ("<page> · LeeTKOB").
 
 ## Data
 
@@ -43,20 +45,27 @@ give each solution its own student and read the queue once.
    former home "Lab và hàng chờ duyệt").
 2. Click **Lớp thử nghiệm 1**. The class page shows the class name with **Tạo lab** on the
    same row at the right, the invite code, the TA and student counts, and the lab table.
-   Click **Tạo lab**.
+   Click **Tạo lab**. The page first checks the class ("Đang tải lớp…"), then shows the link
+   "← Lớp thử nghiệm 1" and the title "Tạo lab cho Lớp thử nghiệm 1". A class the TA does not
+   teach shows "Không tìm thấy lớp" instead of the form.
 3. Click **Nhập từ file** and select all 16 files of `eval/dev/problems/sort-merge/` at once.
    Wait for the panel "Đã nhập từ file". It should read: statement.md filled the statement
    and title, constraints.json gave 2 constraints (C1 −3, C2 −4), and tests gave 7
    input/output pairs.
 4. Change **Tiêu đề** to `PA3 walkthrough <date time>`. Set **Mở lúc** to now and **Hạn nộp**
-   to now + 7 days; both are required, and the form says so under the field (and does not
-   send) when one is empty or Hạn nộp is not after Mở lúc. Set **Thời gian CPU (ms)** to
+   to now + 7 days. Before sending, the form checks every required field at once (title,
+   statement, both dates with Hạn nộp after Mở lúc, CPU 1000–5000, memory 64–512, an expected
+   output for each test): each error shows under its field, the first one gets the focus, and
+   a line next to **Tạo lab** says how many are left ("Còn 3 trường cần sửa."). Set **Thời gian CPU (ms)** to
    **2000**, matching "Time limit: 2 seconds" in `statement.md`, and keep **Bộ nhớ (MB)** at 256
    (`02-ta1-create-lab-imported.jpg`; runs 1 and 2 kept the default 1000 ms).
 5. Click **Tạo lab** at the bottom. The page returns to the class page of "Lớp thử nghiệm
    1" with "Đã tạo lab …"; the new lab is the top row (labs are listed latest opening first)
-   with 7 tests and 2 constraints (`03-ta1-lab-created.jpg`). The row's button **Hàng chờ
-   duyệt: <lab title>** opens the queue URL `/ta/labs/<labId>/review`.
+   with 7 tests and 2 constraints and the status "Đang mở · còn 7 ngày" in the column
+   **Trạng thái** (`03-ta1-lab-created.jpg`). The lab title and the row's button **Hàng chờ**
+   (accessible name "Hàng chờ duyệt: <lab title>") both open the queue URL
+   `/ta/labs/<labId>/review`. At 375 px the table scrolls inside its own frame; the page does
+   not scroll sideways.
 6. Click **Đăng xuất**.
 
 Run 1: lab `PA3 walkthrough 2026-11-27 14:07`, created 14:08, id
@@ -65,14 +74,19 @@ Run 1: lab `PA3 walkthrough 2026-11-27 14:07`, created 14:08, id
 ### 2. sv1 reads the statement and submits s09
 
 1. **sv1@leetkob.test signs in** and lands on **Nộp bài**.
-2. Click **Đề bài**, then the lab title. The page shows the statement, the limits ("Giới hạn:
+2. Click **Đề bài**, then the lab title. The header has the link "← Đề bài", the lab title
+   with the primary button **Nộp bài** on its right, and the line "Chưa nộp · Hạn nộp … · Mở
+   …" (after a submission: "Bài được tính: AC · Hạn nộp …"). The page shows the statement, the limits ("Giới hạn:
    CPU 2000 ms · thời gian thực 6000 ms · bộ nhớ 256 MB") and the table "Ràng buộc và khoản
    trừ" with the columns ID, Chi tiết ràng buộc and Khoản trừ: C1 −3 and C2 −4, with the full
    constraint text and the banned names as inline code. No test input or output is shown; the
    example in the statement is part of `statement.md` (`04-sv1-statement-constraints.jpg`).
-3. Click **Đi tới trang nộp bài**. The lab is preselected (a `?lab=` id that is not in the
-   student's list shows "Không tìm thấy lab này." and preselects nothing). Paste `s09.cpp`
-   into **Mã nguồn C++17** and click **Nộp bài**. "Kết quả chấm" shows "Mã bài nộp …", "Bài
+3. Click **Nộp bài** in the header (or **Đi tới trang nộp bài** at the end of the statement).
+   The lab is preselected (a `?lab=` id that is not in the student's list shows "Không tìm
+   thấy lab này." and preselects nothing). Under the button the page says "Bài nộp cuối cùng
+   trước hạn sẽ được tính." and "Hạn nộp … · Xem đề bài". Paste `s09.cpp` into **Mã nguồn
+   C++17** and click **Nộp bài**. "Kết quả chấm" shows "Mã bài nộp" with the first 8
+   characters of the id (the full id on hover) and a **Sao chép** button, "Bài
    được tính điểm (lần nộp cuối trước hạn)", then "Bài nộp đã vào hàng đợi." and "Đang chấm
    bài." with a spinner, and finally **Kết quả chung AC** "Đúng tất cả test" with 7 AC tests
    (`07-sv1-s09-ac.jpg`). Other verdicts carry their own caption, for example CE "Lỗi biên
@@ -90,15 +104,19 @@ s09. All were AC, but only s09 stayed counted, which is why the order above was 
 
 ### 4. ta1 reads the queue (s09, s01)
 
-1. **ta1 signs in** and lands on "Lớp của tôi". Click **Lớp thử nghiệm 1**, then
-   **Hàng chờ duyệt: <lab title>** on the lab row of the class page. The note says
+1. **ta1 signs in** and lands on "Lớp của tôi". Click **Lớp thử nghiệm 1**, then **Hàng
+   chờ** (or the lab title) on the lab row of the class page. The header shows the link
+   "← Lớp thử nghiệm 1" (back to that class), the title "Hàng chờ duyệt: <lab title>" and the
+   line "Hạn nộp … · Đang mở · còn N ngày"; the tab reads "Hàng chờ: <lab title> · LeeTKOB".
+   The note says
    "Tạm tính: lab chưa hết hạn, hàng chờ đổi khi sinh viên nộp lại. Tự làm mới mỗi 15 giây.
    Bài cần duyệt (violation, unsure) xếp trước."
 2. Each counted submission is a block headed "Sinh viên XXXX" (an anonymous label, never the
    name), "Được tính điểm", "Nộp lúc …" with seconds, "Chấm test AC" and "Mã bài nộp …". Wait
    until no block says "Đang soát ràng buộc…" (at most 5 minutes). Each block has one row per
    constraint with the columns Ràng buộc (the full text, wrapped, banned names as inline
-   code), Khoản trừ, Nguồn (`hard rule`, `model` or `guardrail`), Kết luận (with the unsure
+   code), Khoản trừ, Nguồn ("Luật cứng", "Mô hình" or "Chặn an toàn" for the API values
+   `hard_rule`, `model`, `guardrail`; hover for an explanation), Kết luận (with the unsure
    cause under the badge) and Bằng chứng ("dòng 10, 13"). A `pass` row reads "0 (−3 nếu vi
    phạm)" in Khoản trừ; `violation` and `unsure` read "−3". Click a row (or focus it and press
    Enter) to open the panel: constraint text, verdict, "Khoản trừ: …", "Lý do: …" with
@@ -109,7 +127,9 @@ s09. All were AC, but only s09 stayed counted, which is why the order above was 
 
 ### 5. sv1 resubmits with s04, ta1 reads the queue again
 
-1. **sv1 signs in**, pastes `s04.cpp`, clicks **Nộp bài**, waits for AC
+1. **sv1 signs in**. Before submitting, the page warns under the button: "Bài được tính hiện
+   tại: AC. Lần nộp này sẽ thay bài được tính, dù kết quả thế nào." sv1 pastes `s04.cpp`,
+   clicks **Nộp bài**, waits for AC
    (`12-sv1-s04-resubmit-ac.jpg`), then clicks **Đăng xuất**.
 2. **ta1 signs in** and opens the same queue. s04 is now sv1's counted submission and comes
    first; sv1's earlier AC submission (s09) is listed under "Các lần nộp cũ hơn (không tính
@@ -121,8 +141,9 @@ s09. All were AC, but only s09 stayed counted, which is why the order above was 
 
 1. **ta2@leetkob.test signs in** (ta2 is not a TA of "Lớp thử nghiệm 1").
 2. Paste the queue URL into the address bar. The page shows "Không tìm thấy lab" and "Lab
-   không tồn tại hoặc bạn không phải TA của lớp có lab này.", with the button **Về danh sách
-   lab** and no auto-refresh note. In DevTools → Network,
+   không tồn tại hoặc bạn không phải TA của lớp có lab này.", the link "← Lớp của tôi", the
+   button **Về Lớp của tôi** (both to `/ta/classes`) and no auto-refresh note. In DevTools →
+   Network,
    `GET /api/labs/<labId>/review-queue?page=0&size=20&includeEarlier=true` returns **404**
    (run 2: `33-ta2-queue-404.jpg`), as specified in `docs/contract/get-review-queue.md`. The
    page does not poll again after the 404. No page ever shows the server's English title or

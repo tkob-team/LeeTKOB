@@ -26,6 +26,16 @@ function renderPage() {
   render(<RouterProvider router={router} />);
 }
 
+/**
+ * A14 (audit 2026-11-28) checks every required field before sending, title and statement first;
+ * these tests are about the dates, so the other required fields are filled in.
+ */
+function fillText() {
+  fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Lab' } });
+  fireEvent.change(screen.getByLabelText('Đề bài (Markdown)'), { target: { value: '# Lab' } });
+  fireEvent.change(screen.getByLabelText('Đầu ra mong đợi 1'), { target: { value: '1' } });
+}
+
 const opensAt = () => screen.getByLabelText('Mở lúc');
 const dueAt = () => screen.getByLabelText('Hạn nộp');
 const create = () => {
@@ -48,6 +58,7 @@ afterEach(() => {
 describe('create lab: Mở lúc and Hạn nộp', () => {
   it('are required: errors under both, focus and scroll to Mở lúc, nothing sent', () => {
     renderPage();
+    fillText();
     expect(opensAt()).toBeRequired();
     expect(dueAt()).toBeRequired();
     create();
@@ -63,6 +74,7 @@ describe('create lab: Mở lúc and Hạn nộp', () => {
 
   it('goes to Hạn nộp when only Hạn nộp is missing', () => {
     renderPage();
+    fillText();
     fireEvent.change(opensAt(), { target: { value: '2026-12-01T08:00' } });
     create();
     expect(opensAt()).not.toHaveAttribute('aria-invalid');
@@ -76,6 +88,7 @@ describe('create lab: Mở lúc and Hạn nộp', () => {
     ['equal to', '2026-12-01T08:00'],
   ])('reports Hạn nộp %s Mở lúc under both fields', (_, due) => {
     renderPage();
+    fillText();
     fireEvent.change(opensAt(), { target: { value: '2026-12-01T08:00' } });
     fireEvent.change(dueAt(), { target: { value: due } });
     create();
@@ -87,6 +100,7 @@ describe('create lab: Mở lúc and Hạn nộp', () => {
 
   it('drops the errors as soon as a date changes', () => {
     renderPage();
+    fillText();
     create();
     expect(dueAt()).toHaveAttribute('aria-invalid', 'true');
     fireEvent.change(dueAt(), { target: { value: '2026-12-08T08:00' } });
@@ -97,6 +111,7 @@ describe('create lab: Mở lúc and Hạn nộp', () => {
 
   it('drops a date error from the server when the date changes', async () => {
     renderPage();
+    fillText();
     fireEvent.change(opensAt(), { target: { value: '2026-12-01T08:00' } });
     fireEvent.change(dueAt(), { target: { value: '2026-12-08T08:00' } });
     request.mockRejectedValueOnce(
@@ -116,6 +131,7 @@ describe('create lab: Mở lúc and Hạn nộp', () => {
 
   it('sends both dates with a time zone', async () => {
     renderPage();
+    fillText();
     fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Lab' } });
     fireEvent.change(opensAt(), { target: { value: '2026-12-01T08:00' } });
     fireEvent.change(dueAt(), { target: { value: '2026-12-08T23:59' } });

@@ -5,6 +5,7 @@ import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
 import { useAuth } from '../../app/auth-context';
+import { usePageTitle } from '../../app/usePageTitle';
 import {
   Button,
   deductionLabel,
@@ -12,9 +13,12 @@ import {
   JudgeResult,
   MarkdownInline,
   ProblemAlert,
-  ReviewQueueTable,
   VerdictBadge,
 } from '../../components/ui';
+import { formatDateTime, labTitle, type Classroom, type LabDetail } from '../lab-authoring/lab-api';
+import { labPhase } from '../lab-authoring/lab-phase';
+import { taClassPath } from '../ta-classes/ta-classes-api';
+import { FindingsTable } from './FindingsTable';
 import {
   formatSubmittedAt,
   isCounted,
@@ -48,14 +52,54 @@ function requestProblem(cause: unknown): ProblemDetails {
 
 export function ReviewQueuePage() {
   const { labId } = useParams();
-  if (!labId) {
-    return (
-      <EmptyState title="Hàng chờ duyệt">
-        Hàng chờ duyệt đang trống. Khoản trừ cần duyệt trước khi công bố điểm sẽ hiện ở đây.
-      </EmptyState>
-    );
-  }
+  if (!labId) return <NoLabQueue />;
   return <LabReviewQueue key={labId} labId={labId} />;
+}
+
+function NoLabQueue() {
+  usePageTitle('Hàng chờ duyệt');
+  return (
+    <EmptyState title="Hàng chờ duyệt">
+      Hàng chờ duyệt đang trống. Khoản trừ cần duyệt trước khi công bố điểm sẽ hiện ở đây.
+    </EmptyState>
+  );
+}
+
+/** The lab (title, dates, class) and its class name, for the header and the way back. */
+interface QueueContext {
+  lab: LabDetail;
+  classroom?: Classroom;
+}
+
+/**
+ * Reads GET /labs/{labId} (a TA of the class may read it), then GET /classes/{classId} for the
+ * class name. Failures leave the header in its loading form; the queue request reports them.
+ */
+function useQueueContext(labId: string): QueueContext | undefined {
+  const [context, setContext] = useState<QueueContext>();
+  useEffect(() => {
+    const abort = new AbortController();
+    const signal = abort.signal;
+    // A function, so the check is read again after each await.
+    const live = () => !signal.aborted;
+    async function load() {
+      const lab = await api.request<LabDetail>(`/labs/${encodeURIComponent(labId)}`, { signal });
+      if (!live()) return;
+      setContext({ lab });
+      const classroom = await api.request<Classroom>(
+        `/classes/${encodeURIComponent(lab.classId)}`,
+        { signal },
+      );
+      if (live()) setContext({ lab, classroom });
+    }
+    load().catch(() => {
+      // The header keeps "← Lớp của tôi" and the plain title.
+    });
+    return () => {
+      abort.abort();
+    };
+  }, [labId]);
+  return context;
 }
 
 function LabReviewQueue({ labId }: { labId: string }) {
@@ -65,6 +109,10 @@ function LabReviewQueue({ labId }: { labId: string }) {
   const [queue, setQueue] = useState<QueueResponse>();
   const [problem, setProblem] = useState<ProblemDetails>();
   const [selectedId, setSelectedId] = useState<string>();
+  const context = useQueueContext(labId);
+  const lab = context?.lab;
+  const classroom = context?.classroom;
+  usePageTitle(lab ? `Hàng chờ: ${labTitle(lab.title)}` : 'Hàng chờ duyệt');
 
   useEffect(() => {
     const abort = new AbortController();
@@ -104,12 +152,28 @@ function LabReviewQueue({ labId }: { labId: string }) {
     setSelectedId(row.id);
   };
 
+  // On a 4xx the lab is unknown or not the TA's: the way back is the class list.
+  const known = !stopped && lab !== undefined;
   return (
     <section className="lk-section" aria-labelledby="review-title">
       <header className="lk-section__head">
+        {known && classroom ? (
+          <Link to={taClassPath(classroom.id)} className="lk-back">
+            ← {classroom.name}
+          </Link>
+        ) : (
+          <Link to="/ta/classes" className="lk-back">
+            ← Lớp của tôi
+          </Link>
+        )}
         <h1 id="review-title" className="lk-page__title">
-          Hàng chờ duyệt
+          {known ? `Hàng chờ duyệt: ${labTitle(lab.title)}` : 'Hàng chờ duyệt'}
         </h1>
+        {known ? (
+          <p className="lk-page__note">
+            Hạn nộp {formatDateTime(lab.dueAt)} · {labPhase(lab.opensAt, lab.dueAt).label}
+          </p>
+        ) : null}
         <p>Kết quả soát ràng buộc của từng bài, chờ trợ giảng xác nhận trước khi công bố điểm.</p>
         {stopped ? null : (
           <p className="lk-page__note">
@@ -124,8 +188,8 @@ function LabReviewQueue({ labId }: { labId: string }) {
       {problem ? <ProblemAlert problem={problem} /> : null}
       {stopped ? (
         <p>
-          <Link className="lk-btn lk-btn--secondary" to="/ta/labs">
-            Về danh sách lab
+          <Link className="lk-btn lk-btn--secondary" to="/ta/classes">
+            Về Lớp của tôi
           </Link>
         </p>
       ) : null}
@@ -244,14 +308,10 @@ function SubmissionBlock({
         </span>
       </header>
       {item.reviewStatus === 'checked' ? (
-        <ReviewQueueTable
+        <FindingsTable
           rows={rows}
           selectedId={selectedId}
-          onSelect={(row) => {
-            const found = rows.find((candidate) => candidate.id === row.id);
-            if (found) onSelect(found);
-          }}
-          showSubmission={false}
+          onSelect={onSelect}
           label={`Ràng buộc của bài nộp ${label}`}
         />
       ) : item.reviewStatus === 'reviewing' ? (
