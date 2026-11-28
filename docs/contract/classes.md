@@ -1,4 +1,4 @@
-# Class management API — 1.1.0 (T29)
+# Class management API — 1.2.0 (T29)
 
 All endpoints require the existing valid HS256 Bearer JWT (`sub`, `role`, `exp`).
 The user must exist and the signed global role must equal `users.role`; a missing
@@ -18,6 +18,9 @@ add a login screen or an alternative token issuer. User provisioning must set
 | POST `/classes/join` | STUDENT | `{"inviteCode":"<32-character code>"}` | 200 class object, also on repeat |
 | GET `/classes/{classId}/members` | ADMIN or assigned TA | — | 200 array of `{id, role}`; role is TA or STUDENT |
 | GET `/admin/tas` | ADMIN | — | 200 array of `{id, email}` for every TA account, sorted by email (1.1.0) |
+| GET `/admin/tas` | ADMIN | — | each item also carries `displayName` (1.2.0) |
+| GET `/admin/classes` | ADMIN | — | 200 array of `{id, name, inviteCode, tas: [{id, email, displayName}], studentCount}` (1.2.0) |
+| GET `/admin/classes/{classId}/members` | ADMIN | — | 200 array of `{id, role, email, displayName}`, TAs first, then by name (1.2.0) |
 
 Class objects contain `id`, `name`, `inviteCode`. For students, inviteCode is null
 (or omitted by JSON serialization), never the actual code. ADMIN and the assigned
@@ -55,3 +58,21 @@ accounts whose `users.role` is TA, sorted by email (accounts without an email la
 then by id), and returns only `id` and `email`. TA and STUDENT receive 403
 class-access-denied; a missing token, unknown user or changed role receives 401.
 AdminTasContractTest covers these cases.
+
+1.2.0 adds what the admin screens need to show people by name. GET `/admin/tas`
+items gain `displayName` (null when the account has none). GET `/admin/classes`
+returns every class in one call, sorted by name then id, with its invitation, its
+TAs (`id`, `email`, `displayName`, sorted by display name, then email, then id;
+empty array when none) and `studentCount`. GET `/admin/classes/{classId}/members`
+returns the TAs first, then the students, each group sorted by display name, then
+email, then id (null names and emails last); `role` is TA or STUDENT. An unknown
+class returns 404 class-not-found and a malformed id 400 invalid-request. All three
+are ADMIN only: TA and STUDENT receive 403 class-access-denied; a missing token,
+unknown user or changed role receives 401.
+
+GET `/classes/{classId}/members` stays `{id, role}` for the assigned TA (and admin):
+the review queue shows students anonymously, and adding names or emails there would
+let a TA map the ids seen elsewhere to real people. Names and emails of members are
+therefore served only on the `/admin/` paths. AdminClassesContractTest covers the
+three endpoints, the 403/401/404/400 cases, the orderings, and that the TA roster
+still carries no email or displayName.

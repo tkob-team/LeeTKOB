@@ -3,8 +3,13 @@ package com.leetkob.backend.classroom;
 import com.leetkob.backend.problem.ApiException;
 import com.leetkob.backend.problem.ProblemType;
 import java.security.SecureRandom;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -21,7 +26,12 @@ class ClassroomService {
 
   record Member(UUID id, String role) {}
 
-  record TaAccount(UUID id, String email) {}
+  record TaAccount(UUID id, String email, String displayName) {}
+
+  record AdminClass(
+      UUID id, String name, String inviteCode, List<TaAccount> tas, int studentCount) {}
+
+  record AdminMember(UUID id, String role, String email, String displayName) {}
 
   private static final SecureRandom RANDOM = new SecureRandom();
   private final JdbcClient jdbc;
@@ -119,9 +129,71 @@ class ClassroomService {
 
   List<TaAccount> tas(Actor actor) {
     requireRole(actor, "ADMIN");
-    return jdbc.sql("select id, email from users where role = 'TA' order by email nulls last, id")
-        .query((rs, row) -> new TaAccount(rs.getObject("id", UUID.class), rs.getString("email")))
+    return jdbc.sql(
+            "select id, email, display_name from users where role = 'TA'"
+                + " order by email nulls last, id")
+        .query((rs, row) -> taAccount(rs))
         .list();
+  }
+
+  /** Every class with its TAs (by name) and student count, for the admin class list. */
+  List<AdminClass> adminClasses(Actor actor) {
+    requireRole(actor, "ADMIN");
+    Map<UUID, List<TaAccount>> tas = new HashMap<>();
+    jdbc.sql(
+            """
+            select t.class_id, u.id, u.email, u.display_name
+            from class_tas t join users u on u.id = t.user_id
+            order by u.display_name nulls last, u.email nulls last, u.id
+            """)
+        .query((ResultSet rs) -> {
+          tas.computeIfAbsent(rs.getObject("class_id", UUID.class), k -> new ArrayList<>())
+              .add(taAccount(rs));
+        });
+    return jdbc.sql(
+            """
+            select c.id, c.name, c.invite_code,
+              (select count(*) from class_members m where m.class_id = c.id) as students
+            from classes c order by c.name, c.id
+            """)
+        .query((rs, row) -> {
+          UUID id = rs.getObject("id", UUID.class);
+          return new AdminClass(
+              id,
+              rs.getString("name"),
+              rs.getString("invite_code"),
+              List.copyOf(tas.getOrDefault(id, List.of())),
+              rs.getInt("students"));
+        })
+        .list();
+  }
+
+  /** Members of one class with email and name: TAs first, then by name; admin only. */
+  List<AdminMember> adminMembers(Actor actor, UUID classId) {
+    requireRole(actor, "ADMIN");
+    find(classId);
+    return jdbc.sql(
+            """
+            select u.id, m.role, u.email, u.display_name from (
+              select user_id, 'TA' as role, 0 as rank from class_tas where class_id = ?
+              union all
+              select user_id, 'STUDENT' as role, 1 as rank from class_members where class_id = ?
+            ) m join users u on u.id = m.user_id
+            order by m.rank, u.display_name nulls last, u.email nulls last, u.id
+            """)
+        .params(classId, classId)
+        .query((rs, row) ->
+            new AdminMember(
+                rs.getObject("id", UUID.class),
+                rs.getString("role"),
+                rs.getString("email"),
+                rs.getString("display_name")))
+        .list();
+  }
+
+  private static TaAccount taAccount(ResultSet rs) throws SQLException {
+    return new TaAccount(
+        rs.getObject("id", UUID.class), rs.getString("email"), rs.getString("display_name"));
   }
 
   Classroom detail(Actor actor, UUID classId) {
