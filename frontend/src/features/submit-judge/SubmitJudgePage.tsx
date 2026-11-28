@@ -3,16 +3,47 @@ import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { uuidV4 } from '../../api/uuid';
+import { usePageTitle } from '../../app/usePageTitle';
 import { Button, FormField, JudgeResult, ProblemAlert, type JudgeCode } from '../../components/ui';
+import { formatDateTime } from '../lab-authoring/lab-api';
+import { submissionLabel } from '../review-queue/review-queue';
+import { CopyIdButton } from './CopyIdButton';
+import { StatementLink } from './StatementLink';
 import { verdictCaption } from './verdict-text';
 
 const MAX_CODE_BYTES = 65_536;
 const POLL_MS = 1000;
 
+/** GET /student/labs (get-student-judge-status.md 1.1.0); dates and verdict absent in 1.0.0. */
 interface Lab {
   id: string;
   title: string | null;
   latestSubmissionId: string | null;
+  dueAt?: string;
+  latestVerdict?: Exclude<JudgeCode, 'pending'> | null;
+}
+
+/**
+ * What happens to the counted submission (FAQ-02: the last submission before the deadline
+ * counts, whatever its result), said before the student clicks "Nộp bài".
+ */
+function CountedNote({ lab, verdict }: { lab: Lab; verdict: JudgeCode | null | undefined }) {
+  return (
+    <div className="lk-submit__note lk-page__note">
+      {lab.latestSubmissionId ? (
+        // Plain text: the coloured result of that same submission is shown under "Kết quả chấm".
+        <p>
+          {`Bài được tính hiện tại: ${verdict && verdict !== 'pending' ? verdict : 'đang chấm'}. Lần nộp này sẽ thay bài được tính, dù kết quả thế nào.`}
+        </p>
+      ) : (
+        <p>Bài nộp cuối cùng trước hạn sẽ được tính.</p>
+      )}
+      <p>
+        {lab.dueAt ? <>Hạn nộp {formatDateTime(lab.dueAt)} · </> : null}
+        <StatementLink labId={lab.id} />
+      </p>
+    </div>
+  );
 }
 
 interface Report {
@@ -53,9 +84,17 @@ export function SubmitJudgePage() {
   const postingRef = useRef(false);
   const retry = useRef<{ labId: string; code: string; key: string }>(null);
   const [pollView, setPollView] = useState<PollView>();
-  const submissionId = labs?.find((lab) => lab.id === labId)?.latestSubmissionId ?? null;
+  const selectedLab = labs?.find((lab) => lab.id === labId);
+  const submissionId = selectedLab?.latestSubmissionId ?? null;
   const view = pollView?.id === submissionId ? pollView : undefined;
   const report = view?.report;
+  // Verdict of the counted submission: the polled report once there is one, else the list's.
+  const countedVerdict = report
+    ? report.status === 'completed'
+      ? report.verdict
+      : null
+    : selectedLab?.latestVerdict;
+  usePageTitle('Nộp bài');
   // CPU limit of each lab, read from GET /labs/{labId} only when a TLE needs it.
   const [cpuLimits, setCpuLimits] = useState<Record<string, number>>({});
   const needsCpuLimit =
@@ -160,8 +199,9 @@ export function SubmitJudgePage() {
       retry.current = null;
       setLabs(
         (current) =>
-          current?.map((lab) => (lab.id === labId ? { ...lab, latestSubmissionId: id } : lab)) ??
-          null,
+          current?.map((lab) =>
+            lab.id === labId ? { ...lab, latestSubmissionId: id, latestVerdict: null } : lab,
+          ) ?? null,
       );
     } catch (cause) {
       setProblem(problemFrom(cause));
@@ -227,6 +267,7 @@ export function SubmitJudgePage() {
           <Button type="submit" variant="primary" disabled={posting} disabledReason="Đang gửi bài.">
             Nộp bài
           </Button>
+          {selectedLab ? <CountedNote lab={selectedLab} verdict={countedVerdict} /> : null}
         </form>
       ) : null}
       {labs?.length && labId && !submissionId ? (
@@ -238,8 +279,14 @@ export function SubmitJudgePage() {
       {submissionId ? (
         <section className="lk-result" aria-labelledby="judge-result-title">
           <h2 id="judge-result-title">Kết quả chấm</h2>
-          <p>
-            Mã bài nộp <span className="lk-mono">{submissionId}</span>
+          <p className="lk-submission-id">
+            <span>
+              Mã bài nộp{' '}
+              <span className="lk-mono" title={submissionId}>
+                {submissionLabel(submissionId)}
+              </span>
+            </span>
+            <CopyIdButton id={submissionId} />
           </p>
           {report?.counted ? <p>Bài được tính điểm (lần nộp cuối trước hạn)</p> : null}
           {view?.problem ? (
