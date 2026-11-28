@@ -1,5 +1,31 @@
 # AI-LOG
 
+## 2026-11-28 - T89: PA#3 work summary (C, Hoang)
+
+- **Tools and roles.** Hoang used Claude Code with Claude Opus 5.5 for login, lab authoring, seed, Docker Compose and the UI follow-ups. Claude Code with Claude Sonnet 5.5 handled the AWS move and the sign-in test fix. The AWS session also used Claude in Chrome for the console. Hoang supplied the requirements, checked the UI on the VM and directed the deployment decisions.
+- **Work and evidence.**
+  - **T81** added email/password sign-in, BCrypt, signed JWTs with the server-assigned role, attempt limits and real frontend authentication. The log records 11 passing backend auth and limiter tests and all four WSL `make` targets passing. [PR #31](https://github.com/tkob-team/LeeTKOB/pull/31)
+  - **T82** added class-scoped lab APIs, the TA create form and file import, and the student statement view. Eight backend contract tests passed, and the frontend tests imported the real `sort-merge` statement, two constraints and seven test pairs. [PR #32](https://github.com/tkob-team/LeeTKOB/pull/32)
+  - **T83 and T84** added the repeatable seed for five test accounts and two classes, Docker Compose and the deployment runbook. After Gemini failed on Azure East Asia (Hong Kong), Hoang moved the deployment to AWS Singapore. On the new VM the Gemini check succeeded, sandbox checks passed 11/11, and the walkthrough reached the TA review queue and confirmed 404 for the other class's TA. [PR #33](https://github.com/tkob-team/LeeTKOB/pull/33), [PR #37](https://github.com/tkob-team/LeeTKOB/pull/37)
+  - **Follow-ups** fixed the duplicated class label, linked the header brand to the role's home, refined the light/dark switch and sent TAs to the lab list. The flaky sign-in test now reuses one generated token so the expiry cannot differ across a one-second boundary. It passed 20 consecutive local runs and the PR's Node 22 CI. [PR #34](https://github.com/tkob-team/LeeTKOB/pull/34), [PR #35](https://github.com/tkob-team/LeeTKOB/pull/35), [PR #36](https://github.com/tkob-team/LeeTKOB/pull/36), [PR #38](https://github.com/tkob-team/LeeTKOB/pull/38), [CI run](https://github.com/tkob-team/LeeTKOB/actions/runs/45571569458)
+- **Kept.** Lab creation stayed in the UI and API, and the seed created accounts and classes only. The checker worker alone received the Gemini key, and the judge worker alone had the Docker socket among the running services. The sign-in test retained its original assertions.
+- **Changed.** The deployment runbook gained the region requirement, fixed IP guidance and a model reachability check. Hoang's session kept the Compose setup during the move and reran the walkthrough on the replacement VM. [PR #37](https://github.com/tkob-team/LeeTKOB/pull/37)
+- **Rejected and corrected.**
+  - T81 rejected trusting a client-supplied `X-Forwarded-For` header for rate limiting. The Compose deployment used nginx to set the header at the trusted proxy. [PR #31](https://github.com/tkob-team/LeeTKOB/pull/31), [PR #33](https://github.com/tkob-team/LeeTKOB/pull/33)
+  - A shared `env_file` would expose the Gemini key to every service. Compose used explicit variables per service. [PR #33](https://github.com/tkob-team/LeeTKOB/pull/33)
+  - Keeping the Hong Kong VM for the walkthrough with `MODEL_OFF=1` would leave semantic checks at `unsure`. Moving only the checker would require exposing database access across hosts. Hoang moved the full stack to Singapore. [PR #37](https://github.com/tkob-team/LeeTKOB/pull/37)
+  - Rerunning the flaky test alone would leave the clock-boundary failure in place. Generating the token once removed the cause. [PR #38](https://github.com/tkob-team/LeeTKOB/pull/38)
+- **Deviation from AGENTS.md.** During the VM move, the session transferred the Gemini key between the two deployment environment files at the requester's direction. Reading the source environment file breached the repository rule. The session log records that the key value was kept out of its output and the repository. [Deployment AI log](#2026-11-25--t84-follow-up-move-the-deployment-to-aws-singapore-c-hoang)
+- **Not done or not verified.** The VM migration session left the old Azure VM untouched and left walkthrough labs on both deployments. The sign-in fix was checked locally with Node 26; the Node 22 result comes from PR CI. Backend and checker checks for that fix were left to CI. The final submission was outside the work recorded here.
+- **Summary drafted with OpenAI Codex** from the team's notes, the existing AI log and GitHub evidence.
+
+## 2026-11-28 - Fix the Create Lab tab title in PA#3 CI
+
+- **Tool.** OpenAI Codex investigated the failing CreateLabRoute test and reproduced the stale loading title on the class-not-found screen.
+- **Kept.** The existing title assertion, class access checks, loading and error states, and the default title on unmount.
+- **Changed.** The shared title hook now updates and resets the title in layout effects. A regression test checks that the class-not-found heading and its title appear in the same React commit. The regression test caught the stale title before the fix.
+- **Rejected.** Waiting longer in the existing assertion would hide the brief mismatch in the UI. The fix updates the title before paint.
+
 ## 2026-11-04 — Scaffold repo: Spring Boot backend, Python checker, make checks (A)
 - Attribution: the tracker Overview sheet maps A to Hiep; the original author label is retained.
 - Tool: Claude Code (Claude Opus 5.5)
@@ -610,11 +636,37 @@
 - Validation: `make lint`, `make format-check`, `make typecheck` in WSL — see the PR; CI on the PR is the reference. Docs-only change; no test behaviour touched.
 - CI: https://github.com/tkob-team/LeeTKOB/actions/runs/46153925549 (7/7 pass)
 
+## 2026-11-29 — T87: summary of my PA#3 work (A, Hiep)
+
+- Tools: claude.ai (Claude Opus 5.5) in the Project "Project Assignment Web Dev" as the planning session: it read the rubric and the repository (shallow clone, read only), wrote short prompts for Claude Code, reviewed each "Báo cáo cho phiên thảo luận", kept the handoff file and the video script. Claude Code (Claude Opus 5.5) for code, tests and docs; the run-3 walkthrough session switched to Claude Opus 4.8 after Opus 5.5's safeguards flagged its sandbox-attack step. Claude in Chrome for the walkthroughs and the product audit; every account was signed in by me, the agent never typed a password.
+- My tasks and evidence: checker, hard rules, Gemini judge, check worker and review queue (T72–T77, entries of 23/11); HTTPS (T109, #42); UI rounds after walkthroughs 1–2 (#45–#47, #53–#55); admin screens and class management (#56, #58, #59); product audit fixes A1–A17, B1, B15 (#60–#62); lab import (#63, #64); PA3.md and grader-style checks (#57, #66); walkthrough run 3 with sandbox attack checks (#65); demo video https://youtu.be/1j7CANdt1qI (lab `10a6d166-c4f1-45f1-bd8c-e78d5cb094a5`).
+- Changed:
+  - Grader-style checks before writing PA3.md: model-off image on `eval/dev` (0 wrongful, 0 of 55 ban-list pairs unsure), re-score of the committed run (same body as `eval-report.txt`), sha256 of `eval.mjs`/`labels.jsonl`, call-log scan (no comments, emails, IDs or dev ids in 47 prompts).
+  - The planning session's first PA3.md draft only covered the hand-in list; after re-reading the rubric it added pointers for criteria 3–6 (hard-rule traps and `called:false` lines, comment-removal tests, schema, own cases). Claude Code then caught two of its claims: the sandbox job has 11 tests, not nine (minimum 9 has three), and the repository had no URL for LeeTKOB-FAQ; PA3.md now has the minimum → test table and FAQ-08/FAQ-02 links.
+  - Admin could not sign in at all (a test asserted the refusal "no web screens yet"); found while checking the PA3.md accounts against the rubric's "one admin" requirement. Admin UI added (#56) and extended after my manual checks: member names and emails, TA picker without already assigned TAs, removal, bulk removal, "Đã nộp N lab · M lần" (#58, #59, #61, #63).
+- Rejected (concrete):
+  - The planning session wrote a prompt with `git push --force-with-lease` after a rebase; AGENTS.md forbids force-push and the session's settings blocked it twice. Pushed the rebased commits to a new branch instead (`docs/pa3-md-v2`, #57).
+  - In-row "Xác nhận gỡ <tên>?" confirmation (planning session's choice, to avoid `window.confirm`): my manual check showed no consequence text, several confirmations open at once and the student table columns jumping (262 → 613 px). Replaced by a modal `ConfirmDialog` (#61).
+  - "A new test set replaces all tests" for lab import (planning session's first rule): it broke uploading 01 then 02. Replaced by matching tests by number, adding new numbers silently and asking only when a number collides with different content (#63).
+  - Folder import that only read `tests/`: my manual check with all files at the top level imported 0 tests and could replace 7 existing ones. Fixed to read tests at any depth and keep kinds the folder lacks (#64).
+  - Adding emails to the TA roster `GET /classes/{id}/members`: TAs could map the review queue's anonymous labels to people; a separate admin-only endpoint was used (#58).
+  - Removing students who already submitted: the fate of their submissions needs a product decision (FAQ); removal returns 409 `member-has-submissions` and the rest moved to PA4 (#59).
+  - A `created_at` migration to sort labs by creation time, and deleting test labs with SQL on the VM, both right before the tag; labs stay ordered by opening time and the PA3.md text says so.
+  - Rewriting the path line of the committed `eval-report.txt`; PA3.md explains it and gives the sha256 of `predictions.jsonl`.
+  - The first video script (≈5 min, long narration that could not be spoken in time); after re-reading the rubric (≤ 5 min, watched only if the deployment is down, no narration required) it was cut to about 3 minutes, one short sentence per scene.
+- By hand:
+  - Operations & git: Merged all PRs (#55–#66) after green CI, decided merge ordering across parallel sessions (#60 before #61), cleaned up local worktrees/branches, and manually SSHed into the VM (`git pull`, build, `up -d`) after every merge batch (#55–#64).
+  - Manual testing & audit: Tested every deployed PR in an incognito window—catching the password icon/input-retention UX, missing admin class/member views and duplicate TA picker (#58), layout shift on "Tạo lab" and missing member removal (#59), confusing "Bài nộp" counts ("N lab · M lần", #63), and flat-folder 0-test import edge cases (#64); requested the full-product audit (yielding A1–A17, #60–#62) instead of piecemeal fixes.
+  - Product & workflow calls: Defined the Classroom-style invite-code flow for students vs. admin-assigned TAs, scoped admin-side student removal to PA#3 (deferring TA removal and lab close/delete to PA#4), decided to fix all audit blockers before running walkthrough 3, and manually handled the sandbox-attack step after Opus 5.5 flagged the session.
+  - Credentials & demo video: Signed into all test accounts manually during Chrome walkthroughs, added test passwords directly to `PA3.md` (verifying green secrets CI), and recorded, trimmed, and uploaded the Unlisted demo video (re-recording once after checking rubric constraints).
+- Not done or not verified: lab edit/close/delete (audit B4), search/filter/paging, invite-code rotation, TA roster and removal, and the other audit items B2–B14 (PA4); refresh token and server-side revocation; a per-lab model call cap; layout at 375/768 px on the TA lab table and admin list (run 3, PA4). B1 bulk removal was checked on the deployment only up to the dialog, since both seeded students have submissions; the real removal is covered by tests.
+- Validation: walkthrough run 3 (#65): every step PASS, audit 19/19, none of 11 attack submissions accepted. CI links are on each PR entry above.
+
 ## 2026-11-28 — fix/flaky-title-test: wait for the tab title in page-title tests (A, Hiep)
 
 - Tool: Claude Code (Claude Opus 5.5). Test-only change; no `.env`, backend, checker or VM access.
 - Asked for: `StudentLabPage.header.test.tsx:119` failed intermittently on CI (run 46162242330, PR #67) with `document.title` still "Đề bài · LeeTKOB". It read the title right after `findByRole('heading')`, but `usePageTitle` sets the title in an effect that can run after the heading is in the DOM.
-- Changed: the title assertion now sits in `await waitFor(...)`, so it waits for the effect. Same change in the other tests that read `document.title` right after a `find*` query: `admin-routes.test.tsx` (3), `AdminClassesPage.test.tsx`, `AdminClassPage.test.tsx` (2), `CreateLabRoute.test.tsx` (2), `ReviewQueuePage.header.test.tsx`. Existing tests edited on request; each expected string is unchanged and still compared exactly.
+- Changed: the title assertion now sits in `await waitFor(...)`, so it waits for the effect. Same change in the other tests that read `document.title` right after a `find*` query: `admin-routes.test.tsx` (3), `AdminClassesPage.test.tsx`, `AdminClassPage.test.tsx` (2), `CreateLabRoute.test.tsx` (2), `ReviewQueuePage.header.test.tsx`. Existing tests edited on request; each expected string is unchanged and still compared exactly. After merging main, `usePageTitle` uses `useLayoutEffect` (f299a35, the root-cause fix), so the title is set in the same commit as the heading; the `waitFor` stays as a guard that costs nothing when the title is already right.
 - Kept: `usePageTitle.test.tsx`, which renders synchronously with no `find*` query, so the effect has already run when it asserts.
 - Rejected: loosening the assertion (`toContain`, regex, accepting either title) or adding retries or longer timeouts. These would hide the race instead of waiting for the effect.
-- Validation: in the WSL mirror `~/lk/frontend`, `vitest --run` on `StudentLabPage.header.test.tsx` passed 30/30 times in a row, and the full suite passed (433 tests in 60 files). ESLint, `tsc -b` and Prettier are clean. CI on the PR is the reference.
+- Validation: in the WSL mirror `~/lk/frontend`, `vitest --run` on `StudentLabPage.header.test.tsx` passed 30/30 times in a row, and the full suite passed (434 tests in 60 files), both before and after merging main. ESLint, `tsc -b` and Prettier are clean. CI on the PR is the reference.

@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { Profiler, type ProfilerOnRenderCallback } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
@@ -19,15 +20,24 @@ const auth: AuthState = {
   logout: vi.fn(),
 };
 
-function renderRoute() {
+function renderRoute(onRender?: ProfilerOnRenderCallback) {
   const router = createMemoryRouter(
     [{ path: '/ta/classes/:classId/labs/new', element: <CreateLabRoute /> }],
     { initialEntries: [`/ta/classes/${classId}/labs/new`] },
   );
-  render(
+  const route = (
     <AuthContext value={auth}>
       <RouterProvider router={router} />
-    </AuthContext>,
+    </AuthContext>
+  );
+  render(
+    onRender ? (
+      <Profiler id="create-lab" onRender={onRender}>
+        {route}
+      </Profiler>
+    ) : (
+      route
+    ),
   );
 }
 
@@ -76,6 +86,25 @@ describe('create lab: the class is checked before the form (A5)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Máy chủ đang gặp sự cố');
     expect(screen.getByRole('link', { name: '← Lớp của tôi' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Tiêu đề')).toBeNull();
+  });
+
+  it('sets the tab title in the same commit that shows the class-not-found screen', async () => {
+    request.mockRejectedValue(
+      new ApiProblemError({
+        type: 'urn:leetkob:problem:class-not-found',
+        title: 'English',
+        status: 404,
+      }),
+    );
+    const titles: string[] = [];
+    renderRoute(() => {
+      if (screen.queryByRole('heading', { name: 'Không tìm thấy lớp' })) {
+        titles.push(document.title);
+      }
+    });
+
+    await screen.findByRole('heading', { name: 'Không tìm thấy lớp' });
+    expect(titles[0]).toBe('Không tìm thấy lớp · LeeTKOB');
   });
 
   it("names the class in the title, the back link and the tab once it is the TA's", async () => {
