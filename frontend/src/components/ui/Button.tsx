@@ -1,4 +1,4 @@
-import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useId, type ButtonHTMLAttributes, type ReactNode, type Ref } from 'react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
@@ -7,6 +7,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Shown as text beside a disabled button; a button is never disabled without saying why. */
   disabledReason?: ReactNode;
   children: ReactNode;
+  /** Forwarded to the <button> (React 19 passes `ref` as a prop). */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function Button({

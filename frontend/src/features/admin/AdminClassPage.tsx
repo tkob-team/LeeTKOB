@@ -6,7 +6,7 @@ import type { ProblemDetails } from '../../api/problem';
 import { NotFoundPage } from '../../app/NotFoundPage';
 import { Button, FormField, ProblemAlert } from '../../components/ui';
 import type { Classroom } from '../lab-authoring/lab-api';
-import { InviteCode, PeopleList } from './AdminClassesPage';
+import { InviteCode, PersonName } from './AdminClassesPage';
 import { personName, taOptionLabel, type AdminMember, type TaAccount } from './admin-api';
 
 /** An unknown class (404) or an id that is not a UUID (400) both mean "no such class". */
@@ -94,6 +94,99 @@ function AssignTaForm({
   );
 }
 
+const HAS_SUBMISSIONS = 'urn:leetkob:problem:member-has-submissions';
+
+/** What removing a member ended with: the removed member, or a problem to show. */
+type RemoveOutcome = { removed: AdminMember } | { problem: ProblemDetails };
+
+/**
+ * "Gỡ" for one member. A press shows, in place, "Xác nhận gỡ <tên>?" and "Huỷ" (never a
+ * browser dialog); confirming sends DELETE and reports the outcome to the page.
+ */
+function RemoveMember({
+  member,
+  classId,
+  onDone,
+}: {
+  member: AdminMember;
+  classId: string;
+  onDone: (outcome: RemoveOutcome) => Promise<void>;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const removeRef = useRef<HTMLButtonElement>(null);
+  /** Bumped to move the focus after the next render: to the confirm button, or back to "Gỡ". */
+  const [focusTarget, setFocusTarget] = useState<{ to: 'confirm' | 'remove' }>();
+  const name = personName(member);
+  const kind = member.role === 'TA' ? 'tas' : 'students';
+
+  useEffect(() => {
+    if (focusTarget?.to === 'confirm') confirmRef.current?.focus();
+    if (focusTarget?.to === 'remove') removeRef.current?.focus();
+  }, [focusTarget]);
+
+  async function remove() {
+    if (pending) return;
+    setPending(true);
+    let outcome: RemoveOutcome;
+    try {
+      await api.request<undefined>(
+        `/admin/classes/${encodeURIComponent(classId)}/${kind}/${encodeURIComponent(member.id)}`,
+        { method: 'DELETE' },
+      );
+      outcome = { removed: member };
+    } catch (cause) {
+      const problem = problemFrom(cause);
+      outcome = {
+        problem:
+          problem.type === HAS_SUBMISSIONS
+            ? {
+                type: problem.type,
+                status: problem.status,
+                title: `${name} đã có bài nộp, chưa gỡ được.`,
+              }
+            : problem,
+      };
+      setPending(false);
+      setConfirming(false);
+      setFocusTarget({ to: 'remove' });
+    }
+    await onDone(outcome);
+  }
+
+  if (!confirming) {
+    return (
+      <Button
+        ref={removeRef}
+        aria-label={`Gỡ ${name}`}
+        onClick={() => {
+          setConfirming(true);
+          setFocusTarget({ to: 'confirm' });
+        }}
+      >
+        Gỡ
+      </Button>
+    );
+  }
+  return (
+    <span className="lk-confirm">
+      <Button ref={confirmRef} variant="danger" disabled={pending} onClick={() => void remove()}>
+        {`Xác nhận gỡ ${name}?`}
+      </Button>
+      <Button
+        disabled={pending}
+        onClick={() => {
+          setConfirming(false);
+          setFocusTarget({ to: 'remove' });
+        }}
+      >
+        Huỷ
+      </Button>
+    </span>
+  );
+}
+
 /** One class for the admin: invite code, TAs (and assigning one), students with name and email. */
 export function AdminClassPage() {
   const { classId = '' } = useParams();
@@ -101,7 +194,12 @@ export function AdminClassPage() {
   const [members, setMembers] = useState<AdminMember[]>();
   const [tas, setTas] = useState<TaAccount[]>([]);
   const [problem, setProblem] = useState<ProblemDetails>();
-  const [assigned, setAssigned] = useState('');
+  const [taStatus, setTaStatus] = useState('');
+  const [studentStatus, setStudentStatus] = useState('');
+  const [taProblem, setTaProblem] = useState<ProblemDetails>();
+  const [studentProblem, setStudentProblem] = useState<ProblemDetails>();
+  const taHeading = useRef<HTMLHeadingElement>(null);
+  const studentHeading = useRef<HTMLHeadingElement>(null);
 
   const membersPath = `/admin/classes/${encodeURIComponent(classId)}/members`;
 
@@ -127,16 +225,39 @@ export function AdminClassPage() {
     };
   }, [classId, membersPath]);
 
+  const reloadMembers = useCallback(async () => {
+    try {
+      setMembers(await api.request<AdminMember[]>(membersPath));
+    } catch (cause) {
+      setProblem(problemFrom(cause));
+    }
+  }, [membersPath]);
+
   const onAssigned = useCallback(
     async (account: TaAccount) => {
-      setAssigned(`Đã gán ${personName(account)}.`);
-      try {
-        setMembers(await api.request<AdminMember[]>(membersPath));
-      } catch (cause) {
-        setProblem(problemFrom(cause));
-      }
+      setTaProblem(undefined);
+      setTaStatus(`Đã gán ${personName(account)}.`);
+      await reloadMembers();
     },
-    [membersPath],
+    [reloadMembers],
+  );
+
+  /** After a removal: the sentence, the reloaded list, and the focus on the section heading. */
+  const onRemoveDone = useCallback(
+    async (role: AdminMember['role'], outcome: RemoveOutcome) => {
+      const setStatus = role === 'TA' ? setTaStatus : setStudentStatus;
+      const setSectionProblem = role === 'TA' ? setTaProblem : setStudentProblem;
+      if ('problem' in outcome) {
+        setStatus('');
+        setSectionProblem(outcome.problem);
+        return;
+      }
+      setSectionProblem(undefined);
+      setStatus(`Đã gỡ ${personName(outcome.removed)}.`);
+      await reloadMembers();
+      (role === 'TA' ? taHeading : studentHeading).current?.focus();
+    },
+    [reloadMembers],
   );
 
   if (!classroom && problem && NOT_FOUND_TYPES.has(problem.type)) return <NotFoundPage />;
@@ -181,17 +302,29 @@ export function AdminClassPage() {
       {problem ? <ProblemAlert problem={problem} /> : null}
 
       <section className="lk-panel" aria-labelledby="class-tas-title">
-        <h2 id="class-tas-title" className="lk-panel__title">
+        <h2 id="class-tas-title" className="lk-panel__title" ref={taHeading} tabIndex={-1}>
           Trợ giảng ({classTas.length})
         </h2>
         {classTas.length === 0 ? (
           <p className="lk-page__note">Lớp này chưa có trợ giảng.</p>
         ) : (
-          <PeopleList people={classTas} />
+          <ul className="lk-people lk-people--actions">
+            {classTas.map((ta) => (
+              <li key={ta.id}>
+                <PersonName person={ta} />
+                <RemoveMember
+                  member={ta}
+                  classId={classroom.id}
+                  onDone={(outcome) => onRemoveDone('TA', outcome)}
+                />
+              </li>
+            ))}
+          </ul>
         )}
         <p role="status" className="lk-page__note">
-          {assigned}
+          {taStatus}
         </p>
+        {taProblem ? <ProblemAlert problem={taProblem} /> : null}
         <AssignTaForm
           classId={classroom.id}
           candidates={tas.filter((ta) => !taIds.has(ta.id))}
@@ -201,9 +334,18 @@ export function AdminClassPage() {
       </section>
 
       <section className="lk-panel" aria-labelledby="class-students-title">
-        <h2 id="class-students-title" className="lk-panel__title">
+        <h2
+          id="class-students-title"
+          className="lk-panel__title"
+          ref={studentHeading}
+          tabIndex={-1}
+        >
           Sinh viên ({students.length})
         </h2>
+        <p role="status" className="lk-page__note">
+          {studentStatus}
+        </p>
+        {studentProblem ? <ProblemAlert problem={studentProblem} /> : null}
         {students.length === 0 ? (
           <p className="lk-page__note">Chưa có sinh viên. Gửi mã mời để sinh viên tự vào lớp.</p>
         ) : (
@@ -213,6 +355,9 @@ export function AdminClassPage() {
                 <tr>
                   <th scope="col">Tên</th>
                   <th scope="col">Email</th>
+                  <th scope="col">
+                    <span className="lk-sr-only">Thao tác</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -220,6 +365,13 @@ export function AdminClassPage() {
                   <tr key={student.id}>
                     <td className="lk-wrap">{personName(student)}</td>
                     <td className="lk-wrap">{student.email ?? '—'}</td>
+                    <td>
+                      <RemoveMember
+                        member={student}
+                        classId={classroom.id}
+                        onDone={(outcome) => onRemoveDone('STUDENT', outcome)}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

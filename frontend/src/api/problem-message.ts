@@ -39,6 +39,10 @@ const BY_TYPE: Record<string, Message> = {
     title: 'Bạn không có quyền thực hiện thao tác này',
     detail: 'Thao tác này dành cho vai trò khác.',
   },
+  'member-has-submissions': {
+    title: 'Sinh viên đã có bài nộp, chưa gỡ được',
+    detail: 'Chỉ gỡ được sinh viên chưa nộp bài nào trong lớp.',
+  },
   'lab-not-found': {
     title: 'Không tìm thấy lab',
     detail: 'Lab không tồn tại hoặc không thuộc lớp của bạn.',
