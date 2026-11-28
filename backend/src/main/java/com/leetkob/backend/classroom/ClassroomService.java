@@ -31,7 +31,8 @@ class ClassroomService {
   record AdminClass(
       UUID id, String name, String inviteCode, List<TaAccount> tas, int studentCount) {}
 
-  record AdminMember(UUID id, String role, String email, String displayName) {}
+  /** {@code submissionCount}: the student's submissions in the labs of this class; 0 for TAs. */
+  record AdminMember(UUID id, String role, String email, String displayName, int submissionCount) {}
 
   private static final SecureRandom RANDOM = new SecureRandom();
   private final JdbcClient jdbc;
@@ -174,20 +175,26 @@ class ClassroomService {
     find(classId);
     return jdbc.sql(
             """
-            select u.id, m.role, u.email, u.display_name from (
+            select u.id, m.role, u.email, u.display_name,
+                   case when m.role = 'STUDENT' then
+                     (select count(*) from submissions s join labs l on l.id = s.lab_id
+                      where l.class_id = ? and s.student_id = u.id)
+                   else 0 end as submission_count
+            from (
               select user_id, 'TA' as role, 0 as rank from class_tas where class_id = ?
               union all
               select user_id, 'STUDENT' as role, 1 as rank from class_members where class_id = ?
             ) m join users u on u.id = m.user_id
             order by m.rank, u.display_name nulls last, u.email nulls last, u.id
             """)
-        .params(classId, classId)
+        .params(classId, classId, classId)
         .query((rs, row) ->
             new AdminMember(
                 rs.getObject("id", UUID.class),
                 rs.getString("role"),
                 rs.getString("email"),
-                rs.getString("display_name")))
+                rs.getString("display_name"),
+                rs.getInt("submission_count")))
         .list();
   }
 
