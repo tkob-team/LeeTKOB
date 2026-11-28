@@ -71,8 +71,7 @@ describe('admin routes', () => {
       'aria-current',
       'page',
     );
-    expect(fetchMock).toHaveBeenCalledWith('/classes', expect.anything());
-    expect(fetchMock).toHaveBeenCalledWith('/admin/tas', expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith('/admin/classes', expect.anything());
 
     fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
