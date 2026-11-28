@@ -60,11 +60,11 @@ class AdminMemberSubmittedLabCountContractTest {
 
   @Test
   void countsTheDistinctLabsEachStudentSubmittedToInThisClassOnly() throws Exception {
-    UUID lab1 = lab(web, "Lab 1");
-    UUID lab2 = lab(web, "Lab 2");
     lab(web, "Lab 3");
+    UUID lab1 = lab(web, "Lab 1");
     submit(lab1, studentAn, "labs-an-lab1-key-a");
     submit(lab1, studentAn, "labs-an-lab1-key-b");
+    UUID lab2 = lab(web, "Lab 2");
     submit(lab2, studentAn, "labs-an-lab2-key-a");
     UUID otherLab = lab(other, "Other lab");
     submit(otherLab, studentAn, "labs-an-other-key-a");
