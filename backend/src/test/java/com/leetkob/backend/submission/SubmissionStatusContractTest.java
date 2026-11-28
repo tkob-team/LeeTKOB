@@ -4,13 +4,16 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.leetkob.backend.TestcontainersConfiguration;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -207,6 +210,92 @@ class SubmissionStatusContractTest {
         .andExpect(content().string(not(containsString(lab.toString()))));
   }
 
+  @Test
+  void streamReturnsTheInitialVerdictAndClosesWhenCompleted() throws Exception {
+    finish(latest, "WA");
+    var stream =
+        mvc.perform(
+                get("/labs/{lab}/submissions/{submission}/events", lab, latest)
+                    .accept("text/event-stream")
+                    .with(actor(student, "STUDENT")))
+            .andExpect(request().asyncStarted())
+            .andExpect(header().string("X-Accel-Buffering", "no"))
+            .andReturn();
+    mvc.perform(asyncDispatch(stream))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("event:status")))
+        .andExpect(content().string(containsString("\"verdict\":\"WA\"")));
+  }
+
+  @Test
+  void streamDoesNotRevealAnotherStudentsSubmission() throws Exception {
+    mvc.perform(
+            get("/labs/{lab}/submissions/{submission}/events", lab, latest)
+                .accept("text/event-stream", "application/problem+json")
+                .with(actor(peer, "STUDENT")))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.type").value("urn:leetkob:problem:submission-not-found"));
+  }
+
+  @Test
+  void streamFollowsQueuedSubmissionThroughCompletion() throws Exception {
+    var stream =
+        mvc.perform(
+                get("/labs/{lab}/submissions/{submission}/events", lab, latest)
+                    .accept("text/event-stream")
+                    .with(actor(student, "STUDENT")))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+    finish(latest, "WA");
+    mvc.perform(asyncDispatch(stream))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("\"status\":\"queued\"")))
+        .andExpect(content().string(containsString("\"status\":\"completed\"")));
+  }
+
+  @Test
+  void streamClosesAtExpiryAndReconnectReturnsTheCurrentVerdict() throws Exception {
+    var expiring =
+        jwt()
+            .jwt(token ->
+                token
+                    .subject(student.toString())
+                    .claim("role", "STUDENT")
+                    .expiresAt(Instant.now().plusSeconds(2)));
+    var first =
+        mvc.perform(
+                get("/labs/{lab}/submissions/{submission}/events", lab, latest)
+                    .accept("text/event-stream")
+                    .with(expiring))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+    mvc.perform(asyncDispatch(first))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("\"status\":\"queued\"")));
+
+    finish(latest, "WA");
+    var reconnected =
+        mvc.perform(
+                get("/labs/{lab}/submissions/{submission}/events", lab, latest)
+                    .accept("text/event-stream")
+                    .with(actor(student, "STUDENT")))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+    mvc.perform(asyncDispatch(reconnected))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("\"status\":\"completed\"")));
+  }
+
+  @Test
+  void streamRequiresAuthenticationAndTheOriginalLab() throws Exception {
+    mvc.perform(get("/labs/{lab}/submissions/{submission}/events", lab, latest))
+        .andExpect(status().isUnauthorized());
+    mvc.perform(
+            get("/labs/{lab}/submissions/{submission}/events", otherLab, latest)
+                .with(actor(student, "STUDENT")))
+        .andExpect(status().isNotFound());
+  }
+
   private UUID submission(int secondsAgo) {
     UUID id = UUID.randomUUID();
     jdbc.sql(
@@ -238,6 +327,11 @@ class SubmissionStatusContractTest {
   }
 
   private static RequestPostProcessor actor(UUID id, String role) {
-    return jwt().jwt(token -> token.subject(id.toString()).claim("role", role));
+    return jwt()
+        .jwt(token ->
+            token
+                .subject(id.toString())
+                .claim("role", role)
+                .expiresAt(Instant.now().plusSeconds(60)));
   }
 }

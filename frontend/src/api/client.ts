@@ -68,6 +68,7 @@ export interface ApiClientOptions {
 
 export interface ApiClient {
   request<T>(path: string, init?: RequestInit): Promise<T>;
+  openEventStream(path: string, signal: AbortSignal): Promise<Response>;
 }
 
 /** POST /auth/login: its 401 is a wrong password, not an ended session. */
@@ -82,31 +83,39 @@ export function createApiClient({
   fetch: fetchImpl = (input, init) => globalThis.fetch(input, init),
   onUnauthorized,
 }: ApiClientOptions): ApiClient {
+  async function send(path: string, init: RequestInit, accept: string): Promise<Response> {
+    const headers = new Headers(init.headers);
+    headers.set('Accept', accept);
+    if (init.body !== undefined && !headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+    const token = getToken?.();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+
+    let response: Response;
+    try {
+      response = await fetchImpl(`${baseUrl}${path}`, { ...init, headers });
+    } catch {
+      throw new ApiProblemError({
+        type: 'about:blank',
+        title: 'Không kết nối được máy chủ',
+        status: 0,
+        detail: 'Kiểm tra kết nối mạng rồi thử lại.',
+      });
+    }
+    if (response.status === 401 && !isLoginRequest(path, init.method)) onUnauthorized?.();
+    if (!response.ok) throw new ApiProblemError(await parseProblem(response));
+    return response;
+  }
+
   return {
     async request<T>(path: string, init: RequestInit = {}): Promise<T> {
-      const headers = new Headers(init.headers);
-      headers.set('Accept', 'application/json, application/problem+json');
-      if (init.body !== undefined && !headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
-      }
-      const token = getToken?.();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-
-      let response: Response;
-      try {
-        response = await fetchImpl(`${baseUrl}${path}`, { ...init, headers });
-      } catch {
-        throw new ApiProblemError({
-          type: 'about:blank',
-          title: 'Không kết nối được máy chủ',
-          status: 0,
-          detail: 'Kiểm tra kết nối mạng rồi thử lại.',
-        });
-      }
-      if (response.status === 401 && !isLoginRequest(path, init.method)) onUnauthorized?.();
-      if (!response.ok) throw new ApiProblemError(await parseProblem(response));
+      const response = await send(path, init, 'application/json, application/problem+json');
       if (response.status === 204) return undefined as T;
       return (await response.json()) as T;
+    },
+    openEventStream(path, signal) {
+      return send(path, { signal }, 'text/event-stream, application/problem+json');
     },
   };
 }

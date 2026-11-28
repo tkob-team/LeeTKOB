@@ -1,7 +1,7 @@
 # Student submission and polling
 
-Status: 1.1.0 (PA#03). Owner of this flow: Hoà. Fields are only added in 1.1.0; no existing field
-changes meaning.
+Status: 1.2.0 (PA#04). Owner of this flow: Hoà. Version 1.2.0 adds a live verdict
+stream alongside the existing JSON status endpoint.
 
 ## GET /student/labs
 
@@ -44,12 +44,25 @@ The judge hands off successful AC results as specified in
 [PA3 data boundaries](pa3-boundaries.md). The submission POST and its replay
 behavior remain defined in [the intake contract](post-labs-submissions.md).
 
+## Live updates
+
+`GET /labs/{labId}/submissions/{submissionId}/events` uses the same Bearer authentication,
+student role and ownership checks as the JSON endpoint. It returns `text/event-stream`,
+`Cache-Control: no-store` and `X-Accel-Buffering: no`. Each `status` event contains a JSON
+status snapshot. The opening event contains the current state, and later events carry
+changes until the verdict is complete. Comment frames keep the connection alive.
+
+A stream ends on completion, token expiry, lost access or after 20 seconds. The client
+may fetch the existing JSON status and reconnect. The API returns 503 when all stream
+slots are occupied.
+
 ## Changelog
 
 | Version | Change |
 | --- | --- |
 | 1.0.0 | `GET /student/labs` with `id`, `title`, `latestSubmissionId`; student polling. |
 | 1.1.0 | `GET /student/labs` adds `opensAt`, `dueAt` and `latestVerdict` for the student lab table. Added fields only. Requested after the PA#3 UI audit (27/11); to be reviewed by Hoà, who owns this flow. |
+| 1.2.0 | Adds authenticated SSE verdict snapshots. Existing JSON responses and counted-submission rules remain available for polling fallback. |
 
 ## Contract tests
 
@@ -63,3 +76,4 @@ behavior remain defined in [the intake contract](post-labs-submissions.md).
 | `studentOfAnotherClassDoesNotSeeTheLab` | A student of another class sees only their own class's labs. |
 | `latestCountsEvenWhenAnEarlierSubmissionWasAccepted` | Polling: counted rule and omitted fields. |
 | `strangersAndWrongLabsDoNotRevealSubmissions` | Polling: 404, 403, 401. |
+| Stream tests | Initial and terminal snapshots, disconnected or expired JWT handling, authorization, and nginx buffering header. |

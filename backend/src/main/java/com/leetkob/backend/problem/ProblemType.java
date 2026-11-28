@@ -20,6 +20,7 @@ public enum ProblemType {
   IDEMPOTENCY_KEY_REUSED(
       "idempotency-key-reused", 422, "Idempotency-Key was used for another request"),
   TOO_MANY_ATTEMPTS("too-many-attempts", 429, "Too many sign-in attempts"),
+  SUBMISSION_STREAM_BUSY("submission-stream-busy", 503, "Submission stream is busy"),
   INTERNAL_ERROR("internal-error", 500, "Internal error");
 
   private final String urn;

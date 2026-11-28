@@ -517,6 +517,13 @@
 - Follow-up on the same PR (two commits): the theme switch "Giao diện tối" became two buttons "Sáng | Tối" (`role="radiogroup"` named "Giao diện", each `role="radio"` with `aria-checked`, roving `tabIndex` and arrow keys; the checked one is filled with `--brand` / `--on-brand`), shared by the header, login and 404. The earlier-submissions heading became "Các lần nộp cũ hơn (không tính điểm)" with the sub-line "Bài AC sinh viên nộp trước lần được tính, chỉ để tham khảo." (replacing the old sentence). Spec change: `ThemeToggle.test.tsx` switch assertions became exact radio assertions (names "Sáng", "Tối", `aria-checked` values, saved theme), and `ReviewQueuePage.test.tsx` matches the new heading and sub-line exactly.
 - CI: https://github.com/tkob-team/LeeTKOB/actions/runs/46044912322 (7/7 pass)
 
+## 2026-11-28 - T98 student verdict SSE (B, Hoa)
+
+- Tool: OpenAI Codex.
+- Kept: the 1.1.0 lab fields, preselected lab, HTTP submission key and verdict layout.
+- Changed: authenticated live verdict events, JSON polling fallback and contract 1.2.0.
+- Rejected: putting Bearer tokens in URLs.
+
 ## 2026-11-28 — UI-3: session expiry, Vietnamese errors, create-lab dates, submit page, theme, 404, queue reasons (A, Hiep)
 
 - Tool: Claude Code (Claude Opus 5.5). No `.env`, eval data or VM access; no backend API or contract change.
