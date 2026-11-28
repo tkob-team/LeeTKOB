@@ -5,6 +5,7 @@ import type { ProblemDetails } from '../../api/problem';
 import { fieldErrorMessage, localizeProblem } from '../../api/problem-message';
 import { credentialErrors } from '../../app/auth-api';
 import { afterLoginPath, NEXT_PARAM, useAuth, type Credentials } from '../../app/auth-context';
+import { usePageTitle } from '../../app/usePageTitle';
 import { Button, Cover, FormField, PasswordInput, ProblemAlert } from '../../components/ui';
 
 type Field = 'email' | 'password';
@@ -50,6 +51,7 @@ function focusAtEnd(input: HTMLInputElement | null) {
 
 export function LoginPage() {
   const { session, signOutReason, login } = useAuth();
+  usePageTitle('Đăng nhập');
   const [searchParams] = useSearchParams();
   const emailInput = useRef<HTMLInputElement>(null);
   const passwordInput = useRef<HTMLInputElement>(null);

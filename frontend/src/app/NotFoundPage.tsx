@@ -2,25 +2,32 @@ import { Link } from 'react-router';
 import { AdminLayout, StudentLayout, TaLayout } from './AppLayout';
 import { useAuth, type Role } from './auth-context';
 import { EmptyState } from './EmptyState';
+import type { NotFoundPageProps } from './not-found-text';
 import { PublicLayout } from './PublicLayout';
+import { usePageTitle } from './usePageTitle';
 
-/** Lab (or, for an admin, class) list of the signed-in role; signed-out users go through /. */
-function labListPath(role: Role | undefined): string {
-  if (role === 'admin') return '/admin/classes';
-  if (role === 'ta') return '/ta/classes';
-  if (role === 'student') return '/student/labs';
-  return '/';
+/** The home list of the signed-in role and a button label that names where it really goes. */
+function homeLink(role: Role | undefined): { to: string; label: string } {
+  if (role === 'admin') return { to: '/admin/classes', label: 'Về danh sách lớp' };
+  if (role === 'ta') return { to: '/ta/classes', label: 'Về Lớp của tôi' };
+  if (role === 'student') return { to: '/student/labs', label: 'Về danh sách đề bài' };
+  return { to: '/', label: 'Về trang đăng nhập' };
 }
 
-/** Page for an unknown path: what happened and one way back. */
-export function NotFoundPage() {
+/** What is missing and one way back. */
+export function NotFoundPage({
+  title = 'Không tìm thấy trang',
+  detail = 'Đường dẫn này không tồn tại.',
+}: NotFoundPageProps) {
   const { session } = useAuth();
+  const home = homeLink(session?.role);
+  usePageTitle(title);
   return (
     <div className="lk-section">
-      <EmptyState title="Không tìm thấy trang">Đường dẫn này không tồn tại.</EmptyState>
+      <EmptyState title={title}>{detail}</EmptyState>
       <p>
-        <Link className="lk-btn lk-btn--secondary" to={labListPath(session?.role)}>
-          {session?.role === 'admin' ? 'Về danh sách lớp' : 'Về danh sách lab'}
+        <Link className="lk-btn lk-btn--secondary" to={home.to}>
+          {home.label}
         </Link>
       </p>
     </div>
