@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
@@ -252,7 +252,9 @@ describe('admin class page', () => {
     serve({ members: [], tas: [] });
     renderPage();
     await screen.findByRole('heading', { name: 'Web nâng cao', level: 1 });
-    expect(document.title).toBe('Web nâng cao · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Web nâng cao · LeeTKOB');
+    });
   });
 
   it('says the class does not exist or was deleted, under a tab named after it', async () => {
@@ -261,7 +263,9 @@ describe('admin class page', () => {
     expect(await screen.findByRole('heading', { name: 'Không tìm thấy lớp' })).toBeInTheDocument();
     expect(screen.getByText('Lớp không tồn tại hoặc đã bị xoá.')).toBeInTheDocument();
     expect(screen.queryByText('Không tìm thấy trang')).toBeNull();
-    expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
+    });
   });
 
   it('shows the 404 page for an id that is not a UUID (400)', async () => {

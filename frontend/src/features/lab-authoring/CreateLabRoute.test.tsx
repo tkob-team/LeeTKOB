@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
@@ -59,7 +59,9 @@ describe('create lab: the class is checked before the form (A5)', () => {
       '/ta/classes',
     );
     expect(screen.queryByLabelText('Tiêu đề')).toBeNull();
-    expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
+    });
   });
 
   it('shows another failure as an alert, with a way back and no form', async () => {
@@ -87,6 +89,8 @@ describe('create lab: the class is checked before the form (A5)', () => {
       `/ta/classes/${classId}`,
     );
     expect(screen.getByLabelText('Tiêu đề')).toBeInTheDocument();
-    expect(document.title).toBe('Tạo lab · CTT1 · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Tạo lab · CTT1 · LeeTKOB');
+    });
   });
 });

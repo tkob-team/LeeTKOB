@@ -609,3 +609,12 @@
 - Findings: all steps PASS; audit 19/19 PASS (B1 UI only); no attack accepted (a–f WA, g WA, h/k TLE, i MLE, j RE), honest s01 AC; remaining issues 0 blocking · 2 annoying · 4 minor, all already in the PA4 plan (B7 responsive, B9 unsaved-changes, B12 Vietnamese model reason, B14 masked invite codes, PA4 #10 queue panel Esc/close).
 - Validation: `make lint`, `make format-check`, `make typecheck` in WSL — see the PR; CI on the PR is the reference. Docs-only change; no test behaviour touched.
 - CI: https://github.com/tkob-team/LeeTKOB/actions/runs/46153925549 (7/7 pass)
+
+## 2026-11-28 — fix/flaky-title-test: wait for the tab title in page-title tests (A, Hiep)
+
+- Tool: Claude Code (Claude Opus 5.5). Test-only change; no `.env`, backend, checker or VM access.
+- Asked for: `StudentLabPage.header.test.tsx:119` failed intermittently on CI (run 46162242330, PR #67) with `document.title` still "Đề bài · LeeTKOB". It read the title right after `findByRole('heading')`, but `usePageTitle` sets the title in an effect that can run after the heading is in the DOM.
+- Changed: the title assertion now sits in `await waitFor(...)`, so it waits for the effect. Same change in the other tests that read `document.title` right after a `find*` query: `admin-routes.test.tsx` (3), `AdminClassesPage.test.tsx`, `AdminClassPage.test.tsx` (2), `CreateLabRoute.test.tsx` (2), `ReviewQueuePage.header.test.tsx`. Existing tests edited on request; each expected string is unchanged and still compared exactly.
+- Kept: `usePageTitle.test.tsx`, which renders synchronously with no `find*` query, so the effect has already run when it asserts.
+- Rejected: loosening the assertion (`toContain`, regex, accepting either title) or adding retries or longer timeouts. These would hide the race instead of waiting for the effect.
+- Validation: in the WSL mirror `~/lk/frontend`, `vitest --run` on `StudentLabPage.header.test.tsx` passed 30/30 times in a row, and the full suite passed (433 tests in 60 files). ESLint, `tsc -b` and Prettier are clean. CI on the PR is the reference.

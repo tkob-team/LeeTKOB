@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiProblemError, type ApiClient } from '../../api/client';
@@ -116,7 +116,9 @@ describe('student statement header (A15)', () => {
     serve([]);
     renderAt(`/student/labs/${labId}`);
     await screen.findByRole('heading', { name: 'Sorting with merge sort', level: 1 });
-    expect(document.title).toBe('Sorting with merge sort · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Sorting with merge sort · LeeTKOB');
+    });
   });
 
   it('keeps the way back while loading and on an error', async () => {

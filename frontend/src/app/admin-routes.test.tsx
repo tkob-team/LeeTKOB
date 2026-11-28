@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from './AuthProvider';
@@ -184,11 +184,15 @@ describe('admin tab titles through the router', () => {
     stubClass(() => json({ id: classId, name: 'Web nâng cao', inviteCode: null }));
     renderAt('/admin/classes');
     await screen.findByRole('heading', { name: 'Lớp học', level: 1 });
-    expect(document.title).toBe('Lớp học · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Lớp học · LeeTKOB');
+    });
 
     renderAt(`/admin/classes/${classId}`);
     await screen.findByRole('heading', { name: 'Web nâng cao', level: 1 });
-    expect(document.title).toBe('Web nâng cao · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Web nâng cao · LeeTKOB');
+    });
   });
 
   it('keeps the 404 title of a missing class instead of the list title', async () => {
@@ -210,6 +214,8 @@ describe('admin tab titles through the router', () => {
       'href',
       '/admin/classes',
     );
-    expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
+    await waitFor(() => {
+      expect(document.title).toBe('Không tìm thấy lớp · LeeTKOB');
+    });
   });
 });
