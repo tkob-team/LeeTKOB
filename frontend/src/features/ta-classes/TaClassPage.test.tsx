@@ -159,8 +159,10 @@ describe('TA class page', () => {
       }),
     );
     renderPage();
-    expect(await screen.findByText('Không tìm thấy trang')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Về danh sách lab' })).toHaveAttribute(
+    // A6: the page names what is missing and the button names where it goes.
+    expect(await screen.findByText('Không tìm thấy lớp')).toBeInTheDocument();
+    expect(screen.getByText('Lớp không tồn tại hoặc bạn không thuộc lớp này.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Về Lớp của tôi' })).toHaveAttribute(
       'href',
       '/ta/classes',
     );
@@ -188,17 +190,19 @@ describe('TA class page', () => {
     expect(within(nav).queryByRole('link', { name: 'Hàng chờ duyệt' })).toBeNull();
   });
 
-  it('writes the lab title on each review-queue button, not only in its accessible name', async () => {
+  // A8 (audit 2026-11-28) reverses the earlier rule: the title is a link to the queue, so the
+  // button only says "Hàng chờ" and carries the lab title in its accessible name.
+  it('writes "Hàng chờ" on each review-queue button and the lab title in its accessible name', async () => {
     serve();
     renderPage();
     const link = await screen.findByRole('link', {
       name: 'Hàng chờ duyệt: Sorting with merge sort',
     });
-    expect(link).toHaveTextContent('Hàng chờ duyệt: Sorting with merge sort');
-    expect(link).not.toHaveAttribute('aria-label');
+    expect(link).toHaveTextContent(/^Hàng chờ$/);
+    expect(link).toHaveAttribute('aria-label', 'Hàng chờ duyệt: Sorting with merge sort');
   });
 
-  it('wraps a long lab title (~120 characters) in its cell and in the queue button', async () => {
+  it('wraps a long lab title (~120 characters) in its cell; the queue button stays short', async () => {
     const title =
       'Lab 7: sắp xếp trộn có đếm số lần đổi chỗ, đọc dữ liệu lớn từ bàn phím và in kết quả theo đúng định dạng đề yêu cầu';
     expect(title.length).toBeGreaterThanOrEqual(110);
@@ -210,12 +214,11 @@ describe('TA class page', () => {
     const [titleCell] = within(row).getAllByRole('cell');
     expect(titleCell).toHaveTextContent(title);
     expect(titleCell).toHaveClass('lk-wrap');
-    expect(link.closest('td')).toHaveClass('lk-wrap');
+    expect(link).toHaveTextContent(/^Hàng chờ$/);
 
     const css = readFileSync(join(process.cwd(), 'src/components/ui/ui-extra.css'), 'utf8');
     expect(css).toMatch(
       /\.lk-table td\.lk-wrap \{[^}]*white-space: normal;[^}]*overflow-wrap: anywhere;/,
     );
-    expect(css).toMatch(/\.lk-table td\.lk-wrap \.lk-btn \{[^}]*white-space: normal;/);
   });
 });

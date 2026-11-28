@@ -2,7 +2,7 @@ import { Navigate, type RouteObject } from 'react-router';
 import { AdminClassPage } from '../features/admin/AdminClassPage';
 import { AdminClassesPage } from '../features/admin/AdminClassesPage';
 import { LoginPage } from '../features/auth/LoginPage';
-import { CreateLabPage } from '../features/lab-authoring/CreateLabPage';
+import { CreateLabRoute } from '../features/lab-authoring/CreateLabRoute';
 import { StudentLabPage, StudentLabsPage } from '../features/lab-view/StudentLabPage';
 import { ReviewQueuePage } from '../features/review-queue/ReviewQueuePage';
 import { SubmitJudgePage } from '../features/submit-judge/SubmitJudgePage';
@@ -10,6 +10,7 @@ import { TaClassesPage } from '../features/ta-classes/TaClassesPage';
 import { TaClassPage } from '../features/ta-classes/TaClassPage';
 import { AdminLayout, StudentLayout, TaLayout } from './AppLayout';
 import { NotFoundRoute } from './NotFoundPage';
+import { PageTitle } from './PageTitle';
 import { PublicLayout } from './PublicLayout';
 import { HomeRedirect, RequireRole } from './RequireRole';
 
@@ -32,8 +33,23 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <HomeRedirect /> },
-      { path: 'classes', element: <AdminClassesPage /> },
-      { path: 'classes/:classId', element: <AdminClassPage /> },
+      // Admin pages are titled here; their files are out of this change's scope.
+      {
+        path: 'classes',
+        element: (
+          <PageTitle title="Lớp học">
+            <AdminClassesPage />
+          </PageTitle>
+        ),
+      },
+      {
+        path: 'classes/:classId',
+        element: (
+          <PageTitle title="Lớp học">
+            <AdminClassPage />
+          </PageTitle>
+        ),
+      },
     ],
   },
   {
@@ -50,7 +66,7 @@ export const routes: RouteObject[] = [
       { path: 'review-queue', element: <ReviewQueuePage /> },
       // Old TA home (one page of every lab); kept so bookmarks and links still work.
       { path: 'labs', element: <Navigate to="/ta/classes" replace /> },
-      { path: 'classes/:classId/labs/new', element: <CreateLabPage /> },
+      { path: 'classes/:classId/labs/new', element: <CreateLabRoute /> },
       { path: 'labs/:labId/review', element: <ReviewQueuePage /> },
     ],
   },

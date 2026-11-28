@@ -1,8 +1,9 @@
-import { useEffect, useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type ClipboardEvent, type SubmitEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
+import { usePageTitle } from '../../app/usePageTitle';
 import {
   Button,
   FormField,
@@ -20,6 +21,7 @@ import {
   type Classroom,
   type LabDetail,
 } from '../lab-authoring/lab-api';
+import { inviteCodeError } from './invite-code';
 
 /** GET /student/labs (get-student-judge-status.md 1.1.0). */
 interface StudentLab {
@@ -85,8 +87,11 @@ function JoinClassForm({ onJoined }: { onJoined: () => void }) {
     event.preventDefault();
     const inviteCode = code.trim();
     setProblem(undefined);
-    setError(inviteCode ? undefined : 'Nhập mã mời.');
-    if (!inviteCode) return;
+    // Empty and malformed codes are both reported under the field, before anything is sent;
+    // only a server answer (no class with this code) uses the alert below the button.
+    const invalid = inviteCodeError(inviteCode);
+    setError(invalid);
+    if (invalid) return;
     setPending(true);
     try {
       const classroom = await api.request<Classroom>('/classes/join', {
@@ -121,6 +126,19 @@ function JoinClassForm({ onJoined }: { onJoined: () => void }) {
           value={code}
           onChange={(e) => {
             setCode(e.target.value);
+            setError(undefined);
+          }}
+          onPaste={(e: ClipboardEvent<HTMLInputElement>) => {
+            // A code copied from a chat often carries spaces or a line break at either end.
+            const pasted = e.clipboardData.getData('text');
+            const trimmed = pasted.trim();
+            if (trimmed === pasted) return;
+            e.preventDefault();
+            const input = e.currentTarget;
+            const start = input.selectionStart ?? code.length;
+            const end = input.selectionEnd ?? code.length;
+            setCode(code.slice(0, start) + trimmed + code.slice(end));
+            setError(undefined);
           }}
         />
       </FormField>
@@ -140,6 +158,7 @@ export function StudentLabsPage() {
   const [problem, setProblem] = useState<ProblemDetails>();
   const [now] = useState(() => Date.now());
   const [reload, setReload] = useState(0);
+  usePageTitle('Đề bài');
 
   useEffect(() => {
     const abort = new AbortController();
@@ -223,24 +242,69 @@ export function StudentLabPage() {
     };
   }, [labId]);
 
+  // The student's own status for this lab (counted verdict), read after the statement; the
+  // header simply leaves it out if this request fails.
+  const [status, setStatus] = useState<StudentLab>();
+  const [now] = useState(() => Date.now());
+  useEffect(() => {
+    const abort = new AbortController();
+    async function load() {
+      const list = await api.request<StudentLab[]>('/student/labs', { signal: abort.signal });
+      if (!abort.signal.aborted) setStatus(list.find((item) => item.id === labId));
+    }
+    load().catch(() => {
+      // Optional line; the statement is what matters here.
+    });
+    return () => {
+      abort.abort();
+    };
+  }, [labId]);
+
+  usePageTitle(lab ? labTitle(lab.title) : 'Đề bài');
+
+  const back = (
+    <Link to="/student/labs" className="lk-back">
+      ← Đề bài
+    </Link>
+  );
   if (problem) {
     return (
       <section className="lk-section">
+        {back}
         <ProblemAlert problem={problem} />
         <Link to="/student/labs">Về danh sách đề bài</Link>
       </section>
     );
   }
-  if (!lab) return <p className="lk-page__note">Đang tải đề bài…</p>;
+  if (!lab) {
+    return (
+      <section className="lk-section">
+        {back}
+        <p className="lk-page__note">Đang tải đề bài…</p>
+      </section>
+    );
+  }
 
+  const submitPath = `/student/submit?lab=${encodeURIComponent(lab.id)}`;
   return (
     <article className="lk-section" aria-labelledby="lab-title">
       <header className="lk-section__head">
-        <h1 id="lab-title" className="lk-page__title">
-          {labTitle(lab.title)}
-        </h1>
+        {back}
+        <div className="lk-title-row">
+          <h1 id="lab-title" className="lk-page__title">
+            {labTitle(lab.title)}
+          </h1>
+          <Link className="lk-btn lk-btn--primary" to={submitPath}>
+            Nộp bài
+          </Link>
+        </div>
         <p className="lk-page__note">
-          Mở {formatDateTime(lab.opensAt)} · Hạn nộp {formatDateTime(lab.dueAt)}
+          {status ? (
+            <>
+              <LabStatus lab={status} now={now} /> ·{' '}
+            </>
+          ) : null}
+          Hạn nộp {formatDateTime(lab.dueAt)} · Mở {formatDateTime(lab.opensAt)}
         </p>
         <p className="lk-page__note">
           Giới hạn: CPU {lab.cpuTimeMs} ms · thời gian thực {lab.wallTimeMs} ms · bộ nhớ{' '}
@@ -286,10 +350,7 @@ export function StudentLabPage() {
       </section>
 
       <div>
-        <Link
-          className="lk-btn lk-btn--primary"
-          to={`/student/submit?lab=${encodeURIComponent(lab.id)}`}
-        >
+        <Link className="lk-btn lk-btn--primary" to={submitPath}>
           Đi tới trang nộp bài
         </Link>
       </div>

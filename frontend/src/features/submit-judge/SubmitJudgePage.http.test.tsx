@@ -34,7 +34,8 @@ describe('submitting on a plain HTTP deployment', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Nộp bài' }));
 
-    expect(await screen.findByText(id)).toBeInTheDocument();
+    // A10 (audit 2026-11-28): the id shows as its first 8 characters, the full id in `title`.
+    expect(await screen.findByTitle(id)).toHaveTextContent(/^00000000$/);
     const post = request.mock.calls.find(([, init]) => init?.method === 'POST');
     expect(new Headers(post?.[1]?.headers).get('Idempotency-Key')).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,

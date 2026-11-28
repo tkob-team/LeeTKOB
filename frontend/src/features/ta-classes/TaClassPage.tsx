@@ -3,7 +3,9 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
+import { CLASS_NOT_FOUND } from '../../app/not-found-text';
 import { NotFoundPage } from '../../app/NotFoundPage';
+import { usePageTitle } from '../../app/usePageTitle';
 import { InviteCode, ProblemAlert, useToast } from '../../components/ui';
 import type { Classroom, LabSummary } from '../lab-authoring/lab-api';
 import { LabTable } from '../lab-authoring/LabTable';
@@ -61,7 +63,10 @@ export function TaClassPage() {
     };
   }, [classId]);
 
-  if (problem && NOT_FOUND_TYPES.has(problem.type)) return <NotFoundPage />;
+  const notFound = problem !== undefined && NOT_FOUND_TYPES.has(problem.type);
+  usePageTitle(notFound ? undefined : (data?.classroom.name ?? 'Lớp của tôi'));
+
+  if (notFound) return <NotFoundPage {...CLASS_NOT_FOUND} />;
 
   const back = (
     <Link to="/ta/classes" className="lk-back">

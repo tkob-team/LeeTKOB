@@ -3,9 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../../api/client';
 import { localizedFieldErrors, problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
+import { usePageTitle } from '../../app/usePageTitle';
 import { Button, FormField, ProblemAlert } from '../../components/ui';
-import type { LabDetail, NewLab } from './lab-api';
-import { dateErrors, toIso, type DateErrors } from './lab-dates';
+import type { Classroom, LabDetail, NewLab } from './lab-api';
+import { toIso } from './lab-dates';
+import { errorSummary, labFormErrors } from './lab-form-check';
 import {
   importLabFiles,
   type DraftConstraint,
@@ -16,7 +18,7 @@ import {
 const EMPTY_TEST: DraftTest = { input: '', expectedOutput: '' };
 
 /** Moves the viewer to a field with an error: focus, and scroll it to the middle of the screen. */
-function reveal(input: HTMLInputElement | null) {
+function reveal(input: HTMLElement | null) {
   if (!input) return;
   input.focus();
   // Not every environment implements scrollIntoView (jsdom).
@@ -29,13 +31,19 @@ function replaceAt<T>(items: T[], index: number, next: T): T[] {
   return items.map((item, i) => (i === index ? next : item));
 }
 
-export function CreateLabPage() {
+export interface CreateLabPageProps {
+  /** The class, once CreateLabRoute has checked it; names the page and the way back. */
+  classroom?: Classroom;
+}
+
+export function CreateLabPage({ classroom }: CreateLabPageProps) {
   const { classId = '' } = useParams();
   const navigate = useNavigate();
+  const form = useRef<HTMLFormElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const opensAtInput = useRef<HTMLInputElement>(null);
-  const dueAtInput = useRef<HTMLInputElement>(null);
-  const [dateProblems, setDateProblems] = useState<DateErrors>({});
+  // Client-side errors by API field path ("title", "tests[0].expectedOutput").
+  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  usePageTitle(classroom ? `Tạo lab · ${classroom.name}` : 'Tạo lab');
   const [title, setTitle] = useState('');
   const [statementMd, setStatementMd] = useState('');
   const [opensAt, setOpensAt] = useState('');
@@ -47,19 +55,26 @@ export function CreateLabPage() {
   const [imported, setImported] = useState<ImportResult>();
   const [problem, setProblem] = useState<ProblemDetails>();
   const [pending, setPending] = useState(false);
-  const errors: Record<string, string> = { ...localizedFieldErrors(problem), ...dateProblems };
+  const errors: Record<string, string> = { ...localizedFieldErrors(problem), ...clientErrors };
+  const errorCount = Object.keys(errors).length;
 
-  /** A changed date drops the errors shown for both dates (client check and server answer). */
-  function clearDateErrors() {
-    setDateProblems({});
-    setProblem((current) =>
-      current?.errors
-        ? {
-            ...current,
-            errors: current.errors.filter((e) => e.field !== 'opensAt' && e.field !== 'dueAt'),
-          }
+  /** An edited field drops the errors shown for it (client check and server answer). */
+  function clearErrors(...fields: string[]) {
+    setClientErrors((current) =>
+      fields.some((field) => field in current)
+        ? Object.fromEntries(Object.entries(current).filter(([key]) => !fields.includes(key)))
         : current,
     );
+    setProblem((current) =>
+      current?.errors?.some((e) => fields.includes(e.field))
+        ? { ...current, errors: current.errors.filter((e) => !fields.includes(e.field)) }
+        : current,
+    );
+  }
+
+  /** A changed date drops the errors shown for both dates, since either may be the wrong one. */
+  function clearDateErrors() {
+    clearErrors('opensAt', 'dueAt');
   }
 
   async function importFiles(event: ChangeEvent<HTMLInputElement>) {
@@ -76,11 +91,20 @@ export function CreateLabPage() {
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    const invalidDates = dateErrors(opensAt, dueAt);
-    setDateProblems(invalidDates);
-    if (invalidDates.opensAt || invalidDates.dueAt) {
+    const invalid = labFormErrors({
+      title,
+      statementMd,
+      opensAt,
+      dueAt,
+      cpuTimeMs,
+      memoryMb,
+      tests,
+    });
+    setClientErrors(invalid);
+    const first = Object.keys(invalid)[0];
+    if (first !== undefined) {
       setProblem(undefined);
-      reveal(invalidDates.opensAt ? opensAtInput.current : dueAtInput.current);
+      reveal(form.current?.querySelector<HTMLElement>(`[data-field="${first}"]`) ?? null);
       return;
     }
     // toIso always ends in `Z`, so the server never has to guess the time zone.
@@ -117,14 +141,20 @@ export function CreateLabPage() {
 
   return (
     <form
+      ref={form}
       className="lk-section"
       noValidate
       aria-labelledby="create-lab-title"
       onSubmit={(e) => void submit(e)}
     >
       <header className="lk-section__head">
+        {classroom ? (
+          <Link to={`/ta/classes/${encodeURIComponent(classId)}`} className="lk-back">
+            ← {classroom.name}
+          </Link>
+        ) : null}
         <h1 id="create-lab-title" className="lk-page__title">
-          Tạo lab
+          {classroom ? `Tạo lab cho ${classroom.name}` : 'Tạo lab'}
         </h1>
         <p className="lk-page__note">
           Chọn cùng lúc file đề (.md), file ràng buộc (.json) và các file test (NN.in, NN.out). Sau
@@ -176,9 +206,13 @@ export function CreateLabPage() {
       <section className="lk-panel lk-form-panel" aria-label="Thông tin chung">
         <FormField label="Tiêu đề" error={errors.title}>
           <input
+            data-field="title"
+            required
+            aria-required="true"
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
+              clearErrors('title');
             }}
           />
         </FormField>
@@ -188,18 +222,22 @@ export function CreateLabPage() {
           help="Sinh viên thấy đề này khi lab mở."
         >
           <textarea
+            data-field="statementMd"
+            required
+            aria-required="true"
             className="lk-code-input"
             rows={12}
             value={statementMd}
             onChange={(e) => {
               setStatementMd(e.target.value);
+              clearErrors('statementMd');
             }}
           />
         </FormField>
         <div className="lk-cols">
           <FormField label="Mở lúc" error={errors.opensAt}>
             <input
-              ref={opensAtInput}
+              data-field="opensAt"
               type="datetime-local"
               required
               aria-required="true"
@@ -212,7 +250,7 @@ export function CreateLabPage() {
           </FormField>
           <FormField label="Hạn nộp" error={errors.dueAt}>
             <input
-              ref={dueAtInput}
+              data-field="dueAt"
               type="datetime-local"
               required
               aria-required="true"
@@ -231,21 +269,25 @@ export function CreateLabPage() {
             help="1000–5000, mặc định 1000. Thời gian thực = 3 × CPU."
           >
             <input
+              data-field="cpuTimeMs"
               type="number"
               inputMode="numeric"
               value={cpuTimeMs}
               onChange={(e) => {
                 setCpuTimeMs(e.target.value);
+                clearErrors('cpuTimeMs');
               }}
             />
           </FormField>
           <FormField label="Bộ nhớ (MB)" error={errors.memoryMb} help="64–512, mặc định 256.">
             <input
+              data-field="memoryMb"
               type="number"
               inputMode="numeric"
               value={memoryMb}
               onChange={(e) => {
                 setMemoryMb(e.target.value);
+                clearErrors('memoryMb');
               }}
             />
           </FormField>
@@ -354,11 +396,13 @@ export function CreateLabPage() {
                   error={errors[`${path}.expectedOutput`]}
                 >
                   <textarea
+                    data-field={`${path}.expectedOutput`}
                     className="lk-code-input"
                     rows={4}
                     value={test.expectedOutput}
                     onChange={(e) => {
                       update({ expectedOutput: e.target.value });
+                      clearErrors(`${path}.expectedOutput`);
                     }}
                   />
                 </FormField>
@@ -393,6 +437,9 @@ export function CreateLabPage() {
         <Button type="submit" variant="primary" disabled={pending} disabledReason="Đang tạo lab…">
           Tạo lab
         </Button>
+        <p className="lk-field__error" role="status">
+          {errorSummary(errorCount)}
+        </p>
       </div>
     </form>
   );

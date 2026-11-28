@@ -1,4 +1,4 @@
-import type { JudgeCode, ReviewQueueRow, Verdict } from '../../components/ui';
+import type { JudgeCode, Verdict } from '../../components/ui';
 
 /** Response of GET /labs/{labId}/review-queue (docs/contract/get-review-queue.md). */
 export interface ReviewQueuePage {
@@ -41,8 +41,22 @@ export interface ConstraintFinding {
   needsReview: boolean;
 }
 
-/** Table row plus the data the side panel needs. */
-export interface QueueRow extends ReviewQueueRow {
+export type FindingSource = NonNullable<ConstraintFinding['source']>;
+
+/** One table row (submission × constraint) plus the data the side panel needs. */
+export interface QueueRow {
+  id: string;
+  /** Short pseudonymous submission label (submissionLabel). */
+  submissionId: string;
+  constraint: string;
+  /** Marks deducted, as a positive number; shown with a minus sign. */
+  deduction: number;
+  /** API value; the table shows SOURCE_LABEL. */
+  source: FindingSource;
+  verdict: Verdict;
+  evidenceLines: number[];
+  /** Why the verdict is `unsure` (TA views only). */
+  unsureCause?: string;
   item: ReviewItem;
   finding: ConstraintFinding & { verdict: Verdict };
 }
@@ -55,10 +69,24 @@ export const UNSURE_CAUSE: Record<UnsureCause, string> = {
   cost_cap: 'Chạm hạn mức chi phí',
 };
 
-const SOURCE: Record<NonNullable<ConstraintFinding['source']>, ReviewQueueRow['source']> = {
-  hard_rule: 'hard rule',
-  model: 'model',
-  guardrail: 'guardrail',
+/**
+ * Vietnamese name of each finding source (the design system keeps only pass/violation/unsure
+ * and judge codes in English) and the sentence shown as its `title`. API values are unchanged.
+ */
+export const SOURCE_LABEL: Record<FindingSource, { label: string; title: string }> = {
+  hard_rule: {
+    label: 'Luật cứng',
+    title: 'Luật cố định của trình soát (hard_rule), không dùng mô hình.',
+  },
+  model: {
+    label: 'Mô hình',
+    title: 'Kết luận của mô hình ngôn ngữ (model); trợ giảng duyệt từng dòng.',
+  },
+  guardrail: {
+    label: 'Chặn an toàn',
+    title:
+      'Một giới hạn (hết thời gian, sai schema, bằng chứng không khớp, hạn mức chi phí) đã quyết định kết luận (guardrail).',
+  },
 };
 
 /**
@@ -106,7 +134,7 @@ export function toRows(items: ReviewItem[]): QueueRow[] {
         submissionId: submissionLabel(item.submissionId),
         constraint: `${finding.code} ${finding.text}`,
         deduction: finding.deduction,
-        source: SOURCE[source],
+        source,
         verdict,
         evidenceLines: finding.evidence.map((line) => line.line),
         unsureCause: finding.unsureCause ? UNSURE_CAUSE[finding.unsureCause] : undefined,

@@ -4,6 +4,7 @@ import { api } from '../../api/client';
 import { problemFrom } from '../../api/problem-message';
 import type { ProblemDetails } from '../../api/problem';
 import { EmptyState } from '../../app/EmptyState';
+import { usePageTitle } from '../../app/usePageTitle';
 import { InviteCode, ProblemAlert } from '../../components/ui';
 import type { Classroom, LabSummary } from '../lab-authoring/lab-api';
 import { countRole, taClassPath, type RosterEntry } from './ta-classes-api';
@@ -18,6 +19,7 @@ interface ClassSummary {
 export function TaClassesPage() {
   const [classes, setClasses] = useState<ClassSummary[]>();
   const [problem, setProblem] = useState<ProblemDetails>();
+  usePageTitle('Lớp của tôi');
 
   useEffect(() => {
     const abort = new AbortController();

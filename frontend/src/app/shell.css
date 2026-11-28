@@ -246,3 +246,49 @@
 .lk-auth__form > .lk-page__note {
   margin: 0;
 }
+
+/* Page fit at 375 px. A grid column sized `auto` grows to its widest child, so a wide table
+ * (TA lab table) or a long lab name in a <select> (Nộp bài) widened the whole page. These
+ * columns may shrink to 0; the table then scrolls inside its own frame. */
+.lk-section:has(.lk-table-frame),
+.lk-panel:has(> .lk-table-frame) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lk-table-frame {
+  min-width: 0;
+  max-width: 100%;
+}
+.lk-field select {
+  max-width: 100%;
+  min-width: 0;
+}
+.lk-submit {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lk-submit > form,
+.lk-submit .lk-field {
+  min-width: 0;
+}
+.lk-submit .lk-field {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lk-submit .lk-field select {
+  box-sizing: border-box;
+  width: 100%;
+}
+/* Submit page: the counted-submission note and the deadline under "Nộp bài". */
+.lk-submit__note {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.lk-submit__note > p {
+  margin: 0;
+}
+/* Short submission id with its copy button on one wrapping line. */
+.lk-submission-id {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
