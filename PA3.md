@@ -37,10 +37,20 @@ under "Các lần nộp cũ hơn (không tính điểm)".
 
 ### Admin and class membership
 
-- `admin@leetkob.test` signs in and lands on `/admin/classes`: the list of classes with the
-  invite code, the number of TAs and the number of students; a form to create a class; and
-  a TA picker per class to assign a TA. The picker reads `GET /admin/tas`
-  ([class API contract](docs/contract/classes.md), 1.1.0).
+- `admin@leetkob.test` signs in and lands on `/admin/classes` (class list): a form to create
+  a class (empty or longer than 200 characters is refused under the field before sending)
+  and one row per class with the class name linking to its page, every TA by name with the
+  email below (or "Chưa có trợ giảng"), the number of students, and the invite code with
+  "Sao chép". The list comes from one call, `GET /admin/classes`.
+- `/admin/classes/<id>` (class page): the invite code with "Sao chép", "Trợ giảng (n)" by name
+  and email, and "Sinh viên (n)" as a name and email table. To assign a TA, pick one in the
+  list (only TAs not yet in this class, shown as "Tên — email") and press "Gán": the page
+  says "Đã gán <tên>.", the TA appears in the list and leaves the picker. When every TA is
+  in the class the form is replaced by "Mọi trợ giảng đã được gán cho lớp này.". Members
+  come from `GET /admin/classes/<id>/members`, the picker from `GET /admin/tas`
+  ([class API contract](docs/contract/classes.md), 1.2.0). The TA's own roster
+  (`GET /classes/<id>/members`) still returns ids and roles only, so the review queue stays
+  anonymous.
 - A TA sees the invite code of their own classes on the TA lab page.
 - A student joins a class by entering the invite code on the student lab list.
 
