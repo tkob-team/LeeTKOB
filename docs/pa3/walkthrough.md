@@ -52,9 +52,13 @@ give each solution its own student and read the queue once.
    asks to confirm uploading its 16 files). On the empty form there is no question; wait for
    the toast "Đã nhập thư mục sort-merge: đề bài, 2 ràng buộc, 7 test." (bottom right, hides
    after 5 s). The form shows the title "Sorting with merge sort", C1 −3 and C2 −4, and
-   "Test (7)", each test numbered from its file ("Test 1 (01)"). A file outside the layout
-   (`statement.md`, `constraints.json`, `tests/NN.in`, `tests/NN.out`) is listed in the panel
-   "Cần xem lại sau khi nhập file", which stays on the page.
+   "Test (7)", each test numbered from its file ("Test 1 (01)"). The folder needs one statement
+   `.md` (`statement.md` if there are several), one constraints `.json` (`constraints.json`
+   likewise) and test pairs `NN.in`/`NN.out` at its top, in `tests/` or in any subfolder; a test
+   number found in two places is not taken. Other files are listed in one line of the panel
+   "Cần xem lại sau khi nhập file", which stays on the page. A kind the folder lacks stays as it
+   is on the form, and a "Lưu ý:" toast says so (for example "Thư mục <tên> không có file test
+   nào; test hiện có được giữ nguyên.").
    Without folder picking, use **Nhập từ file** twice: first `statement.md` and
    `constraints.json` (toast "Đã nhập từ file: đề bài và tiêu đề, 2 ràng buộc."), then the 14
    files of `tests/` (toast "Đã thêm 7 test (01–07), tổng 7 test."). Importing the same files
