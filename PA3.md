@@ -117,6 +117,8 @@ code with comments replaced by spaces (line numbers kept) and 8-digit student ID
 addresses masked ([checker/src/checker/redact.py](checker/src/checker/redact.py)). No
 solution id, file name or identity is sent. Tests:
 
+- `checker/tests/test_model_judge.py::test_sanitize_blanks_comments_and_keeps_line_numbers`
+- `checker/tests/test_model_limits.py::test_prompt_received_has_no_comments_and_no_student_id`
 - `checker/tests/test_redact_and_prices.py::test_ids_and_emails_are_masked_inside_string_and_char_literals_only`
 - `checker/tests/test_redact_and_prices.py::test_id_in_a_comment_disappears_with_the_comment`
 - `checker/tests/test_prompt.py::test_prompt_template_names_no_dev_problem_or_solution`
