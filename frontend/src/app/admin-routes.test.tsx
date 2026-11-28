@@ -77,6 +77,36 @@ describe('admin routes', () => {
     expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
   });
 
+  it('opens a class page from the list, inside the admin layout', async () => {
+    const id = '1b2c3d4e-0000-4000-8000-000000000001';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) => {
+        if (input === '/admin/classes') {
+          return Promise.resolve(
+            json([{ id, name: 'Web nâng cao', inviteCode: null, tas: [], studentCount: 0 }]),
+          );
+        }
+        if (input === `/classes/${id}`) {
+          return Promise.resolve(json({ id, name: 'Web nâng cao', inviteCode: null }));
+        }
+        return Promise.resolve(json([]));
+      }),
+    );
+    storeSession('admin', fakeToken('ADMIN'));
+    const router = renderAt('/admin/classes');
+    fireEvent.click(await screen.findByRole('link', { name: 'Web nâng cao' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Web nâng cao', level: 1 }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe(`/admin/classes/${id}`);
+    const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
+    expect(within(nav).getByRole('link', { name: 'Lớp học' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
   it('sends a signed-in admin from / and /admin to /admin/classes', async () => {
     stubFetch();
     storeSession('admin', fakeToken('ADMIN'));

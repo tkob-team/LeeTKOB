@@ -516,3 +516,18 @@ a.lk-btn {
   align-items: center;
   gap: var(--space-2);
 }
+/* Admin class page: back link and the TA picker beside its button. */
+.lk-back {
+  font-size: var(--small-font-size);
+  line-height: var(--small-line-height);
+}
+.lk-assign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.lk-assign .lk-field {
+  flex: 1 1 280px;
+  min-width: 0;
+}
